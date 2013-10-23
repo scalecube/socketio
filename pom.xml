@@ -4,7 +4,7 @@
 
 	<groupId>socketIo4Netty</groupId>
 	<artifactId>org.socketio.netty</artifactId>
-	<version>1.0.9</version>
+	<version>1.0.10-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<description>Socket.IO Java server based on Netty</description>
 	<inceptionYear>2012</inceptionYear>
