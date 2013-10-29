@@ -22,12 +22,6 @@
 	</licenses>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
-		</dependency>
 		
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -54,10 +48,20 @@
 			<version>1.6.4</version>
 		</dependency>
 		
+		<!-- Test scope -->
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+		
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.3</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
