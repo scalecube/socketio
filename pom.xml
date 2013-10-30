@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>socketIo4Netty</groupId>
-	<artifactId>org.socketio.netty</artifactId>
+	<groupId>com.github.socketIo4Netty</groupId>
+	<artifactId>socketIo4Netty</artifactId>
 	<version>1.0.10-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<description>Socket.IO Java server based on Netty</description>
