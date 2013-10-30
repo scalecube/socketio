@@ -1,13 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
 	<version>1.0.10-SNAPSHOT</version>
 	<packaging>bundle</packaging>
+	<name>socketIo4Netty</name>
 	<description>Socket.IO Java server based on Netty</description>
 	<inceptionYear>2012</inceptionYear>
+	<url>https://github.com/socketIo4Netty/socketIo4Netty</url>
+	
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,55 +28,64 @@
 		</license>
 	</licenses>
 
+	<scm>
+		<connection>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</connection>
+		<developerConnection>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</developerConnection>
+		<url>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>antonkharenko</id>
+			<name>Anton Kharenko</name>
+			<email>a.kharenko@gmail.com</email>
+		</developer>
+		<developer>
+			<id>ronenhamias</id>
+			<name>Ronen Hamias</name>
+		</developer>
+	</developers>
+
 	<dependencies>
-		
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId>
 			<version>3.6.3.Final</version>
 			<scope>compile</scope>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-core-asl</artifactId>
 			<version>1.9.6</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.9.6</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.4</version>
+			<version>1.7.5</version>
 		</dependency>
-		
+
 		<!-- Test scope -->
-		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
-		
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.13</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
-
 
 	<build>
 		<plugins>
-			
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -80,7 +96,6 @@
 					</instructions>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
@@ -90,7 +105,6 @@
 					<forceRecheck>true</forceRecheck>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
@@ -111,7 +125,6 @@
 					<verbose>true</verbose>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
@@ -122,7 +135,6 @@
 					<showDeprecations>true</showDeprecations>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -135,7 +147,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>com.mycila.maven-license-plugin</groupId>
 				<artifactId>maven-license-plugin</artifactId>
@@ -171,8 +182,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
-
 </project>
