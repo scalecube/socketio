@@ -9,7 +9,7 @@
 	<description>Socket.IO Java server based on Netty</description>
 	<inceptionYear>2012</inceptionYear>
 	<url>https://github.com/socketIo4Netty/socketIo4Netty</url>
-	
+
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
@@ -128,6 +128,19 @@
 					<optimize>true</optimize>
 					<showDeprecations>true</showDeprecations>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
