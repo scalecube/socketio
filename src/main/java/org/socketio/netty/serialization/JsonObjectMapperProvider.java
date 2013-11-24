@@ -18,7 +18,6 @@ package org.socketio.netty.serialization;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-// TODO: check support with Gson
 public final class JsonObjectMapperProvider {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
