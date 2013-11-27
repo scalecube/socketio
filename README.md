@@ -18,3 +18,14 @@ How to use
 ```
 
 For more examples, see [socketIo4Netty-examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
+
+Maven
+----------------------
+
+``` maven
+<dependency>
+	<groupId>com.github.socketIo4Netty</groupId>
+	<artifactId>socketIo4Netty</artifactId>
+	<version>1.0.10</version>
+</dependency>
+```
