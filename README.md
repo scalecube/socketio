@@ -23,7 +23,7 @@ How to use
 	socketIoServer.start();
 ```
 
-For more examples, see [socketIo4Netty-examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
+For more examples, see [SocketIo4Netty Examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
 
 Maven
 ----------------------
