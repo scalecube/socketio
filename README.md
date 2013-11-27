@@ -1,7 +1,13 @@
 SocketIo4Netty
 =======================
 
-SocketIo4Netty is a simple Socket.IO Java server implementation based on Netty.
+SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
+[Netty](http://netty.io) server framework. Supports 0.7+ up to latest 0.9.12 versions of 
+Socket.IO-client.
+
+Supported transport protocols:
+* WebSocket
+* XHR-Polling 
 
 How to use
 -----------------------
