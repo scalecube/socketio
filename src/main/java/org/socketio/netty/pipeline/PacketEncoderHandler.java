@@ -51,7 +51,7 @@ import org.socketio.netty.serialization.PacketFramer;
  * @author Ronen Hamias, Anton Kharenko
  * 
  */
-public class SocketIOPacketEncoder extends OneToOneEncoder {
+public class PacketEncoderHandler extends OneToOneEncoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 

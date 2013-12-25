@@ -35,19 +35,19 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private static final int PROTOCOL = 1;
 	private static final String CONNECT_PATH = "/socket.io/" + PROTOCOL + "/";
 
-	private static final SocketIOPacketEncoder packetEncoder = new SocketIOPacketEncoder();
-	private static final SocketIOXHRPollingConnectHandler xhrConnectionHanler = new SocketIOXHRPollingConnectHandler(
+	private static final PacketEncoderHandler packetEncoder = new PacketEncoderHandler();
+	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(
 			CONNECT_PATH);
-	private static final SocketIOXHRPollingPacketDecoder xhrPacketDecoder = new SocketIOXHRPollingPacketDecoder();
+	private static final XHRPollingPacketDecoderHandler xhrPacketDecoder = new XHRPollingPacketDecoderHandler();
 	private static final ExecutionHandler executionHandler = new ExecutionHandler(
 			new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576));
-	private static final SocketIODisconnectionHandler disconnectionHanler = new SocketIODisconnectionHandler();
+	private static final DisconnectHandler disconnectionHanler = new DisconnectHandler();
 
 	private final SocketIOSessionFactory sessionFactory;
-	private final SocketIOWebsocketHandler websocketHandler;
-	private final SocketIOHandshakeHandler handshakeHanler;
-	private final SocketIOHeartbeatHandler heartbeatHandler;
-	private final SocketIOPacketDispatcher dispatcher;
+	private final WebsocketHandler websocketHandler;
+	private final HandshakeHandler handshakeHanler;
+	private final HeartbeatHandler heartbeatHandler;
+	private final PacketDispatcherHandler dispatcher;
 	private final SSLContext sslContext;
 
 	public SocketIOPipelineFactory(final ISocketIOListener listener,
@@ -55,15 +55,15 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			final String transports, final SSLContext sslContext,
 			final boolean alwaysSecureWebSocketLocation, final int localPort) {
 		sessionFactory = new SocketIOSessionFactory(localPort);
-		handshakeHanler = new SocketIOHandshakeHandler(CONNECT_PATH,
+		handshakeHanler = new HandshakeHandler(CONNECT_PATH,
 				heartbeatTimeout, closeTimeout, transports);
-		heartbeatHandler = new SocketIOHeartbeatHandler(sessionFactory);
-		dispatcher = new SocketIOPacketDispatcher(sessionFactory, listener);
+		heartbeatHandler = new HeartbeatHandler(sessionFactory);
+		dispatcher = new PacketDispatcherHandler(sessionFactory, listener);
 		this.sslContext = sslContext;
 
 		final boolean secure = (sslContext != null)
 				|| alwaysSecureWebSocketLocation;
-		websocketHandler = new SocketIOWebsocketHandler(CONNECT_PATH, secure);
+		websocketHandler = new WebsocketHandler(CONNECT_PATH, secure);
 	}
 
 	@Override

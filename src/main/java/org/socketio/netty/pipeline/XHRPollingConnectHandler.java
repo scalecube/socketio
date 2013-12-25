@@ -27,13 +27,13 @@ import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 
-public class SocketIOXHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
+public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private final String xhrPollingConnectPath;
 
-	public SocketIOXHRPollingConnectHandler(final String connectPath) {
+	public XHRPollingConnectHandler(final String connectPath) {
 		this.xhrPollingConnectPath = connectPath + "xhr-polling";
 	}
 

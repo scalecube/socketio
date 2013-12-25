@@ -22,11 +22,11 @@ import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.session.IInternalSession;
 
-public class SocketIOHeartbeatHandler extends SimpleChannelUpstreamHandler {
+public class HeartbeatHandler extends SimpleChannelUpstreamHandler {
 	
 	private final SocketIOSessionFactory sessionFactory;
 	
-	public SocketIOHeartbeatHandler(SocketIOSessionFactory sessionFactory) {
+	public HeartbeatHandler(SocketIOSessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
 	

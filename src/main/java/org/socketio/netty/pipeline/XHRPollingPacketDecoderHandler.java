@@ -43,7 +43,7 @@ import org.socketio.netty.serialization.PacketFramer;
  * 
  * @author Ronen Hamias, Anton Kharenko
  */
-public class SocketIOXHRPollingPacketDecoder extends OneToOneDecoder {
+public class XHRPollingPacketDecoderHandler extends OneToOneDecoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 

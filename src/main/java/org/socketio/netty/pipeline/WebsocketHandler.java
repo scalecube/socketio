@@ -48,7 +48,7 @@ import org.socketio.netty.serialization.PacketDecoder;
  * @author Anton Kharenko
  *
  */
-public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
+public class WebsocketHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -56,7 +56,7 @@ public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
 	private final String connectWebsocketPath;
 	private final boolean secure;
 	
-	public SocketIOWebsocketHandler(String connectPath, boolean secure){
+	public WebsocketHandler(String connectPath, boolean secure){
 		this.connectWebsocketPath = connectPath + "websocket";
 		this.secure = secure;
 	}

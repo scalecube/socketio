@@ -32,7 +32,7 @@ import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.session.IInternalSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
 
-public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
+public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -40,7 +40,7 @@ public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler imple
 	
 	private final ISocketIOListener listener;
 	
-	public SocketIOPacketDispatcher(SocketIOSessionFactory sessionFactory, ISocketIOListener listener) {
+	public PacketDispatcherHandler(SocketIOSessionFactory sessionFactory, ISocketIOListener listener) {
 		this.sessionFactory = sessionFactory;
 		this.listener = listener;
 	}

@@ -44,7 +44,7 @@ import org.socketio.netty.packets.PacketType;
  * <p/>
  * The server must respond with 200 OK, or 500 if a problem is detected.
  */
-public class SocketIODisconnectionHandler extends SimpleChannelUpstreamHandler {
+public class DisconnectHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 

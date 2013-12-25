@@ -111,14 +111,14 @@ import org.socketio.netty.serialization.JsonObjectMapperProvider;
  * @author Anton Kharenko, Ronen Hamias
  * 
  */
-public class SocketIOHandshakeHandler extends SimpleChannelUpstreamHandler {
+public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final String connectPath;
 	private final String commonHandshakeParameters;
 
-	public SocketIOHandshakeHandler(final String connectPath, final int heartbeatTimeout, final int closeTimeout, final String transports) {
+	public HandshakeHandler(final String connectPath, final int heartbeatTimeout, final int closeTimeout, final String transports) {
 		this.connectPath = connectPath;
 		commonHandshakeParameters = ":" + heartbeatTimeout + ":" + closeTimeout + ":" + transports;
 	}
