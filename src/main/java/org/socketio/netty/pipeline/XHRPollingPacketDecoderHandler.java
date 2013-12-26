@@ -20,6 +20,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -43,6 +44,7 @@ import org.socketio.netty.serialization.PacketFramer;
  * 
  * @author Ronen Hamias, Anton Kharenko
  */
+@Sharable
 public class XHRPollingPacketDecoderHandler extends OneToOneDecoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());

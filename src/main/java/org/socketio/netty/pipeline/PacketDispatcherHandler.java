@@ -21,6 +21,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.ISession;
@@ -33,6 +34,7 @@ import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
 import org.socketio.netty.storage.SessionStorage;
 
+@Sharable
 public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());

@@ -16,7 +16,17 @@
 package org.socketio.netty;
 
 public enum TransportType {
-	XHR_POLLING,
-	WEBSOCKET,
-	FLASHSOCKET
+	XHR_POLLING("xhr-polling"),
+	WEBSOCKET("websocket"),
+	FLASHSOCKET("flashsocket");
+	
+	private final String name;
+
+	TransportType(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

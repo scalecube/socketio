@@ -18,11 +18,13 @@ package org.socketio.netty.pipeline;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.storage.SessionStorage;
 
+@Sharable
 public class HeartbeatHandler extends SimpleChannelUpstreamHandler {
 	
 	private final SessionStorage sessionFactory;

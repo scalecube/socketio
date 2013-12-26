@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
@@ -48,7 +49,8 @@ import org.socketio.netty.serialization.PacketDecoder;
  * @author Anton Kharenko
  *
  */
-public class WebsocketHandler extends SimpleChannelUpstreamHandler {
+@Sharable
+public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -56,8 +58,8 @@ public class WebsocketHandler extends SimpleChannelUpstreamHandler {
 	private final String connectWebsocketPath;
 	private final boolean secure;
 	
-	public WebsocketHandler(String connectPath, boolean secure){
-		this.connectWebsocketPath = connectPath + "websocket";
+	public WebSocketHandler(String connectPath, boolean secure){
+		this.connectWebsocketPath = connectPath + TransportType.WEBSOCKET.getName();
 		this.secure = secure;
 	}
 

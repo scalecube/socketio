@@ -19,6 +19,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 
+@Sharable
 public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -34,7 +36,7 @@ public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 	private final String xhrPollingConnectPath;
 
 	public XHRPollingConnectHandler(final String connectPath) {
-		this.xhrPollingConnectPath = connectPath + "xhr-polling";
+		this.xhrPollingConnectPath = connectPath + TransportType.XHR_POLLING.getName();
 	}
 
 	@Override
