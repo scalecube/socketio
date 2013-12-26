@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.socketio.netty.memoizer;
+package org.socketio.netty.storage.memoizer;
 
 import java.security.InvalidParameterException;
 import java.util.concurrent.Callable;

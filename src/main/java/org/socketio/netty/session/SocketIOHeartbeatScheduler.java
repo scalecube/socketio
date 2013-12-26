@@ -25,13 +25,13 @@ public class SocketIOHeartbeatScheduler {
 	
 	private static ScheduledExecutorService executorService;
 	
-	private final IInternalSession session;
+	private final IManagedSession session;
 	
 	private ScheduledFuture<?> future = null;
 	
 	private volatile boolean disabled = false;
 	
-	public SocketIOHeartbeatScheduler(final IInternalSession session) {
+	public SocketIOHeartbeatScheduler(final IManagedSession session) {
 		this.session = session;
 	}
 

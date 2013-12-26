@@ -29,18 +29,19 @@ import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.session.IInternalSession;
+import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
+import org.socketio.netty.storage.SessionStorage;
 
 public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final SocketIOSessionFactory sessionFactory;
+	private final SessionStorage sessionFactory;
 	
 	private final ISocketIOListener listener;
 	
-	public PacketDispatcherHandler(SocketIOSessionFactory sessionFactory, ISocketIOListener listener) {
+	public PacketDispatcherHandler(SessionStorage sessionFactory, ISocketIOListener listener) {
 		this.sessionFactory = sessionFactory;
 		this.listener = listener;
 	}
@@ -80,12 +81,12 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 	public void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
 			ConnectPacket connectPacket = (ConnectPacket) packet;
-			final IInternalSession session = sessionFactory.getSession(connectPacket, channel, this);
+			final IManagedSession session = sessionFactory.getSession(connectPacket, channel, this);
 			onConnectPacket(channel, session);
 		} else if (packet instanceof Packet){
 			Packet message = (Packet) packet;
 			final String sessionId = packet.getSessionId(); 
-			final IInternalSession session = sessionFactory.getSessionIfExist(sessionId);
+			final IManagedSession session = sessionFactory.getSessionIfExist(sessionId);
 			if (session != null) {
 				onPacket(channel, session, message);
 			}
@@ -94,14 +95,14 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 		}
 	}
 
-	private void onConnectPacket(final Channel channel, final IInternalSession session) {
+	private void onConnectPacket(final Channel channel, final IManagedSession session) {
 		boolean initialConnect = session.connect(channel);
 		if (initialConnect && listener != null) {
 			listener.onConnect(session);
 		}
 	}
 
-	private void onPacket(final Channel channel, final IInternalSession session, final Packet packet) {
+	private void onPacket(final Channel channel, final IManagedSession session, final Packet packet) {
 		if (packet.getType() == PacketType.DISCONNECT) {
 			session.disconnect(channel);
 		} else {

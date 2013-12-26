@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty.pipeline;
+package org.socketio.netty.storage;
 
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
-import org.socketio.netty.memoizer.Computable;
-import org.socketio.netty.memoizer.MemoizerConcurrentMap;
 import org.socketio.netty.packets.ConnectPacket;
-import org.socketio.netty.session.IInternalSession;
+import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
 import org.socketio.netty.session.websocket.WebsocketSession;
 import org.socketio.netty.session.xhr.XHRPollingSession;
+import org.socketio.netty.storage.memoizer.Computable;
+import org.socketio.netty.storage.memoizer.MemoizerConcurrentMap;
 
 /**
  * 
  * @author Anton Kharenko
  * 
  */
-public class SocketIOSessionFactory {
+public class SessionStorage {
 
-	private final MemoizerConcurrentMap<String, IInternalSession> sessionsMemoizer = new MemoizerConcurrentMap<String, IInternalSession>();
+	private final MemoizerConcurrentMap<String, IManagedSession> sessionsMemoizer = new MemoizerConcurrentMap<String, IManagedSession>();
 	
 	private final int localPort;
 	
-	public SocketIOSessionFactory(int localPort) {
+	public SessionStorage(int localPort) {
 		this.localPort = localPort;
 	}
 
@@ -48,11 +48,11 @@ public class SocketIOSessionFactory {
 		sessionsMemoizer.remove(sessionId);
 	}
 
-	public IInternalSession getSession(final ConnectPacket connectPacket,
+	public IManagedSession getSession(final ConnectPacket connectPacket,
 			final Channel channel,
 			final ISessionDisconnectHandler disconnectHandler) throws Exception {
 		
-		IInternalSession session = createSession(connectPacket, channel, disconnectHandler, null);
+		IManagedSession session = createSession(connectPacket, channel, disconnectHandler, null);
 		
 		// If transport protocol was changed then remove old session and create new one instead
 		if (connectPacket.getTransportType() != session.getTransportType()) {
@@ -65,7 +65,7 @@ public class SocketIOSessionFactory {
 		return session;
 	}
 	
-	private IInternalSession createSession(final ConnectPacket connectPacket,
+	private IManagedSession createSession(final ConnectPacket connectPacket,
 			final Channel channel,
 			final ISessionDisconnectHandler disconnectHandler,
 			final TransportType upgradedFromTransportType) throws Exception {
@@ -74,9 +74,9 @@ public class SocketIOSessionFactory {
 		final String origin = connectPacket.getOrigin();
 		try {
 			return sessionsMemoizer.get(sessionId,
-					new Computable<String, IInternalSession>() {
+					new Computable<String, IManagedSession>() {
 						@Override
-						public IInternalSession compute(String sessionId) 	throws Exception {
+						public IManagedSession compute(String sessionId) 	throws Exception {
 							if (transportType == TransportType.WEBSOCKET) {
 								return new WebsocketSession(channel, sessionId,
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
@@ -93,8 +93,8 @@ public class SocketIOSessionFactory {
 		}
 	}
 
-	public IInternalSession getSessionIfExist(final String sessionId) {
-		IInternalSession session = null;
+	public IManagedSession getSessionIfExist(final String sessionId) {
+		IManagedSession session = null;
 		try {
 			session = sessionsMemoizer.containsKey(sessionId) ? sessionsMemoizer
 					.get(sessionId) : null;

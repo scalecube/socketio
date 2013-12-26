@@ -30,13 +30,7 @@ import org.socketio.netty.pipeline.SocketIOPipelineFactory;
 import org.socketio.netty.session.SocketIOHeartbeatScheduler;
 
 /**
- * A Socket.IO server which supports:
- * 
- * <ul>
- * <li>Supports 0.7+ version of Socket.IO-client up to latest - 0.9.6</li>
- * <li>Supports xhr-polling transport</li>
- * <li>Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)</li>
- * </ul>
+ * A Socket.IO server launcher class.
  * 
  * @author Anton Kharenko
  */

@@ -29,6 +29,7 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.socketio.netty.ISocketIOListener;
+import org.socketio.netty.storage.SessionStorage;
 
 public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
@@ -43,7 +44,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private static final DisconnectHandler disconnectionHanler = new DisconnectHandler();
 	private static final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
 
-	private final SocketIOSessionFactory sessionFactory;
+	private final SessionStorage sessionFactory;
 	private final WebsocketHandler websocketHandler;
 	private final HandshakeHandler handshakeHanler;
 	private final HeartbeatHandler heartbeatHandler;
@@ -54,7 +55,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			final int heartbeatTimeout, final int closeTimeout,
 			final String transports, final SSLContext sslContext,
 			final boolean alwaysSecureWebSocketLocation, final int localPort) {
-		sessionFactory = new SocketIOSessionFactory(localPort);
+		sessionFactory = new SessionStorage(localPort);
 		handshakeHanler = new HandshakeHandler(CONNECT_PATH,
 				heartbeatTimeout, closeTimeout, transports);
 		heartbeatHandler = new HeartbeatHandler(sessionFactory);
