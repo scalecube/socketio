@@ -29,12 +29,14 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.socketio.netty.ISocketIOListener;
+import org.socketio.netty.TransportType;
 import org.socketio.netty.storage.SessionStorage;
 
 public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
 	private static final int PROTOCOL = 1;
-	private static final String CONNECT_PATH = "/socket.io/" + PROTOCOL + "/";
+	private static final String CONTEXT_PATH = "/socket.io";
+	private static final String CONNECT_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
 
 	private static final PacketEncoderHandler packetEncoderHandler = new PacketEncoderHandler();
 	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(CONNECT_PATH);
@@ -43,6 +45,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576));
 	private static final DisconnectHandler disconnectionHanler = new DisconnectHandler();
 	private static final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
+	private static final ResourceHandler resourceHandler = new ResourceHandler(CONTEXT_PATH);
 
 	private final SessionStorage sessionFactory;
 	private final WebSocketHandler websocketHandler;
@@ -50,6 +53,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private final HeartbeatHandler heartbeatHandler;
 	private final PacketDispatcherHandler packetDispatcherHandler;
 	private final SSLContext sslContext;
+	private final boolean isFlashSupported;
 
 	public SocketIOPipelineFactory(
 			final ISocketIOListener listener,
@@ -67,6 +71,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
 		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
 		websocketHandler = new WebSocketHandler(CONNECT_PATH, secure);
+		
+		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
 	}
 
 	@Override
@@ -74,7 +80,9 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		ChannelPipeline pipeline = pipeline();
 
 		//TODO: Is flash policy handler should be before SSL handler or after?
-		pipeline.addLast("flash-policy", flashPolicyHandler);
+		if (isFlashSupported) {
+			pipeline.addLast("flash-policy", flashPolicyHandler);
+		}
 		
 		/*
 		 * SSL
@@ -105,8 +113,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast("http-request-decoder", new HttpRequestDecoder());
 		pipeline.addLast("http-chunk-aggregator", new HttpChunkAggregator(1048576));
 		
-		//TODO: For testing
-		pipeline.addLast("resource-handler", new ResourceHandler("/socket.io"));
+		// Static content (.SWF files) for flash sockets  
+		if (isFlashSupported) {
+			pipeline.addLast("resource-handler", resourceHandler);
+		}
 		
 		// Socket.IO upstream
 		pipeline.addLast("socketio-handshake-handler", handshakeHanler);
