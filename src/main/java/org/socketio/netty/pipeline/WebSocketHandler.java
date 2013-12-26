@@ -76,8 +76,8 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
     			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
     			final String requestPath = queryDecoder.getPath();
     			
-    			log.debug("Received HTTP {} handshake request: {} {} from channel: {}", new Object[] {
-    					getTransportType().getName(), req.getMethod(), requestPath, ctx.getChannel()});
+    			log.debug("Received HTTP {} handshake request: {} {} from channel: {}", 
+    					getTransportType().getName(), req.getMethod(), requestPath, ctx.getChannel());
     			
     			boolean handshakeSuccess = handshake(ctx, req);
     			if (handshakeSuccess) {
@@ -86,11 +86,15 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
     			}
     			return;
     		}
-        } else if (msg instanceof WebSocketFrame) {
+        } else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
             handleWebSocketFrame(ctx, (WebSocketFrame) msg);
             return;
         }
         ctx.sendUpstream(e);
+	}
+	
+	private boolean isCurrentHandlerSession(ChannelHandlerContext ctx) {
+		return sessionIdByChannel.containsKey(ctx.getChannel().getId());
 	}
 	
 	@Override
@@ -126,7 +130,8 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
-		// Check for closing frame
+		log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.getChannel());
+		
         if (msg instanceof CloseWebSocketFrame) {
         	sessionIdByChannel.remove(ctx.getChannel().getId());
             ChannelFuture f = ctx.getChannel().write(msg);
