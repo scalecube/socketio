@@ -36,12 +36,12 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private static final String CONNECT_PATH = "/socket.io/" + PROTOCOL + "/";
 
 	private static final PacketEncoderHandler packetEncoder = new PacketEncoderHandler();
-	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(
-			CONNECT_PATH);
+	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(CONNECT_PATH);
 	private static final XHRPollingPacketDecoderHandler xhrPacketDecoder = new XHRPollingPacketDecoderHandler();
 	private static final ExecutionHandler executionHandler = new ExecutionHandler(
 			new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576));
 	private static final DisconnectHandler disconnectionHanler = new DisconnectHandler();
+	private static final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
 
 	private final SocketIOSessionFactory sessionFactory;
 	private final WebsocketHandler websocketHandler;
@@ -61,8 +61,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		dispatcher = new PacketDispatcherHandler(sessionFactory, listener);
 		this.sslContext = sslContext;
 
-		final boolean secure = (sslContext != null)
-				|| alwaysSecureWebSocketLocation;
+		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
 		websocketHandler = new WebsocketHandler(CONNECT_PATH, secure);
 	}
 
@@ -70,6 +69,9 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	public final ChannelPipeline getPipeline() throws Exception {
 		ChannelPipeline pipeline = pipeline();
 
+		//TODO: Is flash policy handler should be before SSL handler or after?
+		pipeline.addLast("flash-policy", flashPolicyHandler);
+		
 		/*
 		 * SSL
 		 */
@@ -97,9 +99,11 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
 		// HTTP upstream
 		pipeline.addLast("http-request-decoder", new HttpRequestDecoder());
-		pipeline.addLast("http-chunk-aggregator", new HttpChunkAggregator(
-				1048576));
-
+		pipeline.addLast("http-chunk-aggregator", new HttpChunkAggregator(1048576));
+		
+		//TODO: For testing
+		pipeline.addLast("resource-handler", new ResourceHandler("/socket.io"));
+		
 		// Socket.IO upstream
 		pipeline.addLast("socketio-handshake-handler", handshakeHanler);
 		pipeline.addLast("socketio-disconnection-handler", disconnectionHanler);

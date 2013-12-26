@@ -104,7 +104,7 @@ public class WebsocketHandler extends SimpleChannelUpstreamHandler {
 	
 	private String getWebSocketLocation(HttpRequest req, String sessionId) {
 		String protocol = secure ? "wss://" : "ws://";
-		String webSocketLocation = protocol + req.getHeader(HttpHeaders.Names.HOST) + connectWebsocketPath + "/" + sessionId;
+		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + connectWebsocketPath + "/" + sessionId;
 		log.info("Created web socket at: {}", webSocketLocation);
 		return webSocketLocation;
 	}
