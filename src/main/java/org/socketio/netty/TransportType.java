@@ -17,5 +17,6 @@ package org.socketio.netty;
 
 public enum TransportType {
 	XHR_POLLING,
-	WEBSOCKET
+	WEBSOCKET,
+	FLASHSOCKET
 }
