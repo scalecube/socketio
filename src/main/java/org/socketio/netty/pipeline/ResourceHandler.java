@@ -63,9 +63,7 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
 
     private final Map<String, URL> resources = new HashMap<String, URL>();
 
-    public ResourceHandler(String context) {
-        addResource(context + "/static/flashsocket/WebSocketMain.swf", "/static/flashsocket/WebSocketMain.swf");
-        addResource(context + "/static/flashsocket/WebSocketMainInsecure.swf", "/static/flashsocket/WebSocketMainInsecure.swf");
+    public ResourceHandler() {
     }
 
     public void addResource(String pathPart, String resourcePath) {
@@ -114,7 +112,7 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
                 Channels.write(ctx.getChannel(), res);
 
                 // write the content stream
-                ctx.getPipeline().addBefore("resource-handler", "chunkedWriter", new ChunkedWriteHandler());
+                ctx.getPipeline().addBefore(ctx.getName(), "chunked-writer-handler", new ChunkedWriteHandler());
                 ChannelFuture writeFuture = ctx.getChannel().write(new ChunkedStream(is, fileUrl.getContentLength()));
                 // add operation complete listener so we can close the channel and the input stream
                 writeFuture.addListener(ChannelFutureListener.CLOSE);

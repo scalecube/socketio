@@ -17,6 +17,8 @@ package org.socketio.netty.pipeline;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.util.concurrent.Executor;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
@@ -33,26 +35,52 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.storage.SessionStorage;
 
 public class SocketIOPipelineFactory implements ChannelPipelineFactory {
-
+	
+	// Handler names
+	public static final String FLASH_POLICY_HANDLER = "flash-policy-handler";
+	public static final String SSL_HANDLER = "ssl-handler";
+	public static final String HTTP_REPONSE_ENCODER = "http-response-encoder";
+	public static final String HTTP_REQUEST_DECODER = "http-request-decoder";
+	public static final String HTTP_CHUNK_AGGREGATOR = "http-chunk-aggregator";
+	public static final String FLASH_RESOURCE_HANDLER = "flash-resource-handler";
+	public static final String SOCKETIO_PACKET_ENCODER = "socketio-packet-encoder";
+	public static final String SOCKETIO_HANDSHAKE_HANDLER = "socketio-handshake-handler";
+	public static final String SOCKETIO_DISCONNECT_HANDLER = "socketio-disconnect-handler";
+	public static final String SOCKETIO_WEBSOCKET_HANDLER = "socketio-websocket-handler";
+	public static final String SOCKETIO_FLASHSOCKET_HANDLER = "socketio-flashsocket-handler";
+	public static final String SOCKETIO_XHR_CONNECT_HANDLER = "socketio-xhr-connect-handler";
+	public static final String SOCKETIO_XHR_PACKET_DECODER = "socketio-xhr-packet-decoder";
+	public static final String SOCKETIO_HEARTBEAT_HANDLER = "socketio-heartbeat-handler";
+	public static final String EXECUTION_HANDLER = "execution-handler";
+	public static final String SOCKETIO_PACKET_DISPATCHER = "socketio-packet-dispatcher";
+	
+	// Constant parameters
 	private static final int PROTOCOL = 1;
 	private static final String CONTEXT_PATH = "/socket.io";
 	private static final String HANDSHAKE_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
+	private static final int MAX_HTTP_CONTENT_LENGTH = 1048576;
+	private static final String FLASH_SOCKET_RESOURCE_PATH = "/static/flashsocket/WebSocketMain.swf";
+	private static final String FLASH_SOCKET_INSECURE_RESOURCE_PATH = "/static/flashsocket/WebSocketMainInsecure.swf";
+	private static final int EXECUTOR_CORE_POOL_SIZE = 16;
+	private static final long EXECUTOR_MAX_CHANNEL_MEMORY_SIZE = 1048576L;
+	private static final long EXECUTOR_MAX_TOTAL_MEMORY_SIZE = 1048576L;
 
-	private static final PacketEncoderHandler packetEncoderHandler = new PacketEncoderHandler();
-	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(HANDSHAKE_PATH);
-	private static final XHRPollingPacketDecoderHandler xhrPacketDecoderHandler = new XHRPollingPacketDecoderHandler();
-	private static final ExecutionHandler executionHandler = new ExecutionHandler(
-			new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576));
-	private static final DisconnectHandler disconnectionHanler = new DisconnectHandler();
-	private static final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
-	private static final ResourceHandler resourceHandler = new ResourceHandler(CONTEXT_PATH);
-
-	private final SessionStorage sessionFactory;
+	// Sharable handlers
+	private final FlashPolicyHandler flashPolicyHandler;
+	private final ResourceHandler flashResourceHandler;
+	private final PacketEncoderHandler packetEncoderHandler;
+	private final HandshakeHandler handshakeHanler;
+	private final DisconnectHandler disconnectHanler;
 	private final WebSocketHandler webSocketHandler;
 	private final FlashSocketHandler flashSocketHandler;
-	private final HandshakeHandler handshakeHanler;
+	private final XHRPollingConnectHandler xhrConnectionHanler;
+	private final XHRPollingPacketDecoderHandler xhrPacketDecoderHandler;
 	private final HeartbeatHandler heartbeatHandler;
+	private final ExecutionHandler executionHandler;
 	private final PacketDispatcherHandler packetDispatcherHandler;
+	
+	// State variables
+	private final SessionStorage sessionFactory;
 	private final SSLContext sslContext;
 	private final boolean isFlashSupported;
 
@@ -64,17 +92,36 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			final SSLContext sslContext,
 			final boolean alwaysSecureWebSocketLocation, 
 			final int localPort) {
-		this.sessionFactory = new SessionStorage(localPort);
-		this.handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, heartbeatTimeout, closeTimeout, transports);
-		this.heartbeatHandler = new HeartbeatHandler(sessionFactory);
-		this.packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
+		// Initialize state variables
 		this.sslContext = sslContext;
-
+		sessionFactory = new SessionStorage(localPort);
+		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
+		
+		// Initialize sharable handlers
+		flashPolicyHandler = new FlashPolicyHandler();
+		
+		flashResourceHandler = new ResourceHandler();
+		flashResourceHandler.addResource(CONTEXT_PATH + FLASH_SOCKET_RESOURCE_PATH, FLASH_SOCKET_RESOURCE_PATH);
+		flashResourceHandler.addResource(CONTEXT_PATH + FLASH_SOCKET_INSECURE_RESOURCE_PATH, FLASH_SOCKET_INSECURE_RESOURCE_PATH);
+		
+		packetEncoderHandler = new PacketEncoderHandler();
+		
+		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, heartbeatTimeout, closeTimeout, transports);
+		disconnectHanler = new DisconnectHandler();
+		heartbeatHandler = new HeartbeatHandler(sessionFactory);
+		
 		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
 		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure);
 		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure);
 		
-		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
+		xhrConnectionHanler = new XHRPollingConnectHandler(HANDSHAKE_PATH);
+		xhrPacketDecoderHandler = new XHRPollingPacketDecoderHandler();
+		
+		Executor executor = new OrderedMemoryAwareThreadPoolExecutor(
+				EXECUTOR_CORE_POOL_SIZE, EXECUTOR_MAX_CHANNEL_MEMORY_SIZE, EXECUTOR_MAX_TOTAL_MEMORY_SIZE); 
+		executionHandler = new ExecutionHandler(executor);
+		
+		packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
 	}
 
 	@Override
@@ -83,7 +130,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
 		// Flash policy file
 		if (isFlashSupported) {
-			pipeline.addLast("flash-policy", flashPolicyHandler);
+			pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
 		}
 		
 		// SSL
@@ -92,42 +139,30 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			sslEngine.setUseClientMode(false);
 			SslHandler sslHandler = new SslHandler(sslEngine);
 			sslHandler.setIssueHandshake(true);
-			pipeline.addLast("ssl-handler", sslHandler);
+			pipeline.addLast(SSL_HANDLER, sslHandler);
 		}
 
-		/*
-		 * Downstream
-		 */
-
-		// HTTP downstream
-		pipeline.addLast("http-response-encoder", new HttpResponseEncoder());
-
-		// Socket.IO downstream
-		pipeline.addLast("socketio-packet-encoder", packetEncoderHandler);
-
-		/*
-		 * Upstream
-		 */
-
-		// HTTP upstream
-		pipeline.addLast("http-request-decoder", new HttpRequestDecoder());
-		pipeline.addLast("http-chunk-aggregator", new HttpChunkAggregator(1048576));
+		// HTTP
+		pipeline.addLast(HTTP_REPONSE_ENCODER, new HttpResponseEncoder());
+		pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
+		pipeline.addLast(HTTP_CHUNK_AGGREGATOR, new HttpChunkAggregator(MAX_HTTP_CONTENT_LENGTH));
 		
-		// Static content (.SWF files) for flash sockets  
+		// Flash resources  
 		if (isFlashSupported) {
-			pipeline.addLast("resource-handler", resourceHandler);
+			pipeline.addLast(FLASH_RESOURCE_HANDLER, flashResourceHandler);
 		}
 		
-		// Socket.IO upstream
-		pipeline.addLast("socketio-handshake-handler", handshakeHanler);
-		pipeline.addLast("socketio-disconnection-handler", disconnectionHanler);
-		pipeline.addLast("socketio-websocket-handler", webSocketHandler);
-		pipeline.addLast("socketio-flashsocket-handler", flashSocketHandler);
-		pipeline.addLast("socketio-xhr-connect-handler", xhrConnectionHanler);
-		pipeline.addLast("socketio-xhr-packet-decoder", xhrPacketDecoderHandler);
-		pipeline.addLast("socketio-heartbeat-handler", heartbeatHandler);
-		pipeline.addLast("socketio-execution-handler", executionHandler);
-		pipeline.addLast("socketio-packet-dispatcher", packetDispatcherHandler);
+		// Socket.IO
+		pipeline.addLast(SOCKETIO_PACKET_ENCODER, packetEncoderHandler);
+		pipeline.addLast(SOCKETIO_HANDSHAKE_HANDLER, handshakeHanler);
+		pipeline.addLast(SOCKETIO_DISCONNECT_HANDLER, disconnectHanler);
+		pipeline.addLast(SOCKETIO_WEBSOCKET_HANDLER, webSocketHandler);
+		pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);
+		pipeline.addLast(SOCKETIO_XHR_CONNECT_HANDLER, xhrConnectionHanler);
+		pipeline.addLast(SOCKETIO_XHR_PACKET_DECODER, xhrPacketDecoderHandler);
+		pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
+		pipeline.addLast(EXECUTION_HANDLER, executionHandler);
+		pipeline.addLast(SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
 
 		return pipeline;
 	}
