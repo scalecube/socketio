@@ -75,10 +75,13 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
     		if(req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)){
     			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
     			final String requestPath = queryDecoder.getPath();
-    			final String sessionId = PipelineUtils.getSessionId(requestPath);
     			
-    			boolean handshakeSuccess = handshake(ctx, req, sessionId);
+    			log.debug("Received HTTP {} handshake request: {} {} from channel: {}", new Object[] {
+    					getTransportType().getName(), req.getMethod(), requestPath, ctx.getChannel()});
+    			
+    			boolean handshakeSuccess = handshake(ctx, req);
     			if (handshakeSuccess) {
+    				final String sessionId = PipelineUtils.getSessionId(requestPath);
     				connect(ctx, req, sessionId);
     			}
     			return;
@@ -96,8 +99,8 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 		super.channelDisconnected(ctx, e);
 	}
 
-	private boolean handshake(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
-		WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req, sessionId), null, false);
+	private boolean handshake(ChannelHandlerContext ctx, HttpRequest req) {
+		WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
 		WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
 		if (handshaker != null) {
 			handshaker.handshake(ctx.getChannel(), req).addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
@@ -108,7 +111,7 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 		return false;
 	}
 	
-	private String getWebSocketLocation(HttpRequest req, String sessionId) {
+	private String getWebSocketLocation(HttpRequest req) {
 		String protocol = secure ? "wss://" : "ws://";
 		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
 		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);

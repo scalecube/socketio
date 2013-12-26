@@ -137,6 +137,9 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 			final String requestPath = queryDecoder.getPath();
 			
 			if (!requestPath.startsWith(handshakePath)) {
+				log.warn("Received HTTP bad request: {} {} from channel: {}", new Object[] {
+						requestMethod, requestPath, ctx.getChannel()});
+				
 				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
 				ChannelFuture f = channel.write(res);
 				f.addListener(ChannelFutureListener.CLOSE);
@@ -144,7 +147,7 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 			}
 			
 			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
-				log.debug("Received HTTP request: {} {} from channel: {}", new Object[] {
+				log.debug("Received HTTP handshake request: {} {} from channel: {}", new Object[] {
 						requestMethod, requestPath, ctx.getChannel()});
 				
 				handshake(channel, req, queryDecoder);
@@ -155,16 +158,16 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 	}
 	
 	private void handshake(final Channel channel, final HttpRequest req, final QueryStringDecoder queryDecoder) throws IOException {
+		// Generate session ID
 		final String sessionId = UUID.randomUUID().toString();
-		if(log.isDebugEnabled()) log.debug("New sessionId: {} generated", sessionId);
+		log.debug("New sessionId: {} generated", sessionId);
 		
+		// Send handshake response
 		final String handshakeMessage = getHandshakeMessage(sessionId, queryDecoder);
-		
-		if(log.isDebugEnabled()) log.debug("Sending handshake: {} to channel: {}", handshakeMessage, channel);
-		
 		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), handshakeMessage, false);
 		ChannelFuture f = channel.write(res);
 		f.addListener(ChannelFutureListener.CLOSE);
+		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, channel);
 	}
 	
 	private String getHandshakeMessage(final String sessionId, final QueryStringDecoder queryDecoder) throws IOException {
@@ -183,7 +186,5 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 		List<String> jsonpParams = params.get("jsonp");
 		return (jsonpParams != null) ? jsonpParams.get(0) : null;
 	}
-	
-	
 
 }

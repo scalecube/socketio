@@ -52,7 +52,8 @@ public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
 	            if (data.equals(policyRequestBuffer)) {
 	                ChannelFuture f = ctx.getChannel().write(ChannelBuffers.copiedBuffer(policyResponseBuffer));
 	                f.addListener(ChannelFutureListener.CLOSE);
-	                log.info("Sent flash policy file");
+	                log.debug("Sent flash policy file to channel: {}", ctx.getChannel());
+	                return;
 	            }
 			}
 			ctx.getPipeline().remove(this);

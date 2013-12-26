@@ -63,7 +63,7 @@ public class XHRPollingPacketDecoderHandler extends OneToOneDecoder {
 			final String sessionId = PipelineUtils.getSessionId(requestPath);
 			final String origin = PipelineUtils.getOrigin(req);
 
-			log.debug("Received HTTP request: {} {} from channel: {}",
+			log.debug("Received HTTP XHR message request: {} {} from channel: {}",
 					new Object[] { requestMethod, requestPath, channel });
 
 			if (req.getContent().hasArray()) {

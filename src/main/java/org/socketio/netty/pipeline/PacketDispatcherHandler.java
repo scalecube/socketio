@@ -39,12 +39,12 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final SessionStorage sessionFactory;
+	private final SessionStorage sessionStorage;
 	
 	private final ISocketIOListener listener;
 	
-	public PacketDispatcherHandler(SessionStorage sessionFactory, ISocketIOListener listener) {
-		this.sessionFactory = sessionFactory;
+	public PacketDispatcherHandler(SessionStorage sessionStorage, ISocketIOListener listener) {
+		this.sessionStorage = sessionStorage;
 		this.listener = listener;
 	}
 
@@ -67,28 +67,30 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 	
 	@Override
 	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent event) throws Exception {
-		Object message = event.getMessage();
+		final Channel channel = ctx.getChannel();
+		final Object message = event.getMessage();
 		if (message instanceof IPacket) {
 			final IPacket packet = (IPacket) message;
 			try {
-				final Channel channel = ctx.getChannel();
 				log.debug("Dispatching packet: {} from channel: {}", packet, channel);
-				this.dispatchPacket(channel, packet);
+				dispatchPacket(channel, packet);
 			} catch (Exception e) {
 				log.error("Failed to dispatch packet: {}", packet, e);
 			}
-		} 
+		} else {
+			log.warn("Received unknown message: {} from channel {}", message, channel);
+		}
 	}
 
-	public void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
+	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
 			ConnectPacket connectPacket = (ConnectPacket) packet;
-			final IManagedSession session = sessionFactory.getSession(connectPacket, channel, this);
+			final IManagedSession session = sessionStorage.getSession(connectPacket, channel, this);
 			onConnectPacket(channel, session);
 		} else if (packet instanceof Packet){
 			Packet message = (Packet) packet;
 			final String sessionId = packet.getSessionId(); 
-			final IManagedSession session = sessionFactory.getSessionIfExist(sessionId);
+			final IManagedSession session = sessionStorage.getSessionIfExist(sessionId);
 			if (session != null) {
 				onPacket(channel, session, message);
 			}
@@ -121,9 +123,9 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 	
 	@Override
 	public void onSessionDisconnect(ISession session) {
-		if (sessionFactory.containSession(session.getSessionId())) {
+		if (sessionStorage.containSession(session.getSessionId())) {
 			log.debug("Client with sessionId: {} disconnected", session.getSessionId());
-			sessionFactory.removeSession(session.getSessionId());
+			sessionStorage.removeSession(session.getSessionId());
 			if (listener != null) {
 				listener.onDisconnect(session);
 			}

@@ -83,8 +83,12 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
         if (msg instanceof HttpRequest) {
         	HttpRequest req = (HttpRequest) msg;
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            URL resUrl = resources.get(queryDecoder.getPath());
+            String requestPath = queryDecoder.getPath();
+            URL resUrl = resources.get(requestPath);
             if (resUrl != null) {
+            	log.debug("Received HTTP resource request: {} {} from channel: {}", new Object[] {
+            			req.getMethod(), requestPath, ctx.getChannel()});
+            	
                 URLConnection fileUrl = resUrl.openConnection();
                 long lastModified = fileUrl.getLastModified();
                 // check if file has been modified since last request
@@ -112,7 +116,7 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
                 // write the content stream
                 ctx.getPipeline().addBefore("resource-handler", "chunkedWriter", new ChunkedWriteHandler());
                 ChannelFuture writeFuture = ctx.getChannel().write(new ChunkedStream(is, fileUrl.getContentLength()));
-                   // add operation complete listener so we can close the channel and the input stream
+                // add operation complete listener so we can close the channel and the input stream
                 writeFuture.addListener(ChannelFutureListener.CLOSE);
                 return;
             }

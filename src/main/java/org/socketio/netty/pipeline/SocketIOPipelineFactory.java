@@ -81,14 +81,12 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	public final ChannelPipeline getPipeline() throws Exception {
 		ChannelPipeline pipeline = pipeline();
 
-		//TODO: Is flash policy handler should be before SSL handler or after?
+		// Flash policy file
 		if (isFlashSupported) {
 			pipeline.addLast("flash-policy", flashPolicyHandler);
 		}
 		
-		/*
-		 * SSL
-		 */
+		// SSL
 		if (sslContext != null) {
 			SSLEngine sslEngine = sslContext.createSSLEngine();
 			sslEngine.setUseClientMode(false);

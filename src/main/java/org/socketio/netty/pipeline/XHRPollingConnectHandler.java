@@ -49,7 +49,7 @@ public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 			final String requestPath = queryDecoder.getPath();
 			
 			if (HttpMethod.GET.equals(requestMethod) && requestPath.startsWith(connectPath)) {
-				log.debug("Received HTTP request: {} {} from channel: {}", new Object[] {
+				log.debug("Received HTTP XHR polling request: {} {} from channel: {}", new Object[] {
 						requestMethod, requestPath, ctx.getChannel()});
 				
 				final String sessionId = PipelineUtils.getSessionId(requestPath);

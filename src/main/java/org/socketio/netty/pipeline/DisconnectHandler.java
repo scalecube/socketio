@@ -59,18 +59,14 @@ public class DisconnectHandler extends SimpleChannelUpstreamHandler {
 		if (msg instanceof HttpRequest) {
 			final HttpRequest req = (HttpRequest) msg;
 			final HttpMethod requestMethod = req.getMethod();
-			final QueryStringDecoder queryDecoder = new QueryStringDecoder(
-					req.getUri());
+			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 			final String requestPath = queryDecoder.getPath();
 
-			boolean disconnect = queryDecoder.getParameters().containsKey(
-					DISCONNECT);
-
+			boolean disconnect = queryDecoder.getParameters().containsKey(DISCONNECT);
 			if (disconnect) {
-				log.debug(
-						"Received HTTP request: {} {} from channel: {}",
-						new Object[] { requestMethod, requestPath,
-								ctx.getChannel() });
+				log.debug("Received HTTP disconnect request: {} {} from channel: {}",
+						new Object[] {requestMethod, requestPath, ctx.getChannel()});
+				
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
 				final Packet disconnectPacket = new Packet(PacketType.DISCONNECT, sessionId);
 				disconnectPacket.setOrigin(PipelineUtils.getOrigin(req));
