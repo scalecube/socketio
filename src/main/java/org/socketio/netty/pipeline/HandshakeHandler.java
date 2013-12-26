@@ -117,11 +117,11 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final String connectPath;
+	private final String handshakePath;
 	private final String commonHandshakeParameters;
 
-	public HandshakeHandler(final String connectPath, final int heartbeatTimeout, final int closeTimeout, final String transports) {
-		this.connectPath = connectPath;
+	public HandshakeHandler(final String handshakePath, final int heartbeatTimeout, final int closeTimeout, final String transports) {
+		this.handshakePath = handshakePath;
 		commonHandshakeParameters = ":" + heartbeatTimeout + ":" + closeTimeout + ":" + transports;
 	}
 
@@ -136,14 +136,14 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 			final String requestPath = queryDecoder.getPath();
 			
-			if (!requestPath.startsWith(connectPath)) {
+			if (!requestPath.startsWith(handshakePath)) {
 				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
 				ChannelFuture f = channel.write(res);
 				f.addListener(ChannelFutureListener.CLOSE);
 				return;
 			}
 			
-			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(connectPath)) {
+			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
 				log.debug("Received HTTP request: {} {} from channel: {}", new Object[] {
 						requestMethod, requestPath, ctx.getChannel()});
 				

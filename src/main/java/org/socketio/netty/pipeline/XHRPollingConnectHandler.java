@@ -33,10 +33,10 @@ public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private final String xhrPollingConnectPath;
+	private final String connectPath;
 
-	public XHRPollingConnectHandler(final String connectPath) {
-		this.xhrPollingConnectPath = connectPath + TransportType.XHR_POLLING.getName();
+	public XHRPollingConnectHandler(final String handshakePath) {
+		this.connectPath = handshakePath + TransportType.XHR_POLLING.getName();
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 			final String requestPath = queryDecoder.getPath();
 			
-			if (HttpMethod.GET.equals(requestMethod) && requestPath.startsWith(xhrPollingConnectPath)) {
+			if (HttpMethod.GET.equals(requestMethod) && requestPath.startsWith(connectPath)) {
 				log.debug("Received HTTP request: {} {} from channel: {}", new Object[] {
 						requestMethod, requestPath, ctx.getChannel()});
 				

@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty.session.websocket;
+package org.socketio.netty.session;
 
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
-import org.socketio.netty.session.AbstractSession;
-import org.socketio.netty.session.ISessionDisconnectHandler;
 
-public class WebsocketSession extends AbstractSession {
+public class FlashSocketSession extends AbstractSession {
 	
 	private final Channel channel;
 
-	public WebsocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
-		super(TransportType.WEBSOCKET, channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+	public FlashSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
+		super(TransportType.FLASHSOCKET, channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 		this.channel = channel;
 	}
 
@@ -40,7 +38,7 @@ public class WebsocketSession extends AbstractSession {
 
 	@Override
 	public TransportType getTransportType() {
-		return TransportType.WEBSOCKET;
+		return TransportType.FLASHSOCKET;
 	}
 }
 

@@ -55,12 +55,16 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private final Map<Integer, String> sessionIdByChannel = new ConcurrentHashMap<Integer, String>();
-	private final String connectWebsocketPath;
+	private final String connectPath;
 	private final boolean secure;
 	
-	public WebSocketHandler(String connectPath, boolean secure){
-		this.connectWebsocketPath = connectPath + TransportType.WEBSOCKET.getName();
+	public WebSocketHandler(String handshakePath, boolean secure){
+		this.connectPath = handshakePath + getTransportType().getName();
 		this.secure = secure;
+	}
+	
+	protected TransportType getTransportType() {
+		return TransportType.WEBSOCKET;
 	}
 
 	@Override
@@ -68,7 +72,7 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 		Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-    		if(req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectWebsocketPath)){
+    		if(req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)){
     			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
     			final String requestPath = queryDecoder.getPath();
     			final String sessionId = PipelineUtils.getSessionId(requestPath);
@@ -106,15 +110,15 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 	
 	private String getWebSocketLocation(HttpRequest req, String sessionId) {
 		String protocol = secure ? "wss://" : "ws://";
-		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + connectWebsocketPath + "/" + sessionId;
-		log.info("Created web socket at: {}", webSocketLocation);
+		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
+		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);
 		return webSocketLocation;
 	}
 	
 	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
 		sessionIdByChannel.put(ctx.getChannel().getId(), sessionId);
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
-		packet.setTransportType(TransportType.WEBSOCKET);
+		packet.setTransportType(getTransportType());
 		Channels.fireMessageReceived(ctx, packet);
 	}
 
@@ -135,7 +139,7 @@ public class WebSocketHandler extends SimpleChannelUpstreamHandler {
         
         TextWebSocketFrame frame = (TextWebSocketFrame) msg;
 		Packet packet = PacketDecoder.decodePacket(frame.getText());
-		packet.setTransportType(TransportType.WEBSOCKET);
+		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.getChannel().getId());
 		packet.setSessionId(sessionId);
 		Channels.fireMessageReceived(ctx.getChannel(), packet);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty.session.xhr;
+package org.socketio.netty.session;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

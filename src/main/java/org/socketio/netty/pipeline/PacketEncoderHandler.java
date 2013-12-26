@@ -67,7 +67,7 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 			log.debug("Encoded packet: {}", encodedPacket);
 			
 			TransportType transportType = packet.getTransportType();
-			if (transportType == TransportType.WEBSOCKET) {
+			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				return new TextWebSocketFrame(encodedPacket.toString());
 			} else if (transportType == TransportType.XHR_POLLING) {
 				boolean json = packet.getType() == PacketType.JSON;

@@ -18,10 +18,11 @@ package org.socketio.netty.storage;
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
+import org.socketio.netty.session.FlashSocketSession;
 import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
-import org.socketio.netty.session.websocket.WebsocketSession;
-import org.socketio.netty.session.xhr.XHRPollingSession;
+import org.socketio.netty.session.WebSocketSession;
+import org.socketio.netty.session.XHRPollingSession;
 import org.socketio.netty.storage.memoizer.Computable;
 import org.socketio.netty.storage.memoizer.MemoizerConcurrentMap;
 
@@ -78,7 +79,10 @@ public class SessionStorage {
 						@Override
 						public IManagedSession compute(String sessionId) 	throws Exception {
 							if (transportType == TransportType.WEBSOCKET) {
-								return new WebsocketSession(channel, sessionId,
+								return new WebSocketSession(channel, sessionId,
+										origin, disconnectHandler, upgradedFromTransportType, localPort);
+							} else if (transportType == TransportType.FLASHSOCKET) {
+								return new FlashSocketSession(channel, sessionId,
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
 							} else {
 								return new XHRPollingSession(channel,sessionId, 

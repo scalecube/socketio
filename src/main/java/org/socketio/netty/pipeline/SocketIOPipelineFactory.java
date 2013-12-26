@@ -36,10 +36,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 
 	private static final int PROTOCOL = 1;
 	private static final String CONTEXT_PATH = "/socket.io";
-	private static final String CONNECT_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
+	private static final String HANDSHAKE_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
 
 	private static final PacketEncoderHandler packetEncoderHandler = new PacketEncoderHandler();
-	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(CONNECT_PATH);
+	private static final XHRPollingConnectHandler xhrConnectionHanler = new XHRPollingConnectHandler(HANDSHAKE_PATH);
 	private static final XHRPollingPacketDecoderHandler xhrPacketDecoderHandler = new XHRPollingPacketDecoderHandler();
 	private static final ExecutionHandler executionHandler = new ExecutionHandler(
 			new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576));
@@ -48,7 +48,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private static final ResourceHandler resourceHandler = new ResourceHandler(CONTEXT_PATH);
 
 	private final SessionStorage sessionFactory;
-	private final WebSocketHandler websocketHandler;
+	private final WebSocketHandler webSocketHandler;
+	private final FlashSocketHandler flashSocketHandler;
 	private final HandshakeHandler handshakeHanler;
 	private final HeartbeatHandler heartbeatHandler;
 	private final PacketDispatcherHandler packetDispatcherHandler;
@@ -64,13 +65,14 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			final boolean alwaysSecureWebSocketLocation, 
 			final int localPort) {
 		this.sessionFactory = new SessionStorage(localPort);
-		this.handshakeHanler = new HandshakeHandler(CONNECT_PATH, heartbeatTimeout, closeTimeout, transports);
+		this.handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, heartbeatTimeout, closeTimeout, transports);
 		this.heartbeatHandler = new HeartbeatHandler(sessionFactory);
 		this.packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
 		this.sslContext = sslContext;
 
 		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
-		websocketHandler = new WebSocketHandler(CONNECT_PATH, secure);
+		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure);
+		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure);
 		
 		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
 	}
@@ -92,7 +94,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 			sslEngine.setUseClientMode(false);
 			SslHandler sslHandler = new SslHandler(sslEngine);
 			sslHandler.setIssueHandshake(true);
-			pipeline.addLast("ssl", sslHandler);
+			pipeline.addLast("ssl-handler", sslHandler);
 		}
 
 		/*
@@ -121,7 +123,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		// Socket.IO upstream
 		pipeline.addLast("socketio-handshake-handler", handshakeHanler);
 		pipeline.addLast("socketio-disconnection-handler", disconnectionHanler);
-		pipeline.addLast("socketio-websocket-handler", websocketHandler);
+		pipeline.addLast("socketio-websocket-handler", webSocketHandler);
+		pipeline.addLast("socketio-flashsocket-handler", flashSocketHandler);
 		pipeline.addLast("socketio-xhr-connect-handler", xhrConnectionHanler);
 		pipeline.addLast("socketio-xhr-packet-decoder", xhrPacketDecoderHandler);
 		pipeline.addLast("socketio-heartbeat-handler", heartbeatHandler);
