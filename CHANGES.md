@@ -1,7 +1,7 @@
 Changes
 =======================
 
-1.0.11-SNAPSHOT
+1.0.11 / 2013-12-27
 -----------------------
 
 * Added support of Flash Socket transport
