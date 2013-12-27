@@ -168,9 +168,6 @@
 					<excludes>
 						<exclude>target/**</exclude>
 					</excludes>
-					<excludes>
-						<exclude>src/test/resources/WEB-INF/**</exclude>
-					</excludes>
 					<useDefaultExcludes>true</useDefaultExcludes>
 					<mapping>
 						<java>JAVADOC_STYLE</java>
