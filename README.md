@@ -33,6 +33,6 @@ Maven
 <dependency>
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
-	<version>1.0.10</version>
+	<version>1.0.11</version>
 </dependency>
 ```
