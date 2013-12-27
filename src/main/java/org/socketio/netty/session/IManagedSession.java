@@ -24,7 +24,7 @@ import org.socketio.netty.packets.Packet;
  * @author Anton Kharenko
  *
  */
-public interface IInternalSession extends ISession {
+public interface IManagedSession extends ISession {
 	
 	/**
 	 * Connects current session to given channel.
@@ -38,6 +38,7 @@ public interface IInternalSession extends ISession {
 	
 	/**
 	 * disconnect this session
+	 * 
 	 * @param channel the channel to use for disconnection
 	 */
 	void disconnect(final Channel channel);

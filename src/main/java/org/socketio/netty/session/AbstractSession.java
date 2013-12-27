@@ -26,7 +26,7 @@ import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
-public abstract class AbstractSession implements IInternalSession {
+public abstract class AbstractSession implements IManagedSession {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	

@@ -54,7 +54,7 @@ final class PipelineUtils {
 	}
 
 	public static String getOrigin(final HttpRequest req) {
-		return req.getHeader(HttpHeaders.Names.ORIGIN);
+		return req.headers().get(HttpHeaders.Names.ORIGIN);
 	}
 	
 	public static HttpResponse createHttpResponse(final String origin, CharSequence message, boolean json) {
@@ -62,14 +62,14 @@ final class PipelineUtils {
 		
 		// Add headers
 		if (json) {
-			res.addHeader(HttpHeaders.Names.CONTENT_TYPE, "application/javascript");
+			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/javascript");
 		} else {
-			res.addHeader(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		}
-		res.addHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		res.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		if (origin != null) {
-			res.addHeader("Access-Control-Allow-Origin", origin);
-			res.addHeader("Access-Control-Allow-Credentials", "true");
+			res.headers().add("Access-Control-Allow-Origin", origin);
+			res.headers().add("Access-Control-Allow-Credentials", "true");
 		}
 		
 		// Add body

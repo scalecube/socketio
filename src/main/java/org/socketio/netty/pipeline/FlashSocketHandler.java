@@ -13,10 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty.memoizer;
+package org.socketio.netty.pipeline;
 
-public interface Computable<A, V> {
-	
-	V compute(final A arg) throws Exception;
-	
+import org.jboss.netty.channel.ChannelHandler.Sharable;
+import org.socketio.netty.TransportType;
+
+/**
+ * 
+ * @author Anton Kharenko
+ *
+ */
+@Sharable
+public class FlashSocketHandler extends WebSocketHandler {
+
+	public FlashSocketHandler(String handshakePath, boolean secure) {
+		super(handshakePath, secure);
+	}
+
+	@Override
+	protected TransportType getTransportType() {
+		return TransportType.FLASHSOCKET;
+	}
+
 }

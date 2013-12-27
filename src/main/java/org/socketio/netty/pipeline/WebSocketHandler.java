@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
@@ -48,17 +49,22 @@ import org.socketio.netty.serialization.PacketDecoder;
  * @author Anton Kharenko
  *
  */
-public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
+@Sharable
+public class WebSocketHandler extends SimpleChannelUpstreamHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private final Map<Integer, String> sessionIdByChannel = new ConcurrentHashMap<Integer, String>();
-	private final String connectWebsocketPath;
+	private final String connectPath;
 	private final boolean secure;
 	
-	public SocketIOWebsocketHandler(String connectPath, boolean secure){
-		this.connectWebsocketPath = connectPath + "websocket";
+	public WebSocketHandler(String handshakePath, boolean secure){
+		this.connectPath = handshakePath + getTransportType().getName();
 		this.secure = secure;
+	}
+	
+	protected TransportType getTransportType() {
+		return TransportType.WEBSOCKET;
 	}
 
 	@Override
@@ -66,22 +72,29 @@ public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
 		Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-    		if(req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectWebsocketPath)){
+    		if(req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)){
     			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
     			final String requestPath = queryDecoder.getPath();
-    			final String sessionId = PipelineUtils.getSessionId(requestPath);
     			
-    			boolean handshakeSuccess = handshake(ctx, req, sessionId);
+    			log.debug("Received HTTP {} handshake request: {} {} from channel: {}", 
+    					getTransportType().getName(), req.getMethod(), requestPath, ctx.getChannel());
+    			
+    			boolean handshakeSuccess = handshake(ctx, req);
     			if (handshakeSuccess) {
+    				final String sessionId = PipelineUtils.getSessionId(requestPath);
     				connect(ctx, req, sessionId);
     			}
     			return;
     		}
-        } else if (msg instanceof WebSocketFrame) {
+        } else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
             handleWebSocketFrame(ctx, (WebSocketFrame) msg);
             return;
         }
         ctx.sendUpstream(e);
+	}
+	
+	private boolean isCurrentHandlerSession(ChannelHandlerContext ctx) {
+		return sessionIdByChannel.containsKey(ctx.getChannel().getId());
 	}
 	
 	@Override
@@ -90,8 +103,8 @@ public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
 		super.channelDisconnected(ctx, e);
 	}
 
-	private boolean handshake(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
-		WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req, sessionId), null, false);
+	private boolean handshake(ChannelHandlerContext ctx, HttpRequest req) {
+		WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
 		WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
 		if (handshaker != null) {
 			handshaker.handshake(ctx.getChannel(), req).addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
@@ -102,22 +115,23 @@ public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
 		return false;
 	}
 	
-	private String getWebSocketLocation(HttpRequest req, String sessionId) {
+	private String getWebSocketLocation(HttpRequest req) {
 		String protocol = secure ? "wss://" : "ws://";
-		String webSocketLocation = protocol + req.getHeader(HttpHeaders.Names.HOST) + connectWebsocketPath + "/" + sessionId;
-		log.info("Created web socket at: {}", webSocketLocation);
+		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
+		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);
 		return webSocketLocation;
 	}
 	
 	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
 		sessionIdByChannel.put(ctx.getChannel().getId(), sessionId);
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
-		packet.setTransportType(TransportType.WEBSOCKET);
+		packet.setTransportType(getTransportType());
 		Channels.fireMessageReceived(ctx, packet);
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
-		// Check for closing frame
+		log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.getChannel());
+		
         if (msg instanceof CloseWebSocketFrame) {
         	sessionIdByChannel.remove(ctx.getChannel().getId());
             ChannelFuture f = ctx.getChannel().write(msg);
@@ -133,7 +147,7 @@ public class SocketIOWebsocketHandler extends SimpleChannelUpstreamHandler {
         
         TextWebSocketFrame frame = (TextWebSocketFrame) msg;
 		Packet packet = PacketDecoder.decodePacket(frame.getText());
-		packet.setTransportType(TransportType.WEBSOCKET);
+		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.getChannel().getId());
 		packet.setSessionId(sessionId);
 		Channels.fireMessageReceived(ctx.getChannel(), packet);

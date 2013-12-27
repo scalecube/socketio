@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty.session.xhr;
+package org.socketio.netty.session;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,8 +22,6 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.packets.PacketsFrame;
-import org.socketio.netty.session.AbstractSession;
-import org.socketio.netty.session.ISessionDisconnectHandler;
 
 public class XHRPollingSession extends AbstractSession {
 	

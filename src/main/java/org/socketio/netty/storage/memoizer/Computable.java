@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.socketio.netty;
+package org.socketio.netty.storage.memoizer;
 
-public enum TransportType {
-	XHR_POLLING("xhr-polling"),
-	WEBSOCKET("websocket"),
-	FLASHSOCKET("flashsocket");
+public interface Computable<A, V> {
 	
-	private final String name;
-
-	TransportType(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
+	V compute(final A arg) throws Exception;
+	
 }

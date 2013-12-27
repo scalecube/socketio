@@ -7,7 +7,8 @@ Socket.IO-client.
 
 Supported transport protocols:
 * WebSocket
-* XHR-Polling 
+* Flash Socket
+* XHR-Polling
 
 How to use
 -----------------------

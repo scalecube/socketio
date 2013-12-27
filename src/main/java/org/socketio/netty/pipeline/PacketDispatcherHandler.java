@@ -21,6 +21,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.ISession;
@@ -29,19 +30,21 @@ import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.session.IInternalSession;
+import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
+import org.socketio.netty.storage.SessionStorage;
 
-public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
+@Sharable
+public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final SocketIOSessionFactory sessionFactory;
+	private final SessionStorage sessionStorage;
 	
 	private final ISocketIOListener listener;
 	
-	public SocketIOPacketDispatcher(SocketIOSessionFactory sessionFactory, ISocketIOListener listener) {
-		this.sessionFactory = sessionFactory;
+	public PacketDispatcherHandler(SessionStorage sessionStorage, ISocketIOListener listener) {
+		this.sessionStorage = sessionStorage;
 		this.listener = listener;
 	}
 
@@ -64,28 +67,30 @@ public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler imple
 	
 	@Override
 	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent event) throws Exception {
-		Object message = event.getMessage();
+		final Channel channel = ctx.getChannel();
+		final Object message = event.getMessage();
 		if (message instanceof IPacket) {
 			final IPacket packet = (IPacket) message;
 			try {
-				final Channel channel = ctx.getChannel();
 				log.debug("Dispatching packet: {} from channel: {}", packet, channel);
-				this.dispatchPacket(channel, packet);
+				dispatchPacket(channel, packet);
 			} catch (Exception e) {
 				log.error("Failed to dispatch packet: {}", packet, e);
 			}
-		} 
+		} else {
+			log.warn("Received unknown message: {} from channel {}", message, channel);
+		}
 	}
 
-	public void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
+	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
 			ConnectPacket connectPacket = (ConnectPacket) packet;
-			final IInternalSession session = sessionFactory.getSession(connectPacket, channel, this);
+			final IManagedSession session = sessionStorage.getSession(connectPacket, channel, this);
 			onConnectPacket(channel, session);
 		} else if (packet instanceof Packet){
 			Packet message = (Packet) packet;
 			final String sessionId = packet.getSessionId(); 
-			final IInternalSession session = sessionFactory.getSessionIfExist(sessionId);
+			final IManagedSession session = sessionStorage.getSessionIfExist(sessionId);
 			if (session != null) {
 				onPacket(channel, session, message);
 			}
@@ -94,14 +99,14 @@ public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler imple
 		}
 	}
 
-	private void onConnectPacket(final Channel channel, final IInternalSession session) {
+	private void onConnectPacket(final Channel channel, final IManagedSession session) {
 		boolean initialConnect = session.connect(channel);
 		if (initialConnect && listener != null) {
 			listener.onConnect(session);
 		}
 	}
 
-	private void onPacket(final Channel channel, final IInternalSession session, final Packet packet) {
+	private void onPacket(final Channel channel, final IManagedSession session, final Packet packet) {
 		if (packet.getType() == PacketType.DISCONNECT) {
 			session.disconnect(channel);
 		} else {
@@ -118,9 +123,9 @@ public class SocketIOPacketDispatcher extends SimpleChannelUpstreamHandler imple
 	
 	@Override
 	public void onSessionDisconnect(ISession session) {
-		if (sessionFactory.containSession(session.getSessionId())) {
+		if (sessionStorage.containSession(session.getSessionId())) {
 			log.debug("Client with sessionId: {} disconnected", session.getSessionId());
-			sessionFactory.removeSession(session.getSessionId());
+			sessionStorage.removeSession(session.getSessionId());
 			if (listener != null) {
 				listener.onDisconnect(session);
 			}

@@ -17,6 +17,7 @@ package org.socketio.netty.pipeline;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.slf4j.Logger;
@@ -51,7 +52,8 @@ import org.socketio.netty.serialization.PacketFramer;
  * @author Ronen Hamias, Anton Kharenko
  * 
  */
-public class SocketIOPacketEncoder extends OneToOneEncoder {
+@Sharable
+public class PacketEncoderHandler extends OneToOneEncoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -65,7 +67,7 @@ public class SocketIOPacketEncoder extends OneToOneEncoder {
 			log.debug("Encoded packet: {}", encodedPacket);
 			
 			TransportType transportType = packet.getTransportType();
-			if (transportType == TransportType.WEBSOCKET) {
+			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				return new TextWebSocketFrame(encodedPacket.toString());
 			} else if (transportType == TransportType.XHR_POLLING) {
 				boolean json = packet.getType() == PacketType.JSON;

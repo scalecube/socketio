@@ -18,15 +18,18 @@ package org.socketio.netty.pipeline;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.session.IInternalSession;
+import org.socketio.netty.session.IManagedSession;
+import org.socketio.netty.storage.SessionStorage;
 
-public class SocketIOHeartbeatHandler extends SimpleChannelUpstreamHandler {
+@Sharable
+public class HeartbeatHandler extends SimpleChannelUpstreamHandler {
 	
-	private final SocketIOSessionFactory sessionFactory;
+	private final SessionStorage sessionFactory;
 	
-	public SocketIOHeartbeatHandler(SocketIOSessionFactory sessionFactory) {
+	public HeartbeatHandler(SessionStorage sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
 	
@@ -37,7 +40,7 @@ public class SocketIOHeartbeatHandler extends SimpleChannelUpstreamHandler {
 			final Packet packet = (Packet) message;
 			if (packet.getType() == PacketType.HEARTBEAT) {
 				final String sessionId = packet.getSessionId(); 
-				final IInternalSession session = sessionFactory.getSessionIfExist(sessionId);
+				final IManagedSession session = sessionFactory.getSessionIfExist(sessionId);
 				if (session != null) {
 					session.acceptPacket(ctx.getChannel(), packet);
 					session.acceptHeartbeat();

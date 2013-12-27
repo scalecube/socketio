@@ -20,6 +20,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -43,7 +44,8 @@ import org.socketio.netty.serialization.PacketFramer;
  * 
  * @author Ronen Hamias, Anton Kharenko
  */
-public class SocketIOXHRPollingPacketDecoder extends OneToOneDecoder {
+@Sharable
+public class XHRPollingPacketDecoderHandler extends OneToOneDecoder {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -61,7 +63,7 @@ public class SocketIOXHRPollingPacketDecoder extends OneToOneDecoder {
 			final String sessionId = PipelineUtils.getSessionId(requestPath);
 			final String origin = PipelineUtils.getOrigin(req);
 
-			log.debug("Received HTTP request: {} {} from channel: {}",
+			log.debug("Received HTTP XHR message request: {} {} from channel: {}",
 					new Object[] { requestMethod, requestPath, channel });
 
 			if (req.getContent().hasArray()) {
