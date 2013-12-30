@@ -27,5 +27,20 @@ public abstract class AbstractSocketSession extends AbstractSession {
 			channel.write(packet);
 		}
 	}
+	
+	@Override
+	public void disconnect() {
+		if (getState() == State.DISCONNECTED) {
+			return;
+		}
+		
+		setState(State.DISCONNECTING);
+		heartbeatScheduler.disableHeartbeat();
+		if (!isDiscarded()) {
+			send(disconnectPacket);
+			disconnectHandler.onSessionDisconnect(this);
+		}
+		setState(State.DISCONNECTED);
+	}
 
 }

@@ -64,5 +64,4 @@ public interface IManagedSession extends ISession {
 	
 	void discard();
 	
-	void setState(State state);
 }

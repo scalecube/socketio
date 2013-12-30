@@ -36,6 +36,11 @@ public class XHRPollingSession extends AbstractSession {
 	}
 	
 	@Override
+	public TransportType getTransportType() {
+		return TransportType.XHR_POLLING;
+	}
+	
+	@Override
 	public boolean connect(Channel channel) {
 		boolean initialConnect = super.connect(channel);
 		if (!initialConnect) {
@@ -103,8 +108,4 @@ public class XHRPollingSession extends AbstractSession {
 		}
 	}
 	
-	@Override
-	public TransportType getTransportType() {
-		return TransportType.XHR_POLLING;
-	}
 }
