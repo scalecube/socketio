@@ -18,7 +18,8 @@ package org.socketio.netty;
 public enum TransportType {
 	XHR_POLLING("xhr-polling"),
 	WEBSOCKET("websocket"),
-	FLASHSOCKET("flashsocket");
+	FLASHSOCKET("flashsocket"),
+	JSONP_POLLING("jsonp-polling");
 	
 	private final String name;
 
