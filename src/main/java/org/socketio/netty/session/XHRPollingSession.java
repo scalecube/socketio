@@ -31,8 +31,8 @@ public class XHRPollingSession extends AbstractSession {
 
 	public XHRPollingSession(final Channel channel, final String sessionId, final String origin, 
 			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
-		super(TransportType.XHR_POLLING, channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
-		preparePacket(ackPacket);
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+		fillPacketHeaders(ackPacket);
 	}
 	
 	@Override
@@ -60,7 +60,7 @@ public class XHRPollingSession extends AbstractSession {
 	@Override
 	public void send(final Packet packet) {
 		if (packet != null) {
-			preparePacket(packet);
+			fillPacketHeaders(packet);
 			Channel channel = channelHolder.getAndSet(null);
 			send(channel, packet);
 		}
@@ -74,7 +74,7 @@ public class XHRPollingSession extends AbstractSession {
 				channel.write(packet); 
 			} else {
 				PacketsFrame packetsFrame = messagesQueue.takeAll();
-				preparePacket(packetsFrame);
+				fillPacketHeaders(packetsFrame);
 				channel.write(packetsFrame);
 			}
 		} else if (packet != null) {
@@ -84,7 +84,6 @@ public class XHRPollingSession extends AbstractSession {
 	
 	@Override
 	public void acceptPacket(final Channel channel, final Packet packet) {
-		super.acceptPacket(channel, packet);
 		if (packet.getSequenceNumber() == 0 && channel.isConnected()) {
 			channel.write(ackPacket);
 		}

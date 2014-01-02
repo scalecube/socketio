@@ -17,7 +17,6 @@ package org.socketio.netty.session;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.PacketsFrame;
 
@@ -31,7 +30,6 @@ public class XHRPollingQueue {
 
 	public PacketsFrame takeAll() {
 		PacketsFrame frame = new PacketsFrame();
-		frame.setTransportType(TransportType.XHR_POLLING);
 		IPacket item = null;
 		while((item = messagesQueue.poll()) != null) {
 			frame.getPackets().add(item);
