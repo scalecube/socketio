@@ -49,6 +49,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	public static final String SOCKETIO_WEBSOCKET_HANDLER = "socketio-websocket-handler";
 	public static final String SOCKETIO_FLASHSOCKET_HANDLER = "socketio-flashsocket-handler";
 	public static final String SOCKETIO_XHR_POLLING_HANDLER = "socketio-xhr-polling-handler";
+	public static final String SOCKETIO_JSONP_POLLING_HANDLER = "socketio-jsonp-polling-handler";
 	public static final String SOCKETIO_HEARTBEAT_HANDLER = "socketio-heartbeat-handler";
 	public static final String EXECUTION_HANDLER = "execution-handler";
 	public static final String SOCKETIO_PACKET_DISPATCHER = "socketio-packet-dispatcher";
@@ -73,6 +74,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 	private final WebSocketHandler webSocketHandler;
 	private final FlashSocketHandler flashSocketHandler;
 	private final XHRPollingHandler xhrPollingHanler;
+	private final JsonpPollingHandler jsonpPollingHanler;
 	private final HeartbeatHandler heartbeatHandler;
 	private final ExecutionHandler executionHandler;
 	private final PacketDispatcherHandler packetDispatcherHandler;
@@ -113,6 +115,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure);
 		
 		xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH);
+		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH);
 		
 		Executor executor = new OrderedMemoryAwareThreadPoolExecutor(
 				EXECUTOR_CORE_POOL_SIZE, EXECUTOR_MAX_CHANNEL_MEMORY_SIZE, EXECUTOR_MAX_TOTAL_MEMORY_SIZE); 
@@ -156,6 +159,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast(SOCKETIO_WEBSOCKET_HANDLER, webSocketHandler);
 		pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);
 		pipeline.addLast(SOCKETIO_XHR_POLLING_HANDLER, xhrPollingHanler);
+		pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
 		pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
 		pipeline.addLast(EXECUTION_HANDLER, executionHandler);
 		pipeline.addLast(SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);

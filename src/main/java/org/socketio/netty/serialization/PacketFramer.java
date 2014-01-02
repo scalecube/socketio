@@ -62,7 +62,7 @@ public final class PacketFramer {
 	private PacketFramer() {
 	}
 
-	public static CharSequence encodePacketsFrame(
+	public static String encodePacketsFrame(
 			final PacketsFrame packetsFrame) throws IOException {
 		List<IPacket> packets = packetsFrame.getPackets();
 		StringBuilder result = new StringBuilder();
@@ -83,7 +83,7 @@ public final class PacketFramer {
 				}
 			}
 		}
-		return result;
+		return result.toString();
 	}
 
 	public static Packet decodeNextPacket(final ChannelBuffer buffer) throws IOException {

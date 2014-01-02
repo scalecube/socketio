@@ -62,7 +62,7 @@ final class PipelineUtils {
 		
 		// Add headers
 		if (json) {
-			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/javascript");
+			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
 		} else {
 			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		}

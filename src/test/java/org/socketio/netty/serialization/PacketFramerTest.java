@@ -104,10 +104,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet2);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString());
+        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result);
     }
 	
 	@Test
@@ -119,10 +119,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet1);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("3:::5", result.toString());
+        Assert.assertEquals("3:::5", result);
     }
 	
 	@Test
@@ -140,10 +140,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet3);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result.toString());
+        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result);
     }
 	
 }
