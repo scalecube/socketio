@@ -64,22 +64,20 @@ public class XHRPollingHandler extends SimpleChannelUpstreamHandler {
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.XHR_POLLING);
 					Channels.fireMessageReceived(ctx, packet);
-				} else if (HttpMethod.POST.equals(requestMethod)) {
+				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
 					// Process message request from client
-					if (req.getContent().hasArray()) {
-						int contentLength = req.getContent().array().length;
-						ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
-						buffer.writeBytes(req.getContent());
+					int contentLength = req.getContent().array().length;
+					ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
+					buffer.writeBytes(req.getContent());
 
-						int sequenceNumber = 0;
-						while (buffer.readable()) {
-							Packet packet = PacketFramer.decodeNextPacket(buffer);
-							packet.setSessionId(sessionId);
-							packet.setOrigin(origin);
-							packet.setSequenceNumber(sequenceNumber);
-							Channels.fireMessageReceived(ctx.getChannel(), packet);
-							sequenceNumber++;
-						}
+					int sequenceNumber = 0;
+					while (buffer.readable()) {
+						Packet packet = PacketFramer.decodeNextPacket(buffer);
+						packet.setSessionId(sessionId);
+						packet.setOrigin(origin);
+						packet.setSequenceNumber(sequenceNumber);
+						Channels.fireMessageReceived(ctx.getChannel(), packet);
+						sequenceNumber++;
 					}
 				} else {
 					log.warn("Can't process HTTP XHR-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
