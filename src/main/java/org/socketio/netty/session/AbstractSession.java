@@ -100,12 +100,12 @@ public abstract class AbstractSession implements IManagedSession {
 	@Override
 	public boolean connect(final Channel channel) {
 		heartbeatScheduler.reschedule();
-		boolean connectFirstTime = stateHolder.compareAndSet(State.CONNECTING, State.CONNECTED); 
-		if (connectFirstTime) {
-			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), State.CONNECTING, State.CONNECTED});
+		State previousState = setState(State.CONNECTED);
+		boolean initialConnect = previousState == State.CONNECTING;
+		if (initialConnect) {
 			channel.write(connectPacket);
 		}
-		return connectFirstTime;
+		return initialConnect;
 	}
 	
 	@Override
@@ -161,11 +161,12 @@ public abstract class AbstractSession implements IManagedSession {
 		packet.setTransportType(getTransportType());
 	}
 	
-	protected void setState(final State state) {
+	protected State setState(final State state) {
 		State previousState = stateHolder.getAndSet(state);
 		if (previousState != state) {
 			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), previousState, state});
 		}
+		return previousState;
 	}
 	
 }

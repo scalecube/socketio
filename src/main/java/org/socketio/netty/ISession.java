@@ -21,7 +21,7 @@ import java.net.SocketAddress;
  * When client handshake and connects to the socket.io server a
  * session is created this session handles the communication with a
  * specific client connection each client is represented with specific
- * session id that is correlated in the communication protocol
+ * session id that is correlated in the communication protocol.
  * 
  * @author Ronen Hamias 
  */
