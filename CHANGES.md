@@ -4,6 +4,8 @@ Changes
 1.0.12-SNAPSHOT
 -----------------------
 
+* Fix bug in `FlashPolicyHandler` over SSL connection 
+
 1.0.11 / 2013-12-27
 -----------------------
 
