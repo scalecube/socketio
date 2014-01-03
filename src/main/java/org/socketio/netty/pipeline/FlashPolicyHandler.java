@@ -53,7 +53,9 @@ public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
 	            	// Remove SSL handler from pipeline otherwise on channel close SSL handler 
 	            	// will fail all pending writes instead of flushing them and as a result 
 	            	// client won't get flash policy file.
-	            	ctx.getPipeline().remove(SocketIOPipelineFactory.SSL_HANDLER);
+	            	if (ctx.getPipeline().get(SocketIOPipelineFactory.SSL_HANDLER) != null) {
+	            		ctx.getPipeline().remove(SocketIOPipelineFactory.SSL_HANDLER);
+	            	}
 	            	
 	            	// Send flash policy file and close connection
 	                ChannelFuture f = ctx.getChannel().write(ChannelBuffers.copiedBuffer(policyResponseBuffer));
