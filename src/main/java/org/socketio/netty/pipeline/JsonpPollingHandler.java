@@ -74,6 +74,9 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 								content, CharsetUtil.UTF_8, false);
 
 						content = queryStringDecoder.getParameters().get("d").get(0);
+						
+						//FIXME: It doesn't counts correct length for framed messages, probably because of slashes!
+						
 						if (content.startsWith("\"")) {
 							content = content.substring(1);
 						}
