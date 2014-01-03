@@ -17,14 +17,15 @@ package org.socketio.netty.pipeline;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -66,24 +67,39 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 					Channels.fireMessageReceived(ctx, packet);
 				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
 					// Process message request from client
-					log.debug("Received from channel {} JSONP-Polling message: {} ", ctx.getChannel(), req);
-					/*
-					int contentLength = req.getContent().array().length;
-					ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
-					buffer.writeBytes(req.getContent());
+					ChannelBuffer buffer = req.getContent();
+					String content = buffer.toString(CharsetUtil.UTF_8);
+					if (content.startsWith("d=")) {
+						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(
+								content, CharsetUtil.UTF_8, false);
 
-					int sequenceNumber = 0;
-					while (buffer.readable()) {
-						Packet packet = PacketFramer.decodeNextPacket(buffer);
-						packet.setSessionId(sessionId);
-						packet.setOrigin(origin);
-						packet.setSequenceNumber(sequenceNumber);
-						Channels.fireMessageReceived(ctx.getChannel(), packet);
-						sequenceNumber++;
+						content = queryStringDecoder.getParameters().get("d").get(0);
+						if (content.startsWith("\"")) {
+							content = content.substring(1);
+						}
+
+						if (content.endsWith("\"")) {
+							content = content.substring(0, content.length() - 1);
+						}
+						
+						byte[] messageBytes = content.getBytes("UTF-8"); 
+						ChannelBuffer messageBuffer = ChannelBuffers.dynamicBuffer(messageBytes.length);
+						messageBuffer.writeBytes(messageBytes);
+						
+						int sequenceNumber = 0;
+						while (messageBuffer.readable()) {
+							Packet packet = PacketFramer.decodeNextPacket(messageBuffer);
+							packet.setSessionId(sessionId);
+							packet.setOrigin(origin);
+							packet.setSequenceNumber(sequenceNumber);
+							Channels.fireMessageReceived(ctx.getChannel(), packet);
+							sequenceNumber++;
+						}
+					} else {
+						log.warn("Can't process HTTP JSONP-Polling message. Incorrect content format: {} from channel: {}", content, ctx.getChannel());
 					}
-					*/
 				} else {
-					log.warn("Can't process HTTP XHR-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
+					log.warn("Can't process HTTP JSONP-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
 				}
 				return;
 			}

@@ -16,9 +16,8 @@
 package org.socketio.netty.pipeline;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
-import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.packets.PacketsFrame;
 import org.socketio.netty.serialization.PacketEncoder;
 import org.socketio.netty.serialization.PacketFramer;
@@ -56,7 +54,9 @@ import org.socketio.netty.serialization.PacketFramer;
  */
 @Sharable
 public class PacketEncoderHandler extends OneToOneEncoder {
-
+	
+	private final static String JSONP_TEMPLATE = "io.j[%s]('%s');";
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Override
@@ -74,10 +74,9 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 			} else if (transportType == TransportType.XHR_POLLING) {
 				return PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false);
 			} else if (transportType == TransportType.JSONP_POLLING) {
-				//TODO: clean up
-				String head = "io.j[0](\"";
-				String foot = "\");";
-				String encodedJsonpPacket = head + encodedPacket + foot; 
+				//TODO: put correct value of i parameter
+				String iParam = "0";
+				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, iParam, encodedPacket);
 				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), encodedJsonpPacket, true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
 				return httpResponse;
