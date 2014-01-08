@@ -1,7 +1,10 @@
 Changes
 =======================
 
-1.0.12-SNAPSHOT
+1.0.14-SNAPSHOT
+-----------------------
+
+1.0.12
 -----------------------
 
 * Fix bug in `FlashPolicyHandler` over SSL connection 
