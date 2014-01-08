@@ -67,7 +67,19 @@ public interface ISession {
 	 * @return the remote client address
 	 */
 	SocketAddress getRemoteAddress();
-
+	
+	/**
+	 * session connected indicator
+	 * 
+	 * @return true if channel is connected
+	 */
+	State getState();
+	
+	/**
+	 * @return local port of client connection   
+ 	 */
+	int getLocalPort();
+	
 	/**
 	 * send message to client
 	 * 
@@ -77,20 +89,8 @@ public interface ISession {
 	void send(final String message);
 
 	/**
-	 * session connected indicator
-	 * 
-	 * @return true if channel is connected
-	 */
-	State getState();
-
-	/**
 	 * disconnect this session
 	 */
 	void disconnect();
-	
-	/**
-	 * @return local port of client connection   
- 	 */
-	int getLocalPort();
 
 }

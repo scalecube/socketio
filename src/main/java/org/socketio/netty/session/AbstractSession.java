@@ -34,19 +34,17 @@ public abstract class AbstractSession implements IManagedSession {
 	private final String origin;
 	private final TransportType transportType;
 	private final SocketAddress address;
-	private final ISessionDisconnectHandler disconnectHandler;
+	private final TransportType upgradedFromTransportType;
 	private final int localPort;
 	
-	private final Packet connectPacket = new Packet(PacketType.CONNECT);
-	private final Packet disconnectPacket = new Packet(PacketType.DISCONNECT);
-	private final Packet heartbeatPacket = new Packet(PacketType.HEARTBEAT);
+	protected final Packet connectPacket = new Packet(PacketType.CONNECT);
+	protected final Packet disconnectPacket = new Packet(PacketType.DISCONNECT);
+	protected final Packet heartbeatPacket = new Packet(PacketType.HEARTBEAT);
 	
+	protected final ISessionDisconnectHandler disconnectHandler;
 	protected final SocketIOHeartbeatScheduler heartbeatScheduler;
 	
 	private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
-	
-	private final TransportType upgradedFromTransportType;
-	
 	private volatile boolean discarded = false;
 	
 	public AbstractSession (final TransportType transportType, final Channel channel, final String sessionId, final String origin, 
@@ -65,12 +63,6 @@ public abstract class AbstractSession implements IManagedSession {
 		
 		heartbeatScheduler = new SocketIOHeartbeatScheduler(this);
 		setState(State.CONNECTING);
-	}
-	
-	protected final void preparePacket(IPacket packet) {
-		packet.setOrigin(getOrigin());
-		packet.setSessionId(getSessionId());
-		packet.setTransportType(transportType);
 	}
 	
 	@Override
@@ -99,6 +91,15 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
+	public int getLocalPort() {
+		return localPort;
+	}
+	
+	protected boolean isDiscarded() {
+		return discarded;
+	}
+	
+	@Override
 	public boolean connect(final Channel channel) {
 		heartbeatScheduler.reschedule();
 		boolean connectFirstTime = stateHolder.compareAndSet(State.CONNECTING, State.CONNECTED); 
@@ -114,29 +115,6 @@ public abstract class AbstractSession implements IManagedSession {
 		return stateHolder.get();
 	}
 	
-	@Override
-	public void setState(final State state) {
-		State previousState = stateHolder.getAndSet(state);
-		if (previousState != state) {
-			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), previousState, state});
-		}
-	}
-	
-	@Override
-	public void disconnect() {
-		if (getState() == State.DISCONNECTED) {
-			return;
-		}
-		
-		setState(State.DISCONNECTING);
-		heartbeatScheduler.disableHeartbeat();
-		if (!discarded) {
-			send(disconnectPacket);
-			disconnectHandler.onSessionDisconnect(this);
-		}
-		setState(State.DISCONNECTED);
-	}
-
 	@Override
 	public void disconnect(final Channel channel) {
 		if (getState() == State.DISCONNECTED) {
@@ -179,9 +157,17 @@ public abstract class AbstractSession implements IManagedSession {
 		heartbeatScheduler.reschedule();
 	}
 
-	@Override
-	public int getLocalPort() {
-		return localPort;
+	protected final void preparePacket(IPacket packet) {
+		packet.setOrigin(getOrigin());
+		packet.setSessionId(getSessionId());
+		packet.setTransportType(transportType);
+	}
+	
+	protected void setState(final State state) {
+		State previousState = stateHolder.getAndSet(state);
+		if (previousState != state) {
+			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), previousState, state});
+		}
 	}
 	
 	
