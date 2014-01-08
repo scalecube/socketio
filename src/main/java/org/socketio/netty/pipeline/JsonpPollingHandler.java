@@ -74,16 +74,7 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 								content, CharsetUtil.UTF_8, false);
 
 						content = queryStringDecoder.getParameters().get("d").get(0);
-						
-						//FIXME: It doesn't counts correct length for framed messages, probably because of slashes!
-						
-						if (content.startsWith("\"")) {
-							content = content.substring(1);
-						}
-
-						if (content.endsWith("\"")) {
-							content = content.substring(0, content.length() - 1);
-						}
+						preprocessJsonpContent(content);
 						
 						byte[] messageBytes = content.getBytes("UTF-8"); 
 						ChannelBuffer messageBuffer = ChannelBuffers.dynamicBuffer(messageBytes.length);
@@ -108,6 +99,18 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		ctx.sendUpstream(e);
+	}
+	
+	private void preprocessJsonpContent(String content) {
+		if (content.startsWith("\"")) {
+			content = content.substring(1);
+		}
+		if (content.endsWith("\"")) {
+			content = content.substring(0, content.length() - 1);
+		}
+		// RemoveFix extra slashes
+		content = content.replace("\\\\", "\\");
+		content = content.replace("\\\"", "\"");
 	}
 
 }
