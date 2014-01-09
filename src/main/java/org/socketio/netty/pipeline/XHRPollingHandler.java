@@ -15,11 +15,13 @@
  */
 package org.socketio.netty.pipeline;
 
+import java.util.List;
+
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -27,15 +29,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
+import org.socketio.netty.packets.Packet;
+import org.socketio.netty.serialization.PacketFramer;
 
 @Sharable
-public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
+public class XHRPollingHandler extends SimpleChannelUpstreamHandler {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private final String connectPath;
 
-	public XHRPollingConnectHandler(final String handshakePath) {
+	public XHRPollingHandler(final String handshakePath) {
 		this.connectPath = handshakePath + TransportType.XHR_POLLING.getName();
 	}
 
@@ -48,14 +52,29 @@ public class XHRPollingConnectHandler extends SimpleChannelUpstreamHandler {
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 			final String requestPath = queryDecoder.getPath();
 			
-			if (HttpMethod.GET.equals(requestMethod) && requestPath.startsWith(connectPath)) {
-				log.debug("Received HTTP XHR polling request: {} {} from channel: {}", new Object[] {
+			if (requestPath.startsWith(connectPath)) {
+				log.debug("Received HTTP XHR-Polling request: {} {} from channel: {}", new Object[] {
 						requestMethod, requestPath, ctx.getChannel()});
 				
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
-				final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
-				packet.setTransportType(TransportType.XHR_POLLING);
-				Channels.fireMessageReceived(ctx, packet);
+				final String origin = PipelineUtils.getOrigin(req);
+				
+				if (HttpMethod.GET.equals(requestMethod)) {
+					// Process polling request from client
+					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
+					packet.setTransportType(TransportType.XHR_POLLING);
+					Channels.fireMessageReceived(ctx, packet);
+				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
+					// Process message request from client
+					List<Packet> packets = PacketFramer.decodePacketsFrame(req.getContent().array());
+					for (Packet packet : packets) {
+						packet.setSessionId(sessionId);
+						packet.setOrigin(origin);
+						Channels.fireMessageReceived(ctx.getChannel(), packet);
+					}
+				} else {
+					log.warn("Can't process HTTP XHR-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
+				}
 				return;
 			}
 		}

@@ -16,9 +16,11 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
@@ -62,7 +64,7 @@ public final class PacketFramer {
 	private PacketFramer() {
 	}
 
-	public static CharSequence encodePacketsFrame(
+	public static String encodePacketsFrame(
 			final PacketsFrame packetsFrame) throws IOException {
 		List<IPacket> packets = packetsFrame.getPackets();
 		StringBuilder result = new StringBuilder();
@@ -83,10 +85,34 @@ public final class PacketFramer {
 				}
 			}
 		}
-		return result;
+		return result.toString();
+	}
+	
+	public static List<Packet> decodePacketsFrame(final String content) throws IOException {
+		byte[] contentBytes = content.getBytes("UTF-8"); 
+		return decodePacketsFrame(contentBytes);
+	}
+	
+	public static List<Packet> decodePacketsFrame(final byte[] content) throws IOException {
+		int contentLength = content.length;
+		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
+		buffer.writeBytes(content);
+		return decodePacketsFrame(buffer);
+	}
+	
+	private static List<Packet> decodePacketsFrame(final ChannelBuffer buffer) throws IOException {
+		List<Packet> packets = new LinkedList<Packet>();
+		int sequenceNumber = 0;
+		while (buffer.readable()) {
+			Packet packet = PacketFramer.decodeNextPacket(buffer);
+			packet.setSequenceNumber(sequenceNumber);
+			sequenceNumber++;
+			packets.add(packet);
+		}
+		return packets;
 	}
 
-	public static Packet decodeNextPacket(final ChannelBuffer buffer) throws IOException {
+	private static Packet decodeNextPacket(final ChannelBuffer buffer) throws IOException {
 		Packet packet;
 		if (isDelimeter(buffer, buffer.readerIndex())) {
 			CharSequence packetCharsCountString = decodePacketLength(buffer);

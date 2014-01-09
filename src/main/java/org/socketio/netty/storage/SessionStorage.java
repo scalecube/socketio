@@ -18,9 +18,11 @@ package org.socketio.netty.storage;
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
+import org.socketio.netty.pipeline.UnsupportedTransportTypeException;
 import org.socketio.netty.session.FlashSocketSession;
 import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
+import org.socketio.netty.session.JsonpPollingSession;
 import org.socketio.netty.session.WebSocketSession;
 import org.socketio.netty.session.XHRPollingSession;
 import org.socketio.netty.storage.memoizer.Computable;
@@ -73,20 +75,26 @@ public class SessionStorage {
 		final TransportType transportType = connectPacket.getTransportType();
 		final String sessionId = connectPacket.getSessionId();
 		final String origin = connectPacket.getOrigin();
+		final String jsonpIndexParam = connectPacket.getJsonpIndexParam();
 		try {
 			return sessionsMemoizer.get(sessionId,
 					new Computable<String, IManagedSession>() {
 						@Override
-						public IManagedSession compute(String sessionId) 	throws Exception {
+						public IManagedSession compute(String sessionId) throws Exception {
 							if (transportType == TransportType.WEBSOCKET) {
 								return new WebSocketSession(channel, sessionId,
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
 							} else if (transportType == TransportType.FLASHSOCKET) {
 								return new FlashSocketSession(channel, sessionId,
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
-							} else {
+							} else if (transportType == TransportType.XHR_POLLING) {
 								return new XHRPollingSession(channel,sessionId, 
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
+							} else if (transportType == TransportType.JSONP_POLLING) {
+								return new JsonpPollingSession(channel,sessionId, 
+										origin, disconnectHandler, upgradedFromTransportType, localPort, jsonpIndexParam);
+							} else {
+								throw new UnsupportedTransportTypeException(transportType);
 							}
 						}
 					});

@@ -15,8 +15,6 @@
  */
 package org.socketio.netty.packets;
 
-
-
 /**
  * According to socket.io spec Connect packet is sent to socket.io client after handshake.
  * 
@@ -24,7 +22,7 @@ package org.socketio.netty.packets;
  *  
  */
 public class ConnectPacket extends Packet {
-
+	
 	public ConnectPacket(final String sessionId) {
 		super(PacketType.CONNECT, sessionId);
 	}

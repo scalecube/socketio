@@ -16,8 +16,9 @@
 package org.socketio.netty.pipeline;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.slf4j.Logger;
@@ -25,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
-import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.packets.PacketsFrame;
 import org.socketio.netty.serialization.PacketEncoder;
 import org.socketio.netty.serialization.PacketFramer;
@@ -54,7 +54,9 @@ import org.socketio.netty.serialization.PacketFramer;
  */
 @Sharable
 public class PacketEncoderHandler extends OneToOneEncoder {
-
+	
+	private final static String JSONP_TEMPLATE = "io.j[%s]('%s');";
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Override
@@ -63,15 +65,20 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 			IPacket packet = (IPacket) msg;
 
 			log.debug("Sending packet: {} to channel: {}", msg, channel);
-			CharSequence encodedPacket = encodePacket(packet);
+			String encodedPacket = encodePacket(packet);
 			log.debug("Encoded packet: {}", encodedPacket);
 			
 			TransportType transportType = packet.getTransportType();
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				return new TextWebSocketFrame(encodedPacket.toString());
 			} else if (transportType == TransportType.XHR_POLLING) {
-				boolean json = packet.getType() == PacketType.JSON;
-				return PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, json);
+				return PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false);
+			} else if (transportType == TransportType.JSONP_POLLING) {
+				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
+				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
+				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), encodedJsonpPacket, true);
+				httpResponse.headers().add("X-XSS-Protection", "0");
+				return httpResponse;
 			} else {
 				throw new UnsupportedTransportTypeException(transportType);
 			}
@@ -79,7 +86,7 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 		return msg;
 	}
 
-	private CharSequence encodePacket(final IPacket msg) throws Exception {
+	private String encodePacket(final IPacket msg) throws Exception {
 		if (msg instanceof PacketsFrame) {
 			return PacketFramer.encodePacketsFrame((PacketsFrame) msg);
 		} else if (msg instanceof Packet) {

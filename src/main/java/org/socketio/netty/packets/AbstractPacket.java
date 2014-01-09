@@ -28,6 +28,8 @@ public abstract class AbstractPacket implements IPacket {
 
 	private TransportType transportType;
 	
+	private String jsonpIndexParam;
+	
 	public AbstractPacket() {
 		this(null);
 	}
@@ -69,6 +71,14 @@ public abstract class AbstractPacket implements IPacket {
 		return transportType;
 	}
 	
+	public String getJsonpIndexParam() {
+		return jsonpIndexParam;
+	}
+
+	public void setJsonpIndexParam(String jsonpIndexParam) {
+		this.jsonpIndexParam = jsonpIndexParam;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -80,6 +90,8 @@ public abstract class AbstractPacket implements IPacket {
 		builder.append(sessionId);
 		builder.append(", transportType=");
 		builder.append(transportType);
+		builder.append(",jsonpIndexParam=");
+		builder.append(jsonpIndexParam);
 		return builder.toString();
 	}
 
