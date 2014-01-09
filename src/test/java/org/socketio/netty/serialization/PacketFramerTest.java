@@ -16,18 +16,14 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import junit.framework.Assert;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.packets.PacketsFrame;
-import org.socketio.netty.serialization.PacketFramer;
 
 /**
  * 
@@ -44,16 +40,9 @@ public class PacketFramerTest {
 			"\ufffd9\ufffd0::/woot5" +
 			"\ufffd7\ufffd3:::53d" +
 			"\ufffd3\ufffd2::";
-		byte[] messagesFrameBytes = messagesFrame.getBytes("UTF-8"); 
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(messagesFrameBytes.length);
-		buffer.writeBytes(messagesFrameBytes);
 		
 		// When
-		List<Packet> packets = new LinkedList<Packet>();
-		while (buffer.readable()) {
-			Packet packet = PacketFramer.decodeNextPacket(buffer);
-			packets.add(packet);
-		}
+		List<Packet> packets = PacketFramer.decodePacketsFrame(messagesFrame);
 
 		// Then
 		Assert.assertEquals(4, packets.size());
@@ -72,16 +61,9 @@ public class PacketFramerTest {
 			"\ufffd3\ufffd0::" +
 			"\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}" +
 			"\ufffd7\ufffd3:::53d";
-		byte[] messagesFrameBytes = messagesFrame.getBytes("UTF-8"); 
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(messagesFrameBytes.length);
-		buffer.writeBytes(messagesFrameBytes);
 
 		// When
-		List<Packet> packets = new LinkedList<Packet>();
-		while (buffer.readable()) {
-			Packet packet = PacketFramer.decodeNextPacket(buffer);
-			packets.add(packet);
-		}
+		List<Packet> packets = PacketFramer.decodePacketsFrame(messagesFrame);
 
 		// Then
 		Assert.assertEquals(3, packets.size());
@@ -104,10 +86,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet2);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString());
+        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result);
     }
 	
 	@Test
@@ -119,10 +101,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet1);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("3:::5", result.toString());
+        Assert.assertEquals("3:::5", result);
     }
 	
 	@Test
@@ -140,10 +122,10 @@ public class PacketFramerTest {
         packetsFrame.getPackets().add(packet3);
         
         // When
-        CharSequence result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame);
         
         // Then
-        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result.toString());
+        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result);
     }
 	
 }

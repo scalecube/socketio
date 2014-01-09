@@ -60,7 +60,7 @@ public class SocketIOServer {
 
 	private int closeTimeout = 25;
 
-	private String transports = "websocket,flashsocket,xhr-polling";
+	private String transports = "websocket,flashsocket,xhr-polling,jsonp-polling";
 	
 	private SSLContext sslContext = null;
 	

@@ -32,8 +32,7 @@ public abstract class AbstractSession implements IManagedSession {
 	
 	private final String sessionId;
 	private final String origin;
-	private final TransportType transportType;
-	private final SocketAddress address;
+	private final SocketAddress remoteAddress;
 	private final TransportType upgradedFromTransportType;
 	private final int localPort;
 	
@@ -47,20 +46,14 @@ public abstract class AbstractSession implements IManagedSession {
 	private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
 	private volatile boolean discarded = false;
 	
-	public AbstractSession (final TransportType transportType, final Channel channel, final String sessionId, final String origin, 
+	public AbstractSession (final Channel channel, final String sessionId, final String origin, 
 			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort) {
 		this.sessionId = sessionId;
-		this.address = channel.getRemoteAddress();
+		this.remoteAddress = channel.getRemoteAddress();
 		this.origin = origin;
 		this.localPort = localPort;
-		this.transportType = transportType;
 		this.disconnectHandler = disconnectHandler;
 		this.upgradedFromTransportType = upgradedFromTransportType;
-
-		preparePacket(connectPacket);
-		preparePacket(heartbeatPacket);
-		preparePacket(disconnectPacket);
-		
 		heartbeatScheduler = new SocketIOHeartbeatScheduler(this);
 		setState(State.CONNECTING);
 	}
@@ -82,7 +75,7 @@ public abstract class AbstractSession implements IManagedSession {
 
 	@Override
 	public final SocketAddress getRemoteAddress() {
-		return address;
+		return remoteAddress;
 	}
 	
 	@Override
@@ -102,12 +95,13 @@ public abstract class AbstractSession implements IManagedSession {
 	@Override
 	public boolean connect(final Channel channel) {
 		heartbeatScheduler.reschedule();
-		boolean connectFirstTime = stateHolder.compareAndSet(State.CONNECTING, State.CONNECTED); 
-		if (connectFirstTime) {
-			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), State.CONNECTING, State.CONNECTED});
+		State previousState = setState(State.CONNECTED);
+		boolean initialConnect = previousState == State.CONNECTING;
+		if (initialConnect) {
+			initSession();
 			channel.write(connectPacket);
 		}
-		return connectFirstTime;
+		return initialConnect;
 	}
 	
 	@Override
@@ -123,7 +117,7 @@ public abstract class AbstractSession implements IManagedSession {
 		
 		setState(State.DISCONNECTING); 
 		heartbeatScheduler.disableHeartbeat();
-		if (!discarded) {
+		if (!isDiscarded()) {
 			if (channel != null) {
 				channel.write(disconnectPacket);
 			}
@@ -156,19 +150,25 @@ public abstract class AbstractSession implements IManagedSession {
 	public void acceptHeartbeat() {
 		heartbeatScheduler.reschedule();
 	}
+	
+	protected void initSession() {
+		fillPacketHeaders(connectPacket);
+		fillPacketHeaders(heartbeatPacket);
+		fillPacketHeaders(disconnectPacket);
+	}
 
-	protected final void preparePacket(IPacket packet) {
+	protected void fillPacketHeaders(IPacket packet) {
 		packet.setOrigin(getOrigin());
 		packet.setSessionId(getSessionId());
-		packet.setTransportType(transportType);
+		packet.setTransportType(getTransportType());
 	}
 	
-	protected void setState(final State state) {
+	protected State setState(final State state) {
 		State previousState = stateHolder.getAndSet(state);
 		if (previousState != state) {
 			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), previousState, state});
 		}
+		return previousState;
 	}
-	
 	
 }

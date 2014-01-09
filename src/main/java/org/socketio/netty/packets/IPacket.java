@@ -40,5 +40,8 @@ public interface IPacket {
 	
 	TransportType getTransportType();
 	void setTransportType(TransportType transportType);
+	
+	String getJsonpIndexParam();
+	void setJsonpIndexParam(String jsonpIndexParam);
 
 }

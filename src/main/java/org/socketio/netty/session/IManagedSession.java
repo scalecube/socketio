@@ -20,6 +20,10 @@ import org.socketio.netty.ISession;
 import org.socketio.netty.packets.Packet;
 
 /**
+ * This interface enrich ISession interface with control methods required to manage 
+ * session internally. This interface is not supposed to be used by users of the library 
+ * and represents internal details session implementation and subject to change
+ * in future versions.  
  * 
  * @author Anton Kharenko
  *
@@ -31,37 +35,46 @@ public interface IManagedSession extends ISession {
 	 * 
 	 * @param channel
 	 *            channel to which client connected
-	 * @return true if channel was connected or false in case if channel was
-	 *         already connected before.
+	 * @return true if this is initial connection for this session; false otherwise.
+	 * 
 	 */
 	boolean connect(final Channel channel);
 	
 	/**
-	 * disconnect this session
+	 * Disconnect this session.
 	 * 
 	 * @param channel the channel to use for disconnection
 	 */
 	void disconnect(final Channel channel);
 	
 	/**
-	 * send heartbeat packet to client
+	 * Send heartbeat packet to client.
 	 */
 	void sendHeartbeat();
 	
 	/**
-	 * send packet message to client
+	 * Send packet message to client.
+	 * 
 	 * @param messagePacket message to be sent to client
 	 */
 	void send(final Packet messagePacket);
 	
 	/**
-	 * send acknowlagment HTTP 200 to client that message was accepted
+	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted
+	 * 
 	 * @param channel
 	 */
 	void acceptPacket(final Channel channel, final Packet packet);
 	
+	/**
+	 * Reschedule heartbeats for this client. 
+	 */
 	void acceptHeartbeat();
 	
+	/**
+	 * Marks session as discarded in case when session is going to be 
+	 * upgraded to another transport type. 
+	 */
 	void discard();
 	
 }

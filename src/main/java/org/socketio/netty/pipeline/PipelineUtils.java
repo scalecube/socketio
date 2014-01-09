@@ -15,6 +15,9 @@
  */
 package org.socketio.netty.pipeline;
 
+import java.util.List;
+import java.util.Map;
+
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -22,6 +25,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.util.CharsetUtil;
 
 /**
@@ -57,12 +61,18 @@ final class PipelineUtils {
 		return req.headers().get(HttpHeaders.Names.ORIGIN);
 	}
 	
+	public static String extractParameter(QueryStringDecoder queryDecoder, String key) {
+		final Map<String, List<String>> params = queryDecoder.getParameters();
+		List<String> paramsByKey = params.get(key);
+		return (paramsByKey != null) ? paramsByKey.get(0) : null;
+	}
+	
 	public static HttpResponse createHttpResponse(final String origin, CharSequence message, boolean json) {
 		HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 		
 		// Add headers
 		if (json) {
-			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/javascript");
+			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
 		} else {
 			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		}
