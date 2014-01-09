@@ -6,7 +6,7 @@ Changes
 
 * Added support of JSONP-Polling transport
 
-1.0.12
+1.0.12 / 2014-01-08
 -----------------------
 
 * Fix bug in `FlashPolicyHandler` over SSL connection 
