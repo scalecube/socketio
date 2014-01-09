@@ -75,6 +75,7 @@ public class SessionStorage {
 		final TransportType transportType = connectPacket.getTransportType();
 		final String sessionId = connectPacket.getSessionId();
 		final String origin = connectPacket.getOrigin();
+		final String jsonpIndexParam = connectPacket.getJsonpIndexParam();
 		try {
 			return sessionsMemoizer.get(sessionId,
 					new Computable<String, IManagedSession>() {
@@ -91,7 +92,7 @@ public class SessionStorage {
 										origin, disconnectHandler, upgradedFromTransportType, localPort);
 							} else if (transportType == TransportType.JSONP_POLLING) {
 								return new JsonpPollingSession(channel,sessionId, 
-										origin, disconnectHandler, upgradedFromTransportType, localPort);
+										origin, disconnectHandler, upgradedFromTransportType, localPort, jsonpIndexParam);
 							} else {
 								throw new UnsupportedTransportTypeException(transportType);
 							}

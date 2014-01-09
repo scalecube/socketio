@@ -54,11 +54,6 @@ public abstract class AbstractSession implements IManagedSession {
 		this.localPort = localPort;
 		this.disconnectHandler = disconnectHandler;
 		this.upgradedFromTransportType = upgradedFromTransportType;
-
-		fillPacketHeaders(connectPacket);
-		fillPacketHeaders(heartbeatPacket);
-		fillPacketHeaders(disconnectPacket);
-		
 		heartbeatScheduler = new SocketIOHeartbeatScheduler(this);
 		setState(State.CONNECTING);
 	}
@@ -103,6 +98,7 @@ public abstract class AbstractSession implements IManagedSession {
 		State previousState = setState(State.CONNECTED);
 		boolean initialConnect = previousState == State.CONNECTING;
 		if (initialConnect) {
+			initSession();
 			channel.write(connectPacket);
 		}
 		return initialConnect;
@@ -154,8 +150,14 @@ public abstract class AbstractSession implements IManagedSession {
 	public void acceptHeartbeat() {
 		heartbeatScheduler.reschedule();
 	}
+	
+	protected void initSession() {
+		fillPacketHeaders(connectPacket);
+		fillPacketHeaders(heartbeatPacket);
+		fillPacketHeaders(disconnectPacket);
+	}
 
-	protected final void fillPacketHeaders(IPacket packet) {
+	protected void fillPacketHeaders(IPacket packet) {
 		packet.setOrigin(getOrigin());
 		packet.setSessionId(getSessionId());
 		packet.setTransportType(getTransportType());

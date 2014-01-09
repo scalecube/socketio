@@ -32,9 +32,14 @@ public class XHRPollingSession extends AbstractSession {
 	public XHRPollingSession(final Channel channel, final String sessionId, final String origin, 
 			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
-		fillPacketHeaders(ackPacket);
 	}
 	
+	@Override
+	protected void initSession() {
+		super.initSession();
+		fillPacketHeaders(ackPacket);
+	}
+
 	@Override
 	public TransportType getTransportType() {
 		return TransportType.XHR_POLLING;

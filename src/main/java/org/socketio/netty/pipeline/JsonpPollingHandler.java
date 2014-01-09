@@ -15,6 +15,9 @@
  */
 package org.socketio.netty.pipeline;
 
+import java.util.List;
+import java.util.Map;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
@@ -62,8 +65,10 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 				
 				if (HttpMethod.GET.equals(requestMethod)) {
 					// Process polling request from client
+					String jsonpIndexParam = extractParameter(queryDecoder, "i"); 
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.JSONP_POLLING);
+					packet.setJsonpIndexParam(jsonpIndexParam);
 					Channels.fireMessageReceived(ctx, packet);
 				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
 					// Process message request from client
@@ -74,7 +79,7 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 								content, CharsetUtil.UTF_8, false);
 
 						content = queryStringDecoder.getParameters().get("d").get(0);
-						preprocessJsonpContent(content);
+						content = preprocessJsonpContent(content);
 						
 						byte[] messageBytes = content.getBytes("UTF-8"); 
 						ChannelBuffer messageBuffer = ChannelBuffers.dynamicBuffer(messageBytes.length);
@@ -101,7 +106,7 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 		ctx.sendUpstream(e);
 	}
 	
-	private void preprocessJsonpContent(String content) {
+	private String preprocessJsonpContent(String content) {
 		if (content.startsWith("\"")) {
 			content = content.substring(1);
 		}
@@ -111,6 +116,13 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 		// RemoveFix extra slashes
 		content = content.replace("\\\\", "\\");
 		content = content.replace("\\\"", "\"");
+		return content;
+	}
+	
+	private String extractParameter(QueryStringDecoder queryDecoder, String key) {
+		final Map<String, List<String>> params = queryDecoder.getParameters();
+		List<String> paramsByKey = params.get(key);
+		return (paramsByKey != null) ? paramsByKey.get(0) : null;
 	}
 
 }

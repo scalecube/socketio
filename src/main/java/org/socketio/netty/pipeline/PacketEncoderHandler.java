@@ -74,9 +74,8 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 			} else if (transportType == TransportType.XHR_POLLING) {
 				return PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false);
 			} else if (transportType == TransportType.JSONP_POLLING) {
-				//TODO: put correct value of i parameter
-				String iParam = "0";
-				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, iParam, encodedPacket);
+				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
+				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
 				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), encodedJsonpPacket, true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
 				return httpResponse;
