@@ -4,7 +4,7 @@ import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 
-public class JsonpPollingSession extends XHRPollingSession {
+public class JsonpPollingSession extends AbstractPollingSession {
 	
 	private final String jsonpIndexParam;
 	

@@ -46,8 +46,13 @@ public abstract class AbstractSession implements IManagedSession {
 	private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
 	private volatile boolean discarded = false;
 	
-	public AbstractSession (final Channel channel, final String sessionId, final String origin, 
-			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort) {
+	public AbstractSession (
+			final Channel channel, 
+			final String sessionId, 
+			final String origin, 
+			final ISessionDisconnectHandler disconnectHandler, 
+			final TransportType upgradedFromTransportType, 
+			final int localPort) {
 		this.sessionId = sessionId;
 		this.remoteAddress = channel.getRemoteAddress();
 		this.origin = origin;
