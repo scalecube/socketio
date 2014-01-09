@@ -15,8 +15,9 @@
  */
 package org.socketio.netty.pipeline;
 
+import java.util.List;
+
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
@@ -74,22 +75,14 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 					if (content.startsWith("d=")) {
 						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(
 								content, CharsetUtil.UTF_8, false);
-
 						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
 						
-						byte[] messageBytes = content.getBytes("UTF-8"); 
-						ChannelBuffer messageBuffer = ChannelBuffers.dynamicBuffer(messageBytes.length);
-						messageBuffer.writeBytes(messageBytes);
-						
-						int sequenceNumber = 0;
-						while (messageBuffer.readable()) {
-							Packet packet = PacketFramer.decodeNextPacket(messageBuffer);
+						List<Packet> packets = PacketFramer.decodePacketsFrame(content);
+						for (Packet packet : packets) {
 							packet.setSessionId(sessionId);
 							packet.setOrigin(origin);
-							packet.setSequenceNumber(sequenceNumber);
 							Channels.fireMessageReceived(ctx.getChannel(), packet);
-							sequenceNumber++;
 						}
 					} else {
 						log.warn("Can't process HTTP JSONP-Polling message. Incorrect content format: {} from channel: {}", content, ctx.getChannel());

@@ -15,13 +15,13 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import java.util.List;
+
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -66,18 +66,11 @@ public class XHRPollingHandler extends SimpleChannelUpstreamHandler {
 					Channels.fireMessageReceived(ctx, packet);
 				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
 					// Process message request from client
-					int contentLength = req.getContent().array().length;
-					ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
-					buffer.writeBytes(req.getContent());
-
-					int sequenceNumber = 0;
-					while (buffer.readable()) {
-						Packet packet = PacketFramer.decodeNextPacket(buffer);
+					List<Packet> packets = PacketFramer.decodePacketsFrame(req.getContent().array());
+					for (Packet packet : packets) {
 						packet.setSessionId(sessionId);
 						packet.setOrigin(origin);
-						packet.setSequenceNumber(sequenceNumber);
 						Channels.fireMessageReceived(ctx.getChannel(), packet);
-						sequenceNumber++;
 					}
 				} else {
 					log.warn("Can't process HTTP XHR-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
