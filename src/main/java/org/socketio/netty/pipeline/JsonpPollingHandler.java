@@ -15,9 +15,6 @@
  */
 package org.socketio.netty.pipeline;
 
-import java.util.List;
-import java.util.Map;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
@@ -65,7 +62,7 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 				
 				if (HttpMethod.GET.equals(requestMethod)) {
 					// Process polling request from client
-					String jsonpIndexParam = extractParameter(queryDecoder, "i"); 
+					String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i"); 
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.JSONP_POLLING);
 					packet.setJsonpIndexParam(jsonpIndexParam);
@@ -78,7 +75,7 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(
 								content, CharsetUtil.UTF_8, false);
 
-						content = queryStringDecoder.getParameters().get("d").get(0);
+						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
 						
 						byte[] messageBytes = content.getBytes("UTF-8"); 
@@ -117,12 +114,6 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 		content = content.replace("\\\\", "\\");
 		content = content.replace("\\\"", "\"");
 		return content;
-	}
-	
-	private String extractParameter(QueryStringDecoder queryDecoder, String key) {
-		final Map<String, List<String>> params = queryDecoder.getParameters();
-		List<String> paramsByKey = params.get(key);
-		return (paramsByKey != null) ? paramsByKey.get(0) : null;
 	}
 
 }

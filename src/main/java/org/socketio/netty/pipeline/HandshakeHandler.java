@@ -18,17 +18,15 @@ package org.socketio.netty.pipeline;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -171,7 +169,7 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 	}
 	
 	private String getHandshakeMessage(final String sessionId, final QueryStringDecoder queryDecoder) throws IOException {
-		String jsonpParam = extractJsonpParameter(queryDecoder);
+		String jsonpParam = PipelineUtils.extractParameter(queryDecoder, "jsonp");
 		String handshakeParameters = sessionId + commonHandshakeParameters;
 		if (jsonpParam != null) {            
 			return "io.j[" + jsonpParam + "]("  
@@ -179,12 +177,6 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 		} else {
 			return handshakeParameters;
 		}
-	}
-	
-	private String extractJsonpParameter(QueryStringDecoder queryDecoder) {
-		final Map<String, List<String>> params = queryDecoder.getParameters();
-		List<String> jsonpParams = params.get("jsonp");
-		return (jsonpParams != null) ? jsonpParams.get(0) : null;
 	}
 
 }
