@@ -51,7 +51,7 @@ public interface IManagedSession extends ISession {
 	/**
 	 * Send heartbeat packet to client.
 	 */
-	void sendHeartbeat();
+	ISessionFuture sendHeartbeat();
 	
 	/**
 	 * Send packet message to client.

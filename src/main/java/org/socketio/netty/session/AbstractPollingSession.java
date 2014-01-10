@@ -14,7 +14,9 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	private final Packet ackPacket = new Packet(PacketType.ACK);
 	private final PollingQueue messagesQueue = new PollingQueue();
 	private final AtomicReference<Channel> outChannelHolder = new AtomicReference<Channel>();
-
+	
+	private DelayedSessionFuture delayedSendSessionFuture;
+	
 	public AbstractPollingSession(
 			final Channel channel, 
 			final String sessionId, 
@@ -43,28 +45,44 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 	
 	private void flush(final Channel channel) {
-		if (messagesQueue.isEmpty()) {
-			outChannelHolder.set(channel);
-		} else {
-			PacketsFrame packetsFrame = messagesQueue.takeAll();
-			sendPacketToChannel(channel, packetsFrame);
+		ISessionFuture sessionFuture = null;
+		DelayedSessionFuture currentDelayedSessionFuture = null;
+		synchronized (messagesQueue) {
+			if (messagesQueue.isEmpty()) {
+				outChannelHolder.set(channel);
+			} else {
+				PacketsFrame packetsFrame = messagesQueue.takeAll();
+				sessionFuture = sendPacketToChannel(channel, packetsFrame);
+				currentDelayedSessionFuture = delayedSendSessionFuture;
+				delayedSendSessionFuture = null;
+			}
+		}
+		
+		if (currentDelayedSessionFuture != null) {
+			currentDelayedSessionFuture.initSessionFuture(sessionFuture);
 		}
 	}
 
 	@Override
 	public ISessionFuture sendPacket(final Packet packet) {
-		if (packet != null) {
-			Channel channel = outChannelHolder.getAndSet(null);
-			if (channel != null && channel.isConnected()) {
-				sendPacketToChannel(channel, packet); 
-			} else {
-				fillPacketHeaders(packet);
-				messagesQueue.add(packet);
-			}
+		if (packet == null) {
+			return new CompleteSessionFuture(this, false, new NullPointerException("Packet is null"));
 		}
 		
-		//TODO return correct Session Future for polling transports
-		return null;
+		Channel channel = outChannelHolder.getAndSet(null);
+		if (channel != null && channel.isConnected()) {
+			return sendPacketToChannel(channel, packet); 
+		} else {
+			synchronized (messagesQueue) {
+				messagesQueue.add(packet);
+				
+				if (delayedSendSessionFuture == null) {
+					delayedSendSessionFuture = new DelayedSessionFuture(this);
+				}
+			}
+			
+			return delayedSendSessionFuture;
+		}
 	}
 	
 	@Override

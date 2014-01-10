@@ -131,8 +131,8 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
-	public void sendHeartbeat() {
-		sendPacket(heartbeatPacket);
+	public ISessionFuture sendHeartbeat() {
+		return sendPacket(heartbeatPacket);
 	}
 	
 	@Override
