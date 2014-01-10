@@ -34,8 +34,8 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 
 	private void bindChannel(final Channel channel) {
-		if (messagesQueue.isEmpty() && getState() != State.DISCONNECTING) {
-			outChannelHolder.set(channel);
+		if (getState() == State.DISCONNECTING) {
+			disconnect(channel);
 		} else {
 			flush(channel);
 		}
@@ -55,13 +55,11 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 	
 	private void flush(final Channel channel) {
-		if (channel != null && channel.isConnected()) {
-			if (getState() == State.DISCONNECTING) {
-				disconnect(channel);
-			} else {
-				PacketsFrame packetsFrame = messagesQueue.takeAll();
-				sendPacketToChannel(channel, packetsFrame);
-			}
+		if (messagesQueue.isEmpty()) {
+			outChannelHolder.set(channel);
+		} else {
+			PacketsFrame packetsFrame = messagesQueue.takeAll();
+			sendPacketToChannel(channel, packetsFrame);
 		}
 	}
 	
@@ -72,20 +70,24 @@ public abstract class AbstractPollingSession extends AbstractSession {
 		}
 		if (getState() != State.DISCONNECTING) {
 			setState(State.DISCONNECTING);
-			Channel channel = outChannelHolder.getAndSet(null);
-			flush(channel);
 			
-			// schedule forced disconnect
-			heartbeatScheduler.scheduleDisconnect();
+			// Check if there is active polling channel and disconnect 
+			// otherwise schedule forced disconnect
+			Channel channel = outChannelHolder.getAndSet(null);
+			if (channel != null && channel.isConnected()) {
+				disconnect(channel);
+			} else {
+				heartbeatScheduler.scheduleDisconnect();
+			}
 		} else {
-			//force disconnect
+			//forced disconnect
 			disconnect(null);
 		}
 	}
 	
 	@Override
 	public void acceptPacket(final Channel channel, final Packet packet) {
-		if (packet.getSequenceNumber() == 0 && channel.isConnected()) {
+		if (packet.getSequenceNumber() == 0) {
 			sendPacketToChannel(channel, ackPacket);
 		}
 	}

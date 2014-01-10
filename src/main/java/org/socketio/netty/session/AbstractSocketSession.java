@@ -36,9 +36,7 @@ public abstract class AbstractSocketSession extends AbstractSession {
 	
 	@Override
 	public void sendPacket(Packet packet) {
-		if (packet != null && channel != null && channel.isConnected()) {
-			sendPacketToChannel(channel, packet);
-		}
+		sendPacketToChannel(channel, packet);
 	}
 	
 	@Override

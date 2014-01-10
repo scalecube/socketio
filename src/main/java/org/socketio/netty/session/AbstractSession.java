@@ -141,8 +141,10 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	protected void sendPacketToChannel(final Channel channel, IPacket packet) {
-		fillPacketHeaders(packet);
-		channel.write(packet);
+		if (packet != null && channel != null && channel.isConnected()) {
+			fillPacketHeaders(packet);
+			channel.write(packet);
+		}
 	}
 	
 	@Override
