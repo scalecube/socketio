@@ -12,7 +12,7 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	
 	private final Packet ackPacket = new Packet(PacketType.ACK);
 	private final PollingQueue messagesQueue = new PollingQueue();
-	private final AtomicReference<Channel> channelHolder = new AtomicReference<Channel>();
+	private final AtomicReference<Channel> outChannelHolder = new AtomicReference<Channel>();
 
 	public AbstractPollingSession(
 			final Channel channel, 
@@ -25,12 +25,6 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 	
 	@Override
-	protected void initSession() {
-		super.initSession();
-		fillPacketHeaders(ackPacket);
-	}
-
-	@Override
 	public boolean connect(Channel channel) {
 		boolean initialConnect = super.connect(channel);
 		if (!initialConnect) {
@@ -41,44 +35,36 @@ public abstract class AbstractPollingSession extends AbstractSession {
 
 	private void bindChannel(final Channel channel) {
 		if (messagesQueue.isEmpty() && getState() != State.DISCONNECTING) {
-			channelHolder.set(channel);
+			outChannelHolder.set(channel);
 		} else {
-			send(channel, null);
+			flush(channel);
 		}
 	}
 
 	@Override
-	public void send(final Packet packet) {
+	public void sendPacket(final Packet packet) {
 		if (packet != null) {
-			fillPacketHeaders(packet);
-			Channel channel = channelHolder.getAndSet(null);
-			send(channel, packet);
-		}
-	}
-
-	private void send(final Channel channel, final Packet packet) {
-		if (channel != null && channel.isConnected()) {
-			if (getState() == State.DISCONNECTING) {
-				disconnect(channel);
-			} else if (packet != null) {
-				channel.write(packet); 
+			Channel channel = outChannelHolder.getAndSet(null);
+			if (channel != null && channel.isConnected()) {
+				sendPacketToChannel(channel, packet); 
 			} else {
-				PacketsFrame packetsFrame = messagesQueue.takeAll();
-				fillPacketHeaders(packetsFrame);
-				channel.write(packetsFrame);
+				fillPacketHeaders(packet);
+				messagesQueue.add(packet);
 			}
-		} else if (packet != null) {
-			messagesQueue.add(packet);
 		}
 	}
 	
-	@Override
-	public void acceptPacket(final Channel channel, final Packet packet) {
-		if (packet.getSequenceNumber() == 0 && channel.isConnected()) {
-			channel.write(ackPacket);
+	private void flush(final Channel channel) {
+		if (channel != null && channel.isConnected()) {
+			if (getState() == State.DISCONNECTING) {
+				disconnect(channel);
+			} else {
+				PacketsFrame packetsFrame = messagesQueue.takeAll();
+				sendPacketToChannel(channel, packetsFrame);
+			}
 		}
 	}
-
+	
 	@Override
 	public void disconnect() {
 		if (getState() == State.DISCONNECTED) {
@@ -86,14 +72,21 @@ public abstract class AbstractPollingSession extends AbstractSession {
 		}
 		if (getState() != State.DISCONNECTING) {
 			setState(State.DISCONNECTING);
-			Channel channel = channelHolder.getAndSet(null);
-			send(channel, null);
+			Channel channel = outChannelHolder.getAndSet(null);
+			flush(channel);
 			
 			// schedule forced disconnect
 			heartbeatScheduler.scheduleDisconnect();
 		} else {
 			//force disconnect
 			disconnect(null);
+		}
+	}
+	
+	@Override
+	public void acceptPacket(final Channel channel, final Packet packet) {
+		if (packet.getSequenceNumber() == 0 && channel.isConnected()) {
+			sendPacketToChannel(channel, ackPacket);
 		}
 	}
 	

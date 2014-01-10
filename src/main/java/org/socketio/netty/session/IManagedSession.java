@@ -57,7 +57,7 @@ public interface IManagedSession extends ISession {
 	 * 
 	 * @param messagePacket message to be sent to client
 	 */
-	void send(final Packet messagePacket);
+	void sendPacket(final Packet messagePacket);
 	
 	/**
 	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted
@@ -72,9 +72,9 @@ public interface IManagedSession extends ISession {
 	void acceptHeartbeat();
 	
 	/**
-	 * Marks session as discarded in case when session is going to be 
+	 * Marks session as upgraded when session is going to be 
 	 * upgraded to another transport type. 
 	 */
-	void discard();
+	void markAsUpdgraded();
 	
 }
