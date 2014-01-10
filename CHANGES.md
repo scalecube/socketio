@@ -5,6 +5,7 @@ Changes
 -----------------------
 
 * Added support of JSONP-Polling transport
+* Return future on `ISession` send operation
 
 1.0.12 / 2014-01-08
 -----------------------
