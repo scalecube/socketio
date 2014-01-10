@@ -40,6 +40,15 @@ public abstract class AbstractPollingSession extends AbstractSession {
 			flush(channel);
 		}
 	}
+	
+	private void flush(final Channel channel) {
+		if (messagesQueue.isEmpty()) {
+			outChannelHolder.set(channel);
+		} else {
+			PacketsFrame packetsFrame = messagesQueue.takeAll();
+			sendPacketToChannel(channel, packetsFrame);
+		}
+	}
 
 	@Override
 	public void sendPacket(final Packet packet) {
@@ -51,15 +60,6 @@ public abstract class AbstractPollingSession extends AbstractSession {
 				fillPacketHeaders(packet);
 				messagesQueue.add(packet);
 			}
-		}
-	}
-	
-	private void flush(final Channel channel) {
-		if (messagesQueue.isEmpty()) {
-			outChannelHolder.set(channel);
-		} else {
-			PacketsFrame packetsFrame = messagesQueue.takeAll();
-			sendPacketToChannel(channel, packetsFrame);
 		}
 	}
 	
