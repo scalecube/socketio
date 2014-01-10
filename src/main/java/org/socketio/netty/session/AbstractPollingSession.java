@@ -3,6 +3,7 @@ package org.socketio.netty.session;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jboss.netty.channel.Channel;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
@@ -51,7 +52,7 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 
 	@Override
-	public void sendPacket(final Packet packet) {
+	public ISessionFuture sendPacket(final Packet packet) {
 		if (packet != null) {
 			Channel channel = outChannelHolder.getAndSet(null);
 			if (channel != null && channel.isConnected()) {
@@ -61,6 +62,9 @@ public abstract class AbstractPollingSession extends AbstractSession {
 				messagesQueue.add(packet);
 			}
 		}
+		
+		//TODO return correct Session Future for polling transports
+		return null;
 	}
 	
 	@Override

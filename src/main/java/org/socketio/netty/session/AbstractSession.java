@@ -19,8 +19,10 @@ import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
@@ -134,16 +136,19 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
-	public void send(final String message) {
+	public ISessionFuture send(final String message) {
 		Packet messagePacket = new Packet(PacketType.MESSAGE);
         messagePacket.setData(message);
-        sendPacket(messagePacket);
+        return sendPacket(messagePacket);
 	}
 	
-	protected void sendPacketToChannel(final Channel channel, IPacket packet) {
-		if (packet != null && channel != null && channel.isConnected()) {
+	protected ISessionFuture sendPacketToChannel(final Channel channel, IPacket packet) {
+		try {
 			fillPacketHeaders(packet);
-			channel.write(packet);
+			ChannelFuture channelFuture = channel.write(packet);
+			return new DefaultSessionFuture(channelFuture, this);
+		} catch (Exception e) {
+			return new CompleteSessionFuture(this, false, e);
 		}
 	}
 	

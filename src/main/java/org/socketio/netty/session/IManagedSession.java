@@ -17,6 +17,7 @@ package org.socketio.netty.session;
 
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.ISession;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.packets.Packet;
 
 /**
@@ -57,7 +58,7 @@ public interface IManagedSession extends ISession {
 	 * 
 	 * @param messagePacket message to be sent to client
 	 */
-	void sendPacket(final Packet messagePacket);
+	ISessionFuture sendPacket(final Packet messagePacket);
 	
 	/**
 	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted

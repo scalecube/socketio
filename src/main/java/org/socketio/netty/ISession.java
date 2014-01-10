@@ -86,7 +86,7 @@ public interface ISession {
 	 * @param message
 	 *            message to be sent to client
 	 */
-	void send(final String message);
+	ISessionFuture send(final String message);
 
 	/**
 	 * disconnect this session
