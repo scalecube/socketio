@@ -17,6 +17,7 @@ package org.socketio.netty.session;
 
 import org.jboss.netty.channel.Channel;
 import org.socketio.netty.ISession;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.packets.Packet;
 
 /**
@@ -50,14 +51,14 @@ public interface IManagedSession extends ISession {
 	/**
 	 * Send heartbeat packet to client.
 	 */
-	void sendHeartbeat();
+	ISessionFuture sendHeartbeat();
 	
 	/**
 	 * Send packet message to client.
 	 * 
 	 * @param messagePacket message to be sent to client
 	 */
-	void send(final Packet messagePacket);
+	ISessionFuture sendPacket(final Packet messagePacket);
 	
 	/**
 	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted
@@ -72,9 +73,9 @@ public interface IManagedSession extends ISession {
 	void acceptHeartbeat();
 	
 	/**
-	 * Marks session as discarded in case when session is going to be 
+	 * Marks session as upgraded when session is going to be 
 	 * upgraded to another transport type. 
 	 */
-	void discard();
+	void markAsUpdgraded();
 	
 }

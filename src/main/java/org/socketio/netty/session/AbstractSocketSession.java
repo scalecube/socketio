@@ -16,6 +16,7 @@
 package org.socketio.netty.session;
 
 import org.jboss.netty.channel.Channel;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
 
@@ -35,26 +36,13 @@ public abstract class AbstractSocketSession extends AbstractSession {
 	}
 	
 	@Override
-	public void send(Packet packet) {
-		if (packet != null && channel != null && channel.isConnected()) {
-			fillPacketHeaders(packet);
-			channel.write(packet);
-		}
+	public ISessionFuture sendPacket(Packet packet) {
+		return sendPacketToChannel(channel, packet);
 	}
 	
 	@Override
 	public void disconnect() {
-		if (getState() == State.DISCONNECTED) {
-			return;
-		}
-		
-		setState(State.DISCONNECTING);
-		heartbeatScheduler.disableHeartbeat();
-		if (!isDiscarded()) {
-			send(disconnectPacket);
-			disconnectHandler.onSessionDisconnect(this);
-		}
-		setState(State.DISCONNECTED);
+		disconnect(channel);
 	}
 
 }

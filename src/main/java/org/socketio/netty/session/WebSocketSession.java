@@ -20,7 +20,13 @@ import org.socketio.netty.TransportType;
 
 public class WebSocketSession extends AbstractSocketSession {
 	
-	public WebSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
+	public WebSocketSession(
+			Channel channel, 
+			String sessionId, 
+			String origin, 
+			ISessionDisconnectHandler disconnectHandler, 
+			final TransportType upgradedFromTransportType, 
+			int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 	}
 

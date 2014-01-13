@@ -19,8 +19,10 @@ import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
@@ -36,18 +38,23 @@ public abstract class AbstractSession implements IManagedSession {
 	private final TransportType upgradedFromTransportType;
 	private final int localPort;
 	
-	protected final Packet connectPacket = new Packet(PacketType.CONNECT);
-	protected final Packet disconnectPacket = new Packet(PacketType.DISCONNECT);
-	protected final Packet heartbeatPacket = new Packet(PacketType.HEARTBEAT);
+	private final Packet connectPacket = new Packet(PacketType.CONNECT);
+	private final Packet disconnectPacket = new Packet(PacketType.DISCONNECT);
+	private final Packet heartbeatPacket = new Packet(PacketType.HEARTBEAT);
 	
 	protected final ISessionDisconnectHandler disconnectHandler;
 	protected final SocketIOHeartbeatScheduler heartbeatScheduler;
 	
 	private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
-	private volatile boolean discarded = false;
+	private volatile boolean upgraded = false;
 	
-	public AbstractSession (final Channel channel, final String sessionId, final String origin, 
-			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort) {
+	public AbstractSession (
+			final Channel channel, 
+			final String sessionId, 
+			final String origin, 
+			final ISessionDisconnectHandler disconnectHandler, 
+			final TransportType upgradedFromTransportType, 
+			final int localPort) {
 		this.sessionId = sessionId;
 		this.remoteAddress = channel.getRemoteAddress();
 		this.origin = origin;
@@ -88,8 +95,13 @@ public abstract class AbstractSession implements IManagedSession {
 		return localPort;
 	}
 	
-	protected boolean isDiscarded() {
-		return discarded;
+	protected boolean isUpgraded() {
+		return upgraded;
+	}
+	
+	@Override
+	public State getState() {
+		return stateHolder.get();
 	}
 	
 	@Override
@@ -98,15 +110,9 @@ public abstract class AbstractSession implements IManagedSession {
 		State previousState = setState(State.CONNECTED);
 		boolean initialConnect = previousState == State.CONNECTING;
 		if (initialConnect) {
-			initSession();
-			channel.write(connectPacket);
+			sendPacketToChannel(channel, connectPacket);
 		}
 		return initialConnect;
-	}
-	
-	@Override
-	public State getState() {
-		return stateHolder.get();
 	}
 	
 	@Override
@@ -117,33 +123,41 @@ public abstract class AbstractSession implements IManagedSession {
 		
 		setState(State.DISCONNECTING); 
 		heartbeatScheduler.disableHeartbeat();
-		if (!isDiscarded()) {
-			if (channel != null) {
-				channel.write(disconnectPacket);
-			}
+		if (!isUpgraded()) {
+			sendPacket(disconnectPacket);
 			disconnectHandler.onSessionDisconnect(this);
 		}
 		setState(State.DISCONNECTED);
 	}
 	
 	@Override
-	public void sendHeartbeat() {
-		send(heartbeatPacket);
+	public ISessionFuture sendHeartbeat() {
+		return sendPacket(heartbeatPacket);
 	}
 	
 	@Override
-	public void send(final String message) {
+	public ISessionFuture send(final String message) {
 		Packet messagePacket = new Packet(PacketType.MESSAGE);
         messagePacket.setData(message);
-        send(messagePacket);
+        return sendPacket(messagePacket);
+	}
+	
+	protected ISessionFuture sendPacketToChannel(final Channel channel, IPacket packet) {
+		try {
+			fillPacketHeaders(packet);
+			ChannelFuture channelFuture = channel.write(packet);
+			return new DefaultSessionFuture(channelFuture, this);
+		} catch (Exception e) {
+			return new CompleteSessionFuture(this, false, e);
+		}
 	}
 	
 	@Override
 	public void acceptPacket(final Channel channel, final Packet packet) {
 	}
 	
-	public void discard() {
-		discarded = true;
+	public void markAsUpdgraded() {
+		upgraded = true;
 	}
 	
 	@Override
@@ -151,12 +165,6 @@ public abstract class AbstractSession implements IManagedSession {
 		heartbeatScheduler.reschedule();
 	}
 	
-	protected void initSession() {
-		fillPacketHeaders(connectPacket);
-		fillPacketHeaders(heartbeatPacket);
-		fillPacketHeaders(disconnectPacket);
-	}
-
 	protected void fillPacketHeaders(IPacket packet) {
 		packet.setOrigin(getOrigin());
 		packet.setSessionId(getSessionId());

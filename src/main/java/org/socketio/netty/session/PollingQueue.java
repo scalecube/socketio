@@ -21,30 +21,30 @@ import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.PacketsFrame;
 
 
-public class XHRPollingQueue {
+public class PollingQueue {
 
-	private final ConcurrentLinkedQueue<IPacket> messagesQueue = new ConcurrentLinkedQueue<IPacket>();
+	private final ConcurrentLinkedQueue<IPacket> packetQueue = new ConcurrentLinkedQueue<IPacket>();
 	
-	public XHRPollingQueue() {
+	public PollingQueue() {
 	}
 
 	public PacketsFrame takeAll() {
 		PacketsFrame frame = new PacketsFrame();
-		IPacket item = null;
-		while((item = messagesQueue.poll()) != null) {
-			frame.getPackets().add(item);
+		IPacket packet = null;
+		while((packet = packetQueue.poll()) != null) {
+			frame.getPackets().add(packet);
 		}
 		return frame;
 	}
 		
 	public void add(final IPacket packet) {
 		if (packet != null) {
-			messagesQueue.add(packet);
+			packetQueue.add(packet);
 		}
 	}
 	
 	public boolean isEmpty() {
-		return messagesQueue.isEmpty();
+		return packetQueue.isEmpty();
 	}
 
 }

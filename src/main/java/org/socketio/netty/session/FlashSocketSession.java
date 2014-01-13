@@ -20,7 +20,13 @@ import org.socketio.netty.TransportType;
 
 public class FlashSocketSession extends AbstractSocketSession {
 	
-	public FlashSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
+	public FlashSocketSession(
+			Channel channel, 
+			String sessionId, 
+			String origin, 
+			ISessionDisconnectHandler disconnectHandler, 
+			final TransportType upgradedFromTransportType, 
+			int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 	}
 
