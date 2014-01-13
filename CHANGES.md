@@ -1,7 +1,10 @@
 Changes
 =======================
 
-1.0.14-SNAPSHOT
+1.0.15-SNAPSHOT
+-----------------------
+
+1.0.14 / 2014-01-13
 -----------------------
 
 * Added support of JSONP-Polling transport
