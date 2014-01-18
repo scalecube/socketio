@@ -9,6 +9,7 @@ Supported transport protocols:
 * WebSocket
 * Flash Socket
 * XHR-Polling
+* JSONP-Polling
 
 How to use
 -----------------------
