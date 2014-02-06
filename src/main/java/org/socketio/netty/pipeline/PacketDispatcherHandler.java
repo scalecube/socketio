@@ -62,7 +62,7 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 
 	@Override
 	public void exceptionCaught(final ChannelHandlerContext ctx, final ExceptionEvent e) throws Exception {
-		log.error("Exception caught at channel: {}", e.getChannel(), e.getCause());
+		log.error("Exception caught at channel: {}, {}", e.getChannel(), e.getCause().getMessage());
 	}
 	
 	@Override
@@ -75,7 +75,8 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 				log.debug("Dispatching packet: {} from channel: {}", packet, channel);
 				dispatchPacket(channel, packet);
 			} catch (Exception e) {
-				log.error("Failed to dispatch packet: {}", packet, e);
+				log.error("Failed to dispatch packet: {}, {}", packet, e.getMessage());
+				throw e;
 			}
 		} else {
 			log.warn("Received unknown message: {} from channel {}", message, channel);
