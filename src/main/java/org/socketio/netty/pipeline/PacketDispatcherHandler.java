@@ -62,7 +62,7 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 
 	@Override
 	public void exceptionCaught(final ChannelHandlerContext ctx, final ExceptionEvent e) throws Exception {
-		log.error("Exception caught at channel: {}, {}", e.getChannel(), e.getCause().getMessage());
+		log.error("Exception caught at channel: {}, {}", e.getChannel(), e.getCause() == null ? null : e.getCause().getMessage());
 	}
 	
 	@Override
