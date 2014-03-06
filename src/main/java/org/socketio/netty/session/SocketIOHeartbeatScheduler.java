@@ -19,7 +19,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SocketIOHeartbeatScheduler {
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private static int heartbeatInterval;
 	
@@ -77,6 +82,7 @@ public class SocketIOHeartbeatScheduler {
 			@Override
 			public void run() {
 				if (!disabled) {
+					log.debug("{} Session will be disconnected due missed Heartbeat", session.getSessionId());
 					session.disconnect();
 				}
 			}
