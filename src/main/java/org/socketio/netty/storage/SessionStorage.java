@@ -16,6 +16,8 @@
 package org.socketio.netty.storage;
 
 import org.jboss.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.pipeline.UnsupportedTransportTypeException;
@@ -35,6 +37,8 @@ import org.socketio.netty.storage.memoizer.MemoizerConcurrentMap;
  */
 public class SessionStorage {
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
 	private final MemoizerConcurrentMap<String, IManagedSession> sessionsMemoizer = new MemoizerConcurrentMap<String, IManagedSession>();
 	
 	private final int localPort;
@@ -60,9 +64,16 @@ public class SessionStorage {
 		// If transport protocol was changed then remove old session and create new one instead
 		if (connectPacket.getTransportType() != session.getTransportType()) {
 			session.markAsUpdgraded();
+			
+			String oldSessionId = session.getSessionId();
+			TransportType oldTransportType = session.getTransportType();
+			
 			final String sessionId = connectPacket.getSessionId();
 			removeSession(sessionId);
 			session = createSession(connectPacket, channel, disconnectHandler, session.getTransportType());
+			
+			log.debug("{} transport type {} session was upgraded to new transport type {} and session {}", 
+					oldTransportType.name(), oldSessionId, session.getTransportType().name(), session.getSessionId());
 		}
 		
 		return session;

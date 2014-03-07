@@ -108,6 +108,7 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 
 	private void onPacket(final Channel channel, final IManagedSession session, final Packet packet) {
 		if (packet.getType() == PacketType.DISCONNECT) {
+			log.debug("Got {} packet, {} session will be disconnected", packet.getType().name(), session.getSessionId());
 			session.disconnect(channel);
 		} else {
 			session.acceptPacket(channel, packet);
