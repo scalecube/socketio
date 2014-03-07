@@ -1,8 +1,9 @@
 Changes
 =======================
 
-1.0.15-SNAPSHOT
+1.0.15
 -----------------------
+* Added additional debug information in log
 
 1.0.14 / 2014-01-13
 -----------------------
