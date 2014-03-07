@@ -1,6 +1,9 @@
 Changes
 =======================
 
+1.0.16-SNAPSHOT
+-----------------------
+
 1.0.15 / 2014-02-07
 -----------------------
 * Added additional debug information in log
