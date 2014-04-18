@@ -21,13 +21,14 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import javax.net.ssl.SSLContext;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.pipeline.SocketIOPipelineFactory;
 import org.socketio.netty.session.SocketIOHeartbeatScheduler;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * A Socket.IO server launcher class.
@@ -38,7 +39,7 @@ public class SocketIOServer {
 
 	private enum State {
 		STARTED, STOPPED
-	};
+	}
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -92,24 +93,13 @@ public class SocketIOServer {
 		SocketIOHeartbeatScheduler
 				.setScheduledExecutorService(heartbeatScheduller);
 		SocketIOHeartbeatScheduler.setHeartbeatInterval(getHeartbeatInterval());
+		SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(listener, getHeartbeatTimeout(), getCloseTimeout(),
+				getTransports(), sslContext, alwaysSecureWebSocketLocation, port);
 
-		// Configure server
-		ChannelFactory factory = new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool());
-		bootstrap = new ServerBootstrap(factory);
-		SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(
-				listener, 
-				getHeartbeatTimeout(), 
-				getCloseTimeout(), 
-				getTransports(),
-				sslContext,
-				alwaysSecureWebSocketLocation,
-				port);
-		bootstrap.setPipelineFactory(pipelineFactory);
-		bootstrap.setOption("child.tcpNoDelay", true);
-		bootstrap.setOption("child.keepAlive", true);
-		
+        // Configure server
+		bootstrap = new ServerBootstrap().group(new NioEventLoopGroup(), new NioEventLoopGroup()).childHandler(pipelineFactory)
+				.childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
+
 		int port = getPort();
 		bootstrap.bind(new InetSocketAddress(port));
 
@@ -133,7 +123,7 @@ public class SocketIOServer {
 		log.info("Socket.IO server stopping");
 
 		heartbeatScheduller.shutdown();
-		bootstrap.releaseExternalResources();
+		bootstrap.group().shutdownGracefully();
 
 		log.info("Socket.IO server stopped");
 

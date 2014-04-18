@@ -15,13 +15,6 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.ISession;
@@ -34,41 +27,40 @@ import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.session.ISessionDisconnectHandler;
 import org.socketio.netty.storage.SessionStorage;
 
-@Sharable
-public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implements ISessionDisconnectHandler {
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+
+@ChannelHandler.Sharable
+public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implements ISessionDisconnectHandler {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final SessionStorage sessionStorage;
-	
+
 	private final ISocketIOListener listener;
-	
+
 	public PacketDispatcherHandler(SessionStorage sessionStorage, ISocketIOListener listener) {
 		this.sessionStorage = sessionStorage;
 		this.listener = listener;
 	}
 
 	@Override
-	public void channelConnected(final ChannelHandlerContext ctx, final ChannelStateEvent e) throws Exception {
-		log.debug("Channel connected: {}", ctx.getChannel());
-		super.channelConnected(ctx, e);
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		log.debug("Channel connected: {}", ctx.channel());
+		super.channelActive(ctx);
 	}
 
 	@Override
-	public void channelDisconnected(final ChannelHandlerContext ctx,final ChannelStateEvent e) throws Exception {
-		log.debug("Channel disconnected: {}", ctx.getChannel());
-		super.channelDisconnected(ctx, e);
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		log.debug("Channel disconnected: {}", ctx.channel());
+		super.channelInactive(ctx);
 	}
 
 	@Override
-	public void exceptionCaught(final ChannelHandlerContext ctx, final ExceptionEvent e) throws Exception {
-		log.error("Exception caught at channel: {}, {}", e.getChannel(), e.getCause());
-	}
-	
-	@Override
-	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent event) throws Exception {
-		final Channel channel = ctx.getChannel();
-		final Object message = event.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
+		final Channel channel = ctx.channel();
 		if (message instanceof IPacket) {
 			final IPacket packet = (IPacket) message;
 			try {
@@ -82,14 +74,19 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 		}
 	}
 
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
+	}
+
 	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
 			ConnectPacket connectPacket = (ConnectPacket) packet;
 			final IManagedSession session = sessionStorage.getSession(connectPacket, channel, this);
 			onConnectPacket(channel, session);
-		} else if (packet instanceof Packet){
+		} else if (packet instanceof Packet) {
 			Packet message = (Packet) packet;
-			final String sessionId = packet.getSessionId(); 
+			final String sessionId = packet.getSessionId();
 			final IManagedSession session = sessionStorage.getSessionIfExist(sessionId);
 			if (session != null) {
 				onPacket(channel, session, message);
@@ -121,7 +118,7 @@ public class PacketDispatcherHandler extends SimpleChannelUpstreamHandler implem
 			}
 		}
 	}
-	
+
 	@Override
 	public void onSessionDisconnect(ISession session) {
 		if (sessionStorage.containSession(session.getSessionId())) {

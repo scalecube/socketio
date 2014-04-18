@@ -18,21 +18,21 @@ package org.socketio.netty.session;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.socketio.netty.ISession;
 import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.ISessionFutureListener;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+
 public class DefaultSessionFuture implements ISessionFuture {
-	
-	private final ConcurrentMap<ISessionFutureListener, ChannelFutureListener> listenersMap = 
-			new ConcurrentHashMap<ISessionFutureListener, ChannelFutureListener>();
-	
+
+	private final ConcurrentMap<ISessionFutureListener, ChannelFutureListener> listenersMap = new ConcurrentHashMap<ISessionFutureListener, ChannelFutureListener>();
+
 	private final ChannelFuture channelFuture;
-	
+
 	private final ISession session;
-	
+
 	public DefaultSessionFuture(ChannelFuture channelFuture, ISession session) {
 		this.channelFuture = channelFuture;
 		this.session = session;
@@ -55,15 +55,15 @@ public class DefaultSessionFuture implements ISessionFuture {
 
 	@Override
 	public Throwable getCause() {
-		return channelFuture.getCause();
+		return channelFuture.cause();
 	}
 
 	@Override
 	public void addListener(final ISessionFutureListener listener) {
 		if (listener == null) {
-            throw new NullPointerException("listener");
-        }
-		
+			throw new NullPointerException("listener");
+		}
+
 		ChannelFutureListener channelFutureListener = new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
@@ -71,16 +71,16 @@ public class DefaultSessionFuture implements ISessionFuture {
 			}
 		};
 		listenersMap.putIfAbsent(listener, channelFutureListener);
-		
+
 		channelFuture.addListener(listenersMap.get(listener));
 	}
 
 	@Override
 	public void removeListener(ISessionFutureListener listener) {
 		if (listener == null) {
-            throw new NullPointerException("listener");
-        }
-		
+			throw new NullPointerException("listener");
+		}
+
 		ChannelFutureListener channelFutureListener = listenersMap.remove(listener);
 		if (channelFutureListener != null) {
 			channelFuture.removeListener(channelFutureListener);

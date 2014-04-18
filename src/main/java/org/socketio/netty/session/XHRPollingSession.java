@@ -15,24 +15,20 @@
  */
 package org.socketio.netty.session;
 
-import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 
+import io.netty.channel.Channel;
+
 public class XHRPollingSession extends AbstractPollingSession {
-	
-	public XHRPollingSession(
-			final Channel channel, 
-			final String sessionId, 
-			final String origin, 
-			final ISessionDisconnectHandler disconnectHandler, 
-			final TransportType upgradedFromTransportType, 
-			int localPort) {
+
+	public XHRPollingSession(final Channel channel, final String sessionId, final String origin,
+			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 	}
-	
+
 	@Override
 	public TransportType getTransportType() {
 		return TransportType.XHR_POLLING;
 	}
-	
+
 }

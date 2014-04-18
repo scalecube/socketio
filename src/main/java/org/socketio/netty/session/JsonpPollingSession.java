@@ -15,24 +15,19 @@
  */
 package org.socketio.netty.session;
 
-import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 
+import io.netty.channel.Channel;
+
 public class JsonpPollingSession extends AbstractPollingSession {
-	
+
 	private final String jsonpIndexParam;
-	
-	public JsonpPollingSession(
-			Channel channel, 
-			String sessionId,
-			String origin, 
-			ISessionDisconnectHandler disconnectHandler,
-			TransportType upgradedFromTransportType, 
-			int localPort,
-			String jsonpIndexParam) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType,	localPort);
-		this.jsonpIndexParam =jsonpIndexParam;  
+
+	public JsonpPollingSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
+			TransportType upgradedFromTransportType, int localPort, String jsonpIndexParam) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+		this.jsonpIndexParam = jsonpIndexParam;
 	}
 
 	@Override

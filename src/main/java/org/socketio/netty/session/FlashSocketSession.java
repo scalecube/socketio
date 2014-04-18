@@ -15,18 +15,14 @@
  */
 package org.socketio.netty.session;
 
-import org.jboss.netty.channel.Channel;
 import org.socketio.netty.TransportType;
 
+import io.netty.channel.Channel;
+
 public class FlashSocketSession extends AbstractSocketSession {
-	
-	public FlashSocketSession(
-			Channel channel, 
-			String sessionId, 
-			String origin, 
-			ISessionDisconnectHandler disconnectHandler, 
-			final TransportType upgradedFromTransportType, 
-			int localPort) {
+
+	public FlashSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
+			final TransportType upgradedFromTransportType, int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 	}
 
@@ -35,4 +31,3 @@ public class FlashSocketSession extends AbstractSocketSession {
 		return TransportType.FLASHSOCKET;
 	}
 }
-

@@ -20,40 +20,23 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.stream.ChunkedStream;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
-import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Sharable
-public class ResourceHandler extends SimpleChannelUpstreamHandler {
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedStream;
+import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.CharsetUtil;
+
+@ChannelHandler.Sharable
+public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -76,18 +59,16 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)  throws Exception {
-    	Object msg = e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
-        	HttpRequest req = (HttpRequest) msg;
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            String requestPath = queryDecoder.getPath();
-            URL resUrl = resources.get(requestPath);
+			HttpRequest req = (HttpRequest) msg;
+         QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+			String requestPath = queryDecoder.path();
+			URL resUrl = resources.get(requestPath);
             if (resUrl != null) {
-            	log.debug("Received HTTP resource request: {} {} from channel: {}", new Object[] {
-            			req.getMethod(), requestPath, ctx.getChannel()});
-            	
-                URLConnection fileUrl = resUrl.openConnection();
+				log.debug("Received HTTP resource request: {} {} from channel: {}", req.getMethod(), requestPath, ctx.channel());
+
+				URLConnection fileUrl = resUrl.openConnection();
                 long lastModified = fileUrl.getLastModified();
                 // check if file has been modified since last request
                 if (isNotModified(req, lastModified)) {
@@ -109,22 +90,23 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
                 // set Date, Expires, Cache-Control and Last-Modified headers
                 setDateAndCacheHeaders(res, lastModified);
                 // write initial response header
-                Channels.write(ctx.getChannel(), res);
+                ctx.write(res);
 
-                // write the content stream
-                ctx.getPipeline().addBefore(ctx.getName(), "chunked-writer-handler", new ChunkedWriteHandler());
-                ChannelFuture writeFuture = ctx.getChannel().write(new ChunkedStream(is, fileUrl.getContentLength()));
-                // add operation complete listener so we can close the channel and the input stream
+				// write the content stream
+				ctx.pipeline().addBefore(ctx.name(), "chunked-writer-handler", new ChunkedWriteHandler());
+				ChannelFuture writeFuture = ctx.writeAndFlush(new ChunkedStream(is, fileUrl.getContentLength()));
+				// add operation complete listener so we can close the channel and the input stream
                 writeFuture.addListener(ChannelFutureListener.CLOSE);
                 return;
             }
         }
-        super.messageReceived(ctx, e);
+        super.channelRead(ctx, msg);
     }
 
+
     /*
-     * Checks if the content has been modified sicne the date provided by the IF_MODIFIED_SINCE http header
-     * */
+	 * Checks if the content has been modified sicne the date provided by the IF_MODIFIED_SINCE http header
+	 * */
     private boolean isNotModified(HttpRequest request, long lastModified) throws ParseException {
         String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
         if (ifModifiedSince != null && !ifModifiedSince.equals("")) {
@@ -149,15 +131,15 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
         setDateHeader(response);
 
         // Close the connection as soon as the error message is sent.
-        ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
-     * Sets the Date header for the HTTP response
-     *
-     * @param response
-     *            HTTP response
-     */
+	 * Sets the Date header for the HTTP response
+	 *
+	 * @param response
+	 *            HTTP response
+	 */
     private void setDateHeader(HttpResponse response) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
         dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
@@ -170,28 +152,26 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
     /**
      * Sends an Error response with status message
      *
-     * @param ctx
-     * @param status
+     * @param ctx channel context
+     * @param status status
      */
-    private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
         HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-        ChannelBuffer content = ChannelBuffers.copiedBuffer( "Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8);
+        ByteBuf content = Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8);
 
-        ctx.getChannel().write(response);
-        // Close the connection as soon as the error message is sent.
-        ctx.getChannel().write(content).addListener(ChannelFutureListener.CLOSE);
-    }
+		ctx.write(response);
+		// Close the connection as soon as the error message is sent.
+		ctx.writeAndFlush(content).addListener(ChannelFutureListener.CLOSE);
+	}
 
     /**
-     * Sets the Date and Cache headers for the HTTP Response
-     *
-     * @param response
-     *            HTTP response
-     * @param fileToCache
-     *            file to extract content type
-     */
-    private void setDateAndCacheHeaders(HttpResponse response, long lastModified) {
+	 * Sets the Date and Cache headers for the HTTP Response
+	 *
+	 * @param response
+	 *            HTTP response
+	 */
+	private void setDateAndCacheHeaders(HttpResponse response, long lastModified) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
         dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
@@ -211,8 +191,6 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
      *
      * @param response
      *            HTTP response
-     * @param file
-     *            file to extract content type
      */
     private void setContentTypeHeader(HttpResponse response, URLConnection resUrlConnection) {
         MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();

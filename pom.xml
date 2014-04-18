@@ -48,9 +48,9 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.9.0.Final</version>
-		</dependency>
+            <artifactId>netty-all</artifactId>
+            <version>4.0.17.Final</version>
+        </dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-core-asl</artifactId>

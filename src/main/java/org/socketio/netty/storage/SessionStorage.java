@@ -15,20 +15,16 @@
  */
 package org.socketio.netty.storage;
 
-import org.jboss.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.pipeline.UnsupportedTransportTypeException;
-import org.socketio.netty.session.FlashSocketSession;
-import org.socketio.netty.session.IManagedSession;
-import org.socketio.netty.session.ISessionDisconnectHandler;
-import org.socketio.netty.session.JsonpPollingSession;
-import org.socketio.netty.session.WebSocketSession;
-import org.socketio.netty.session.XHRPollingSession;
+import org.socketio.netty.session.*;
 import org.socketio.netty.storage.memoizer.Computable;
 import org.socketio.netty.storage.memoizer.MemoizerConcurrentMap;
+
+import io.netty.channel.Channel;
 
 /**
  * 
@@ -121,7 +117,7 @@ public class SessionStorage {
 		try {
 			session = sessionsMemoizer.containsKey(sessionId) ? sessionsMemoizer
 					.get(sessionId) : null;
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 		}
 		return session;
 	}

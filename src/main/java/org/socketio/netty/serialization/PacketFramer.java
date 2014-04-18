@@ -19,12 +19,13 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketsFrame;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 /**
  * Class which responde for supporting Socket.IO framing as described below.
@@ -94,16 +95,15 @@ public final class PacketFramer {
 	}
 	
 	public static List<Packet> decodePacketsFrame(final byte[] content) throws IOException {
-		int contentLength = content.length;
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(contentLength);
+		ByteBuf buffer = Unpooled.wrappedBuffer(content);
 		buffer.writeBytes(content);
 		return decodePacketsFrame(buffer);
 	}
 	
-	private static List<Packet> decodePacketsFrame(final ChannelBuffer buffer) throws IOException {
+	private static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
 		List<Packet> packets = new LinkedList<Packet>();
 		int sequenceNumber = 0;
-		while (buffer.readable()) {
+		while (buffer.isReadable()) {
 			Packet packet = PacketFramer.decodeNextPacket(buffer);
 			packet.setSequenceNumber(sequenceNumber);
 			sequenceNumber++;
@@ -112,7 +112,7 @@ public final class PacketFramer {
 		return packets;
 	}
 
-	private static Packet decodeNextPacket(final ChannelBuffer buffer) throws IOException {
+	private static Packet decodeNextPacket(final ByteBuf buffer) throws IOException {
 		Packet packet;
 		if (isDelimeter(buffer, buffer.readerIndex())) {
 			CharSequence packetCharsCountString = decodePacketLength(buffer);
@@ -124,8 +124,7 @@ public final class PacketFramer {
 			final int packetBytesCount = getUtf8ByteCountByCharCount(buffer,
 					packetStartIndex, packetCharsCount);
 
-			ChannelBuffer frame = buffer.slice(packetStartIndex,
-					packetBytesCount);
+			ByteBuf frame = buffer.slice(packetStartIndex, packetBytesCount);
 
 			packet = PacketDecoder.decodePacket(frame.toString(CharsetUtil.UTF_8));
 			buffer.readerIndex(packetStartIndex + packetBytesCount);
@@ -139,8 +138,7 @@ public final class PacketFramer {
 		}
 	}
 
-	private static int getUtf8ByteCountByCharCount(final ChannelBuffer buffer,
-			final int startIndex, final int charCount) {
+	private static int getUtf8ByteCountByCharCount(final ByteBuf buffer, final int startIndex, final int charCount) {
 		int bytesCount = 0;
 
 		for (int charIndex = 0; charIndex < charCount; charIndex++) {
@@ -175,7 +173,7 @@ public final class PacketFramer {
 		return bytesCount;
 	}
 
-	private static CharSequence decodePacketLength(final ChannelBuffer buffer) {
+	private static CharSequence decodePacketLength(final ByteBuf buffer) {
 		StringBuilder length = new StringBuilder();
 		final int scanStartIndex = buffer.readerIndex() + DELIMITER_BYTES_SIZE;
 		final int scanEndIndex = buffer.readerIndex() + buffer.readableBytes();
@@ -189,8 +187,8 @@ public final class PacketFramer {
 		return length;
 	}
 
-	private static boolean isDelimeter(final ChannelBuffer buffer,
-			final int index) {
+	private static boolean isDelimeter(final ByteBuf buffer, final int index) {
+		//TODO Maybe use #foreachByte and BytebufProcessor here
 		for (int i = 0; i < DELIMITER_BYTES_SIZE; i++) {
 			if (buffer.getByte(index + i) != DELIMITER_BYTES[i]) {
 				return false;

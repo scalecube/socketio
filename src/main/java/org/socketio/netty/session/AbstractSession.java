@@ -18,8 +18,6 @@ package org.socketio.netty.session;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.ISessionFuture;
@@ -27,6 +25,9 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 public abstract class AbstractSession implements IManagedSession {
 	
@@ -49,14 +50,13 @@ public abstract class AbstractSession implements IManagedSession {
 	private volatile boolean upgraded = false;
 	
 	public AbstractSession (
-			final Channel channel, 
-			final String sessionId, 
+final Channel channel,			final String sessionId, 
 			final String origin, 
 			final ISessionDisconnectHandler disconnectHandler, 
 			final TransportType upgradedFromTransportType, 
 			final int localPort) {
 		this.sessionId = sessionId;
-		this.remoteAddress = channel.getRemoteAddress();
+		this.remoteAddress = channel.remoteAddress();
 		this.origin = origin;
 		this.localPort = localPort;
 		this.disconnectHandler = disconnectHandler;
@@ -174,7 +174,7 @@ public abstract class AbstractSession implements IManagedSession {
 	protected State setState(final State state) {
 		State previousState = stateHolder.getAndSet(state);
 		if (previousState != state) {
-			log.debug("Session {} state changed from {} to {}", new Object[] {getSessionId(), previousState, state});
+			log.debug("Session {} state changed from {} to {}", getSessionId(), previousState, state);
 		}
 		return previousState;
 	}
