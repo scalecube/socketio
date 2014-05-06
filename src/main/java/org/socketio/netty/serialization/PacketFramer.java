@@ -95,8 +95,9 @@ public final class PacketFramer {
 	}
 	
 	public static List<Packet> decodePacketsFrame(final byte[] content) throws IOException {
-		ByteBuf buffer = Unpooled.wrappedBuffer(content);
-		buffer.writeBytes(content);
+		//TODO fix unpooled if possible
+		ByteBuf buffer = Unpooled.copiedBuffer(content);
+		//buffer.writeBytes(content);
 		return decodePacketsFrame(buffer);
 	}
 	

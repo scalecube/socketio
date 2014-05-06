@@ -29,6 +29,7 @@ import org.socketio.netty.session.SocketIOHeartbeatScheduler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * A Socket.IO server launcher class.
@@ -97,8 +98,8 @@ public class SocketIOServer {
 				getTransports(), sslContext, alwaysSecureWebSocketLocation, port);
 
         // Configure server
-		bootstrap = new ServerBootstrap().group(new NioEventLoopGroup(), new NioEventLoopGroup()).childHandler(pipelineFactory)
-				.childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
+		bootstrap = new ServerBootstrap().group(new NioEventLoopGroup(), new NioEventLoopGroup()).channel(NioServerSocketChannel.class)
+				.childHandler(pipelineFactory)				.childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
 
 		int port = getPort();
 		bootstrap.bind(new InetSocketAddress(port));
