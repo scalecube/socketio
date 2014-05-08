@@ -31,6 +31,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.ReferenceCounted;
 
 /**
  * <p>
@@ -84,6 +85,11 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 			} else {
 				throw new UnsupportedTransportTypeException(transportType);
 			}
+		} else {
+			if (msg instanceof ReferenceCounted) {
+				((ReferenceCounted) msg).retain();
+			}
+			out.add(msg);
 		}
 	}
 
