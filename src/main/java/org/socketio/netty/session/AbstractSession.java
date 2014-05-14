@@ -145,7 +145,7 @@ final Channel channel,			final String sessionId,
 	protected ISessionFuture sendPacketToChannel(final Channel channel, IPacket packet) {
 		try {
 			fillPacketHeaders(packet);
-			ChannelFuture channelFuture = channel.write(packet);
+			ChannelFuture channelFuture = channel.writeAndFlush(packet);
 			return new DefaultSessionFuture(channelFuture, this);
 		} catch (Exception e) {
 			return new CompleteSessionFuture(this, false, e);

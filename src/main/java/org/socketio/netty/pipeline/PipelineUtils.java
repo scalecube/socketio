@@ -62,7 +62,7 @@ final class PipelineUtils {
 	}
 
 	public static HttpResponse createHttpResponse(final String origin, ByteBuf message, boolean json) {
-		HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+		FullHttpResponse res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, message);
 		if (json) {
 			HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
 		} else {

@@ -90,8 +90,9 @@ public final class PacketFramer {
 	}
 	
 	public static List<Packet> decodePacketsFrame(final String content) throws IOException {
-		byte[] contentBytes = content.getBytes("UTF-8"); 
-		return decodePacketsFrame(contentBytes);
+        //TODO fix unpooled if possible
+		ByteBuf byteBuf = Unpooled.copiedBuffer(content.getBytes("UTF-8"));
+		return decodePacketsFrame(byteBuf);
 	}
 	
 	public static List<Packet> decodePacketsFrame(final byte[] content) throws IOException {
@@ -100,8 +101,8 @@ public final class PacketFramer {
 		//buffer.writeBytes(content);
 		return decodePacketsFrame(buffer);
 	}
-	
-	private static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
+
+	public static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
 		List<Packet> packets = new LinkedList<Packet>();
 		int sequenceNumber = 0;
 		while (buffer.isReadable()) {

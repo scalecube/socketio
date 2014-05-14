@@ -61,9 +61,9 @@ public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.XHR_POLLING);
 					ctx.fireChannelRead(packet);
-				} else if (HttpMethod.POST.equals(requestMethod) && req.content().hasArray()) {
+				} else if (HttpMethod.POST.equals(requestMethod)) {
 					// Process message request from client
-					List<Packet> packets = PacketFramer.decodePacketsFrame(req.content().array());
+					List<Packet> packets = PacketFramer.decodePacketsFrame(req.content());
 					for (Packet packet : packets) {
 						packet.setSessionId(sessionId);
 						packet.setOrigin(origin);
