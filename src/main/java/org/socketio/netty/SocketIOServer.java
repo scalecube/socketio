@@ -91,12 +91,12 @@ public class SocketIOServer {
 		heartbeatScheduller = Executors.newScheduledThreadPool(getHeartbeatThreadpoolSize());
 		SocketIOHeartbeatScheduler.setScheduledExecutorService(heartbeatScheduller);
 		SocketIOHeartbeatScheduler.setHeartbeatInterval(getHeartbeatInterval());
-		SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer(listener, getHeartbeatTimeout(), getCloseTimeout(),
+		SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(listener, getHeartbeatTimeout(), getCloseTimeout(),
 				getTransports(), sslContext, alwaysSecureWebSocketLocation, port);
 
 		// Configure server
 		bootstrap = new ServerBootstrap().group(new NioEventLoopGroup(), new NioEventLoopGroup()).channel(NioServerSocketChannel.class)
-				.childHandler(pipelineFactory).childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
+				.childHandler(channelInitializer).childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
 
 		int port = getPort();
 		bootstrap.bind(new InetSocketAddress(port));

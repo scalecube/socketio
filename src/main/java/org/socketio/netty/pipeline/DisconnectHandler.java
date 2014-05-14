@@ -52,8 +52,6 @@ public class DisconnectHandler extends ChannelInboundHandlerAdapter {
 
 	private static final String DISCONNECT = "disconnect";
 
-
-
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof HttpRequest) {
@@ -70,7 +68,7 @@ public class DisconnectHandler extends ChannelInboundHandlerAdapter {
 				final Packet disconnectPacket = new Packet(PacketType.DISCONNECT, sessionId);
 				disconnectPacket.setOrigin(PipelineUtils.getOrigin(req));
 				ctx.fireChannelRead(disconnectPacket);
-                ReferenceCountUtil.release(msg);
+				ReferenceCountUtil.release(msg);
 				return;
 			}
 		}

@@ -74,8 +74,8 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(content, CharsetUtil.UTF_8, false);
 						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
-                        ByteBuf buf = ctx.alloc().buffer();
-                        buf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
+						ByteBuf buf = ctx.alloc().buffer();
+						buf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
 						List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
 						for (Packet packet : packets) {
 							packet.setSessionId(sessionId);
@@ -90,7 +90,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 					log.warn("Can't process HTTP JSONP-Polling request. Unknown request method: {} from channel: {}", requestMethod,
 							ctx.channel());
 				}
-                ReferenceCountUtil.release(msg);
+				ReferenceCountUtil.release(msg);
 				return;
 			}
 		}

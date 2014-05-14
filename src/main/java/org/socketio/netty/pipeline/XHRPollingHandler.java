@@ -74,7 +74,7 @@ public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
 					log.warn("Can't process HTTP XHR-Polling request. Unknown request method: {} from channel: {}", requestMethod,
 							ctx.channel());
 				}
-                ReferenceCountUtil.release(msg);
+				ReferenceCountUtil.release(msg);
 				return;
 			}
 		}
