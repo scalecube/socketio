@@ -1,4 +1,4 @@
-SocketIo4Netty
+SocketIo4j
 =======================
 
 SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
@@ -25,7 +25,7 @@ How to use
 	socketIoServer.start();
 ```
 
-For more examples, see [SocketIo4Netty Examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
+For more examples, see [SocketIo4j Examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
 
 Maven
 ----------------------
