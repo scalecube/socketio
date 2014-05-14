@@ -65,7 +65,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 					packet.setTransportType(TransportType.JSONP_POLLING);
 					packet.setJsonpIndexParam(jsonpIndexParam);
 					ctx.fireChannelRead(packet);
-				} else if (HttpMethod.POST.equals(requestMethod) && req.content().hasArray()) {
+				} else if (HttpMethod.POST.equals(requestMethod)) {
 					// Process message request from client
 					ByteBuf buffer = req.content();
 					String content = buffer.toString(CharsetUtil.UTF_8);
