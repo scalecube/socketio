@@ -23,7 +23,7 @@ import javax.net.ssl.SSLContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.socketio.netty.pipeline.SocketIOPipelineFactory;
+import org.socketio.netty.pipeline.SocketIOChannelInitializer;
 import org.socketio.netty.session.SocketIOHeartbeatScheduler;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -45,13 +45,13 @@ public class SocketIOServer {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private volatile State state = State.STOPPED;
-	
+
 	private ServerBootstrap bootstrap;
 
 	private ScheduledExecutorService heartbeatScheduller;
 
 	private ISocketIOListener listener;
-	
+
 	private int port = 8080;
 
 	private int heartbeatThreadpoolSize = 5;
@@ -63,11 +63,11 @@ public class SocketIOServer {
 	private int closeTimeout = 25;
 
 	private String transports = "websocket,flashsocket,xhr-polling,jsonp-polling";
-	
+
 	private SSLContext sslContext = null;
-	
+
 	private boolean alwaysSecureWebSocketLocation = false;
-	
+
 	/**
 	 * Creates Socket.IO server with default settings.
 	 */
@@ -82,24 +82,21 @@ public class SocketIOServer {
 	 */
 	public synchronized void start() {
 		if (isStarted()) {
-			throw new IllegalStateException(
-					"Failed to start Socket.IO server: server already started");
+			throw new IllegalStateException("Failed to start Socket.IO server: server already started");
 		}
 
 		log.info("Socket.IO server starting");
 
 		// Configure heartbeat scheduler
-		heartbeatScheduller = Executors
-				.newScheduledThreadPool(getHeartbeatThreadpoolSize());
-		SocketIOHeartbeatScheduler
-				.setScheduledExecutorService(heartbeatScheduller);
+		heartbeatScheduller = Executors.newScheduledThreadPool(getHeartbeatThreadpoolSize());
+		SocketIOHeartbeatScheduler.setScheduledExecutorService(heartbeatScheduller);
 		SocketIOHeartbeatScheduler.setHeartbeatInterval(getHeartbeatInterval());
-		SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(listener, getHeartbeatTimeout(), getCloseTimeout(),
+		SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer(listener, getHeartbeatTimeout(), getCloseTimeout(),
 				getTransports(), sslContext, alwaysSecureWebSocketLocation, port);
 
-        // Configure server
+		// Configure server
 		bootstrap = new ServerBootstrap().group(new NioEventLoopGroup(), new NioEventLoopGroup()).channel(NioServerSocketChannel.class)
-				.childHandler(pipelineFactory)				.childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
+				.childHandler(pipelineFactory).childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.TCP_NODELAY, true);
 
 		int port = getPort();
 		bootstrap.bind(new InetSocketAddress(port));
@@ -117,8 +114,7 @@ public class SocketIOServer {
 	 */
 	public synchronized void stop() {
 		if (isStopped()) {
-			throw new IllegalStateException(
-					"Failed to stop Socket.IO server: server already stopped");
+			throw new IllegalStateException("Failed to stop Socket.IO server: server already stopped");
 		}
 
 		log.info("Socket.IO server stopping");
@@ -141,21 +137,21 @@ public class SocketIOServer {
 		}
 		start();
 	}
-	
+
 	/** 
 	 * Returns if server is in started state or not.
 	 */
 	public boolean isStarted() {
 		return state == State.STARTED;
 	}
-	
+
 	/**
 	 * Returns if server is in stopped state or not. 
 	 */
 	public boolean isStopped() {
 		return state == State.STOPPED;
 	}
-	
+
 	/**
 	 * Socket.IO events listener.
 	 */
@@ -169,7 +165,7 @@ public class SocketIOServer {
 	public void setListener(ISocketIOListener listener) {
 		this.listener = listener;
 	}
-	
+
 	/**
 	 * Port on which Socket.IO server will be started. Default value is 8080.
 	 */
@@ -269,11 +265,11 @@ public class SocketIOServer {
 	public void setSslContext(SSLContext sslContext) {
 		this.sslContext = sslContext;
 	}
-	
+
 	public boolean isAlwaysSecureWebSocketLocation() {
 		return alwaysSecureWebSocketLocation;
 	}
-	
+
 	public void setAlwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
 		this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
 	}
@@ -300,5 +296,5 @@ public class SocketIOServer {
 		builder.append("]");
 		return builder.toString();
 	}
-	
+
 }

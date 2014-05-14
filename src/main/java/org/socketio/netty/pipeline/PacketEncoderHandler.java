@@ -26,11 +26,13 @@ import org.socketio.netty.packets.PacketsFrame;
 import org.socketio.netty.serialization.PacketEncoder;
 import org.socketio.netty.serialization.PacketFramer;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCounted;
 
 /**
@@ -75,11 +77,12 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				out.add(new TextWebSocketFrame(encodedPacket));
 			} else if (transportType == TransportType.XHR_POLLING) {
-				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false));
+				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(), Unpooled.copiedBuffer(encodedPacket, CharsetUtil.UTF_8), false));
 			} else if (transportType == TransportType.JSONP_POLLING) {
 				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
 				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
-				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), encodedJsonpPacket, true);
+				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(),
+						Unpooled.copiedBuffer(encodedJsonpPacket, CharsetUtil.UTF_8), true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
 				out.add(httpResponse);
 			} else {

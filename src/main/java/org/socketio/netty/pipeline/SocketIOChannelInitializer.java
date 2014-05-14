@@ -32,7 +32,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
-public class SocketIOPipelineFactory extends ChannelInitializer {
+public class SocketIOChannelInitializer extends ChannelInitializer {
 
 	// Handler names
 	public static final String FLASH_POLICY_HANDLER = "flash-policy-handler";
@@ -80,7 +80,7 @@ public class SocketIOPipelineFactory extends ChannelInitializer {
 	private final SSLContext sslContext;
 	private final boolean isFlashSupported;
 
-	public SocketIOPipelineFactory(final ISocketIOListener listener, final int heartbeatTimeout, final int closeTimeout,
+	public SocketIOChannelInitializer(final ISocketIOListener listener, final int heartbeatTimeout, final int closeTimeout,
 			final String transports, final SSLContext sslContext, final boolean alwaysSecureWebSocketLocation, final int localPort) {
 		// Initialize state variables
 		this.sslContext = sslContext;
@@ -117,7 +117,6 @@ public class SocketIOPipelineFactory extends ChannelInitializer {
 		if (isFlashSupported) {
 			pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
 		}
-
 		// SSL
 		if (sslContext != null) {
 			SSLEngine sslEngine = sslContext.createSSLEngine();
@@ -128,9 +127,9 @@ public class SocketIOPipelineFactory extends ChannelInitializer {
 		}
 
 		// HTTP
-		pipeline.addLast(HTTP_REPONSE_ENCODER, new HttpResponseEncoder());
 		pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
 		pipeline.addLast(HTTP_CHUNK_AGGREGATOR, new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH));
+		pipeline.addLast(HTTP_REPONSE_ENCODER, new HttpResponseEncoder());
 
 		// Flash resources
 		if (isFlashSupported) {

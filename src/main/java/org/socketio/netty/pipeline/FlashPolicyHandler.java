@@ -49,8 +49,8 @@ public class FlashPolicyHandler extends MessageToMessageDecoder<ByteBuf> {
 				// Remove SSL handler from pipeline otherwise on channel close SSL handler
 				// will fail all pending writes instead of flushing them and as a result
 				// client won't get flash policy file.
-				if (ctx.pipeline().get(SocketIOPipelineFactory.SSL_HANDLER) != null) {
-					ctx.pipeline().remove(SocketIOPipelineFactory.SSL_HANDLER);
+				if (ctx.pipeline().get(SocketIOChannelInitializer.SSL_HANDLER) != null) {
+					ctx.pipeline().remove(SocketIOChannelInitializer.SSL_HANDLER);
 				}
 
 				// Send flash policy file and close connection

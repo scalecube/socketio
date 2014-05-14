@@ -18,9 +18,8 @@ package org.socketio.netty.pipeline;
 import java.util.List;
 import java.util.Map;
 
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 
 /**
  * Utilities methods class. 
@@ -62,20 +61,19 @@ final class PipelineUtils {
 		return (paramsByKey != null) ? paramsByKey.get(0) : null;
 	}
 
-	public static HttpResponse createHttpResponse(final String origin, CharSequence message, boolean json) {
-		FullHttpResponse res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(message,
-				CharsetUtil.UTF_8));
+	public static HttpResponse createHttpResponse(final String origin, ByteBuf message, boolean json) {
+		HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 		if (json) {
-			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
+			HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
 		} else {
-			res.headers().add(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		}
-		res.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		HttpHeaders.addHeader(res, HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		if (origin != null) {
 			res.headers().add("Access-Control-Allow-Origin", origin);
 			res.headers().add("Access-Control-Allow-Credentials", "true");
 		}
-		HttpHeaders.setContentLength(res, res.content().readableBytes());
+		HttpHeaders.setContentLength(res, message.readableBytes());
 
 		return res;
 	}

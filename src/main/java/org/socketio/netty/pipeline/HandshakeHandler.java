@@ -24,8 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.serialization.JsonObjectMapperProvider;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 
 /**
  * This class implements Socket.IO handshake procedure described below:
@@ -125,7 +127,7 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 				log.warn("Received HTTP bad request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
 				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-				ChannelFuture f = ctx.writeAndFlush(res);
+				ChannelFuture f = ctx.channel().writeAndFlush(res);
 				f.addListener(ChannelFutureListener.CLOSE);
 				return;
 			}
@@ -148,10 +150,19 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 
 		// Send handshake response
 		final String handshakeMessage = getHandshakeMessage(sessionId, queryDecoder);
-		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), handshakeMessage, false);
-		ChannelFuture f = ctx.writeAndFlush(res);
+
+		ByteBuf out = ctx.alloc().heapBuffer();
+		out.writeBytes(handshakeMessage.getBytes(CharsetUtil.UTF_8));
+		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), out, false);
+		ctx.write(res);
+		if (out.isReadable()) {
+			ctx.write(out);
+		} else {
+			out.release();
+		}
+		ChannelFuture f = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 		f.addListener(ChannelFutureListener.CLOSE);
-		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx);
+		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx.channel());
 	}
 
 	private String getHandshakeMessage(final String sessionId, final QueryStringDecoder queryDecoder) throws IOException {
