@@ -54,10 +54,12 @@ public class FlashPolicyHandler extends MessageToMessageDecoder<ByteBuf> {
 				}
 
 				// Send flash policy file and close connection
-                //TODO Unpooled
-				ChannelFuture f = ctx.writeAndFlush(Unpooled.copiedBuffer(policyResponseBuffer));
+                ByteBuf buf = ctx.alloc().buffer();
+                buf.writeBytes(policyResponseBuffer);
+				ChannelFuture f = ctx.writeAndFlush(buf);
 				f.addListener(ChannelFutureListener.CLOSE);
 				log.debug("Sent flash policy file to channel: {}", ctx.channel());
+                buf.release();
 				return;
 			}
 		}

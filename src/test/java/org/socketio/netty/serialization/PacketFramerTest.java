@@ -18,6 +18,8 @@ package org.socketio.netty.serialization;
 import java.io.IOException;
 import java.util.List;
 
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -40,9 +42,9 @@ public class PacketFramerTest {
 			"\ufffd9\ufffd0::/woot5" +
 			"\ufffd7\ufffd3:::53d" +
 			"\ufffd3\ufffd2::";
-		
+
 		// When
-		List<Packet> packets = PacketFramer.decodePacketsFrame(messagesFrame);
+		List<Packet> packets = PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
 
 		// Then
 		Assert.assertEquals(4, packets.size());
@@ -53,7 +55,7 @@ public class PacketFramerTest {
 		Assert.assertEquals("53d", packets.get(2).getData());
 		Assert.assertEquals(PacketType.HEARTBEAT, packets.get(3).getType());
 	}
-	
+
 	@Test
 	public void testDecodingMessagesFrameWithUtf8Symbols() throws IOException {
 		// Given
@@ -63,7 +65,7 @@ public class PacketFramerTest {
 			"\ufffd7\ufffd3:::53d";
 
 		// When
-		List<Packet> packets = PacketFramer.decodePacketsFrame(messagesFrame);
+		List<Packet> packets = PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
 
 		// Then
 		Assert.assertEquals(3, packets.size());

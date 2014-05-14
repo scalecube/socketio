@@ -24,6 +24,7 @@ import java.util.*;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +98,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
 				ChannelFuture writeFuture = ctx.writeAndFlush(new ChunkedStream(is, fileUrl.getContentLength()));
 				// add operation complete listener so we can close the channel and the input stream
                 writeFuture.addListener(ChannelFutureListener.CLOSE);
+                ReferenceCountUtil.release(msg);
                 return;
             }
         }

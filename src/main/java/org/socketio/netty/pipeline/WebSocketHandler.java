@@ -18,6 +18,7 @@ package org.socketio.netty.pipeline;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -56,23 +57,31 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof FullHttpRequest) {
 			FullHttpRequest req = (FullHttpRequest) msg;
-			if (req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)) {
-				final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-				final String requestPath = queryDecoder.path();
+            try {
+                if (req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)) {
+                    final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+                    final String requestPath = queryDecoder.path();
 
-				log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
-						requestPath, ctx.channel());
+                    log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
+                            requestPath, ctx.channel());
 
-				boolean handshakeSuccess = handshake(ctx, req);
-				if (handshakeSuccess) {
-					final String sessionId = PipelineUtils.getSessionId(requestPath);
-					connect(ctx, req, sessionId);
-				}
-				return;
-			}
+                    boolean handshakeSuccess = handshake(ctx, req);
+                    if (handshakeSuccess) {
+                        final String sessionId = PipelineUtils.getSessionId(requestPath);
+                        connect(ctx, req, sessionId);
+                    }
+                    return;
+                }
+            } finally {
+                ReferenceCountUtil.release(msg);
+            }
         } else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
-            handleWebSocketFrame(ctx, (WebSocketFrame) msg);
-            return;
+            try {
+                handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+                return;
+            } finally {
+                ReferenceCountUtil.release(msg);
+            }
         }
         super.channelRead(ctx, msg);
     }

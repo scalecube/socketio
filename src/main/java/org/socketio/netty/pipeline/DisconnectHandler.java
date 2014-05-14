@@ -15,6 +15,7 @@
  */
 package org.socketio.netty.pipeline;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.packets.Packet;
@@ -69,6 +70,7 @@ public class DisconnectHandler extends ChannelInboundHandlerAdapter {
 				final Packet disconnectPacket = new Packet(PacketType.DISCONNECT, sessionId);
 				disconnectPacket.setOrigin(PipelineUtils.getOrigin(req));
 				ctx.fireChannelRead(disconnectPacket);
+                ReferenceCountUtil.release(msg);
 				return;
 			}
 		}

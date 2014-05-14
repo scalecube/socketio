@@ -24,7 +24,6 @@ import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketsFrame;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 /**
@@ -89,18 +88,7 @@ public final class PacketFramer {
 		return result.toString();
 	}
 	
-	public static List<Packet> decodePacketsFrame(final String content) throws IOException {
-        //TODO fix unpooled if possible
-		ByteBuf byteBuf = Unpooled.copiedBuffer(content.getBytes("UTF-8"));
-		return decodePacketsFrame(byteBuf);
-	}
-	
-	public static List<Packet> decodePacketsFrame(final byte[] content) throws IOException {
-		//TODO fix unpooled if possible
-		ByteBuf buffer = Unpooled.copiedBuffer(content);
-		//buffer.writeBytes(content);
-		return decodePacketsFrame(buffer);
-	}
+
 
 	public static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
 		List<Packet> packets = new LinkedList<Packet>();
@@ -111,6 +99,7 @@ public final class PacketFramer {
 			sequenceNumber++;
 			packets.add(packet);
 		}
+        buffer.release();
 		return packets;
 	}
 
@@ -190,7 +179,6 @@ public final class PacketFramer {
 	}
 
 	private static boolean isDelimeter(final ByteBuf buffer, final int index) {
-		//TODO Maybe use #foreachByte and BytebufProcessor here
 		for (int i = 0; i < DELIMITER_BYTES_SIZE; i++) {
 			if (buffer.getByte(index + i) != DELIMITER_BYTES[i]) {
 				return false;

@@ -20,6 +20,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import java.io.IOException;
 import java.util.UUID;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.serialization.JsonObjectMapperProvider;
@@ -118,27 +119,32 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof HttpRequest) {
-			final HttpRequest req = (HttpRequest) msg;
-			final HttpMethod requestMethod = req.getMethod();
-			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-			final String requestPath = queryDecoder.path();
+            final HttpRequest req = (HttpRequest) msg;
+            try {
+                final HttpMethod requestMethod = req.getMethod();
+                final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+                final String requestPath = queryDecoder.path();
 
-			if (!requestPath.startsWith(handshakePath)) {
-				log.warn("Received HTTP bad request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+                if (!requestPath.startsWith(handshakePath)) {
+                    log.warn("Received HTTP bad request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
-				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-				ChannelFuture f = ctx.channel().writeAndFlush(res);
-				f.addListener(ChannelFutureListener.CLOSE);
-				return;
-			}
+                    HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                    ChannelFuture f = ctx.channel().writeAndFlush(res);
+                    f.addListener(ChannelFutureListener.CLOSE);
+                    return;
+                }
 
-			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
-				log.debug("Received HTTP handshake request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+                if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
+                    log.debug("Received HTTP handshake request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
-				handshake(ctx, req, queryDecoder);
-				return;
-			}
-		}
+                    handshake(ctx, req, queryDecoder);
+                    return;
+                }
+            } finally {
+                ReferenceCountUtil.release(req);
+            }
+
+        }
 		super.channelRead(ctx, msg);
 	}
 

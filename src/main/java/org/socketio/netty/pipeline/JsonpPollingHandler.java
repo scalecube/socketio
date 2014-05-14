@@ -17,6 +17,7 @@ package org.socketio.netty.pipeline;
 
 import java.util.List;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -73,8 +74,9 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(content, CharsetUtil.UTF_8, false);
 						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
-
-						List<Packet> packets = PacketFramer.decodePacketsFrame(content);
+                        ByteBuf buf = ctx.alloc().buffer();
+                        buf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
+						List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
 						for (Packet packet : packets) {
 							packet.setSessionId(sessionId);
 							packet.setOrigin(origin);
@@ -88,6 +90,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 					log.warn("Can't process HTTP JSONP-Polling request. Unknown request method: {} from channel: {}", requestMethod,
 							ctx.channel());
 				}
+                ReferenceCountUtil.release(msg);
 				return;
 			}
 		}
