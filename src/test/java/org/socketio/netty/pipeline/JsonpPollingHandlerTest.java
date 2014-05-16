@@ -10,27 +10,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
-import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 
-/**
- * Created by miroslav_l on 5/16/14.
- */
-public class XHRPollingHandlerTest {
-
+public class JsonpPollingHandlerTest {
     private static final int PROTOCOL = 1;
     private static final String CONTEXT_PATH = "/socket.io";
     private static final String HANDSHAKE_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
-    private XHRPollingHandler xhrPollingHandler;
+    private JsonpPollingHandler jsonpPollingHandler;
 
     @Before
     public void setUp() throws Exception {
-        xhrPollingHandler = new XHRPollingHandler(HANDSHAKE_PATH);
+        jsonpPollingHandler = new JsonpPollingHandler(HANDSHAKE_PATH);
     }
     @Test
     public void testChannelReadNonHttp() throws Exception{
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
+        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
         channel.writeInbound(Unpooled.EMPTY_BUFFER);
         Object object = channel.readInbound();
         Assert.assertTrue(object instanceof ByteBuf);
@@ -43,7 +38,7 @@ public class XHRPollingHandlerTest {
     public void testChannelReadWrongPath() throws Exception{
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/wrongPath/");
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
+        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
         channel.writeInbound(request);
         Object object = channel.readInbound();
         Assert.assertTrue(object instanceof HttpRequest);
@@ -53,27 +48,27 @@ public class XHRPollingHandlerTest {
 
     @Test
     public void testChannelReadConnect() throws Exception {
-        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/socket.io/1/xhr-polling");
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/socket.io/1/jsonp-polling");
         String origin = "http://localhost:8080";
-        HttpHeaders.addHeader(request,HttpHeaders.Names.ORIGIN, origin);
+        HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
+        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
         channel.writeInbound(request);
         Object object = channel.readInbound();
         Assert.assertTrue(object instanceof ConnectPacket);
         ConnectPacket packet = (ConnectPacket) object;
-        Assert.assertEquals(TransportType.XHR_POLLING ,packet.getTransportType());
+        Assert.assertEquals(TransportType.JSONP_POLLING ,packet.getTransportType());
         Assert.assertEquals(origin,packet.getOrigin());
         channel.finish();
     }
     @Test
     public void testChannelReadPacket() throws Exception {
-        ByteBuf content = Unpooled.copiedBuffer("3:::{\"greetings\":\"Hello World!\"}", CharsetUtil.UTF_8);
-        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST,"/socket.io/1/xhr-polling", content);
+        ByteBuf content = Unpooled.copiedBuffer("d=3:::{\"greetings\":\"Hello World!\"}", CharsetUtil.UTF_8);
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST,"/socket.io/1/jsonp-polling", content);
         String origin = "http://localhost:8080";
         HttpHeaders.addHeader(request,HttpHeaders.Names.ORIGIN, origin);
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
+        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
         channel.writeInbound(request);
         Object object = channel.readInbound();
         Assert.assertTrue(object instanceof Packet);
