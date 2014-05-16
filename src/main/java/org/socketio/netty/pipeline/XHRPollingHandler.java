@@ -79,7 +79,7 @@ public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
 			}
 		}
 
-		super.channelRead(ctx, msg);
+		ctx.fireChannelRead(msg);
 	}
 
 }

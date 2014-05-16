@@ -17,6 +17,7 @@ package org.socketio.netty.pipeline;
 
 import java.util.List;
 
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;

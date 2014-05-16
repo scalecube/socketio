@@ -77,6 +77,7 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
+        cause.printStackTrace();
 	}
 
 	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {

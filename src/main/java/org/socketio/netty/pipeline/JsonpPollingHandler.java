@@ -77,6 +77,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 						ByteBuf buf = ctx.alloc().buffer();
 						buf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
 						List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
+                        buf.release();
 						for (Packet packet : packets) {
 							packet.setSessionId(sessionId);
 							packet.setOrigin(origin);

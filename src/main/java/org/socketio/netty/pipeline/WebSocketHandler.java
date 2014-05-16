@@ -39,16 +39,16 @@ import io.netty.handler.codec.http.websocketx.*;
 public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+
 	private final Map<Integer, String> sessionIdByChannel = new ConcurrentHashMap<Integer, String>();
 	private final String connectPath;
 	private final boolean secure;
-	
-	public WebSocketHandler(String handshakePath, boolean secure){
+
+	public WebSocketHandler(String handshakePath, boolean secure) {
 		this.connectPath = handshakePath + getTransportType().getName();
 		this.secure = secure;
 	}
-	
+
 	protected TransportType getTransportType() {
 		return TransportType.WEBSOCKET;
 	}
@@ -57,37 +57,31 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof FullHttpRequest) {
 			FullHttpRequest req = (FullHttpRequest) msg;
-            try {
-                if (req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)) {
-                    final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-                    final String requestPath = queryDecoder.path();
+			if (req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)) {
+				final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+				final String requestPath = queryDecoder.path();
 
-                    log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
-                            requestPath, ctx.channel());
+				log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
+						requestPath, ctx.channel());
 
-                    boolean handshakeSuccess = handshake(ctx, req);
-                    if (handshakeSuccess) {
-                        final String sessionId = PipelineUtils.getSessionId(requestPath);
-                        connect(ctx, req, sessionId);
-                    }
-                    return;
-                }
-            } finally {
-                ReferenceCountUtil.release(msg);
-            }
-        } else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
-            try {
-                handleWebSocketFrame(ctx, (WebSocketFrame) msg);
-                return;
-            } finally {
-                ReferenceCountUtil.release(msg);
-            }
-        }
-        super.channelRead(ctx, msg);
-    }
+				boolean handshakeSuccess = handshake(ctx, req);
+				if (handshakeSuccess) {
+					final String sessionId = PipelineUtils.getSessionId(requestPath);
+					connect(ctx, req, sessionId);
+				}
+				ReferenceCountUtil.release(msg);
+				return;
+			}
+		} else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
+			handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+			ReferenceCountUtil.release(msg);
+			return;
+		}
+		ctx.fireChannelRead(msg);
+	}
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		sessionIdByChannel.remove(ctx.channel().hashCode());
 		super.channelInactive(ctx);
 	}
@@ -100,7 +94,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 		WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
 		WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
 		if (handshaker != null) {
-            //FIXME HANDSHAKE LISTENER
+			//FIXME HANDSHAKE LISTENER
 			handshaker.handshake(ctx.channel(), req);//.addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
 			return true;
 		} else {
@@ -115,7 +109,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);
 		return webSocketLocation;
 	}
-	
+
 	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
 		sessionIdByChannel.put(ctx.channel().hashCode(), sessionId);
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
@@ -125,25 +119,25 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
 		log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.channel());
-		
-        if (msg instanceof CloseWebSocketFrame) {
+
+		if (msg instanceof CloseWebSocketFrame) {
 			sessionIdByChannel.remove(ctx.channel().hashCode());
 			ChannelFuture f = ctx.writeAndFlush(msg);
 			f.addListener(ChannelFutureListener.CLOSE);
-            return;
+			return;
 		} else if (msg instanceof PingWebSocketFrame) {
 			ctx.writeAndFlush(new PongWebSocketFrame(msg.content()));
 			return;
-        } else if (!(msg instanceof TextWebSocketFrame)) {
+		} else if (!(msg instanceof TextWebSocketFrame)) {
 			throw new UnsupportedOperationException(String.format("%s frame types not supported", msg.getClass().getName()));
 		}
 
-        TextWebSocketFrame frame = (TextWebSocketFrame) msg;
+		TextWebSocketFrame frame = (TextWebSocketFrame) msg;
 		Packet packet = PacketDecoder.decodePacket(frame.text());
 		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.channel().hashCode());
 		packet.setSessionId(sessionId);
-        ctx.fireChannelRead(packet);
+		ctx.fireChannelRead(packet);
 	}
-	
+
 }

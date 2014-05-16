@@ -99,7 +99,6 @@ public final class PacketFramer {
 			sequenceNumber++;
 			packets.add(packet);
 		}
-        buffer.release();
 		return packets;
 	}
 
