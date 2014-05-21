@@ -36,9 +36,12 @@ public class FlashPolicyHandler extends MessageToMessageDecoder<ByteBuf> {
 
 	private final ByteBuf policyRequestBuffer = Unpooled.copiedBuffer("<policy-file-request/>", CharsetUtil.UTF_8);
 
-	private final ByteBuf policyResponseBuffer = Unpooled.copiedBuffer("<?xml version=\"1.0\"?>"
-			+ "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">" + "<cross-domain-policy> "
-			+ "   <site-control permitted-cross-domain-policies=\"master-only\"/>" + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
+	private final ByteBuf policyResponseBuffer = Unpooled.copiedBuffer(
+            "<?xml version=\"1.0\"?>"
+			+ "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">"
+            + "<cross-domain-policy> "
+			+ "   <site-control permitted-cross-domain-policies=\"master-only\"/>"
+            + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
 			+ "</cross-domain-policy>", CharsetUtil.UTF_8);
 
 	@Override
