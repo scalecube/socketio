@@ -155,9 +155,8 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 		// Send handshake response
 		final String handshakeMessage = getHandshakeMessage(sessionId, queryDecoder);
 
-		ByteBuf out = ctx.alloc().buffer();
-		out.writeBytes(handshakeMessage.getBytes(CharsetUtil.UTF_8));
-		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), out, false);
+		ByteBuf content = PipelineUtils.copiedBuffer(ctx.alloc(), handshakeMessage);
+		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), content, false);
 		ChannelFuture f = ctx.writeAndFlush(res);
 		f.addListener(ChannelFutureListener.CLOSE);
 		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx.channel());

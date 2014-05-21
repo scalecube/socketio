@@ -78,12 +78,12 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				out.add(new TextWebSocketFrame(encodedPacket));
 			} else if (transportType == TransportType.XHR_POLLING) {
-				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(), Unpooled.copiedBuffer(encodedPacket, CharsetUtil.UTF_8), false));
+				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(),PipelineUtils.copiedBuffer(ctx.alloc(), encodedPacket), false));
 			} else if (transportType == TransportType.JSONP_POLLING) {
 				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
 				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
 				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(),
-						Unpooled.copiedBuffer(encodedJsonpPacket, CharsetUtil.UTF_8), true);
+						PipelineUtils.copiedBuffer(ctx.alloc(), encodedJsonpPacket), true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
 				out.add(httpResponse);
 			} else {

@@ -74,8 +74,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(content, CharsetUtil.UTF_8, false);
 						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
-						ByteBuf buf = ctx.alloc().buffer();
-						buf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
+						ByteBuf buf = PipelineUtils.copiedBuffer(ctx.alloc(), content);
 						List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
                         buf.release();
 						for (Packet packet : packets) {

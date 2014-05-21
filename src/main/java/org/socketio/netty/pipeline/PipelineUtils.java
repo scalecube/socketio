@@ -19,7 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 
 /**
  * Utilities methods class. 
@@ -61,8 +64,8 @@ final class PipelineUtils {
 		return (paramsByKey != null) ? paramsByKey.get(0) : null;
 	}
 
-	public static HttpResponse createHttpResponse(final String origin, ByteBuf message, boolean json) {
-		FullHttpResponse res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, message);
+	public static HttpResponse createHttpResponse(final String origin, ByteBuf content, boolean json) {
+		FullHttpResponse res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
 		if (json) {
 			HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
 		} else {
@@ -73,9 +76,15 @@ final class PipelineUtils {
 			res.headers().add("Access-Control-Allow-Origin", origin);
 			res.headers().add("Access-Control-Allow-Credentials", "true");
 		}
-		HttpHeaders.setContentLength(res, message.readableBytes());
+		HttpHeaders.setContentLength(res, content.readableBytes());
 
 		return res;
 	}
 
+	public static ByteBuf copiedBuffer(ByteBufAllocator allocator, String message) {
+		ByteBuf buffer = allocator.buffer();
+		buffer.writeBytes(message.getBytes(CharsetUtil.UTF_8));
+		return buffer;
+	}
+   
 }

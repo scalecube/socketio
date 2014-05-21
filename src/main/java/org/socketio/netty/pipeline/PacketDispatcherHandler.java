@@ -48,13 +48,13 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		log.debug("Channel connected: {}", ctx.channel());
+		log.debug("Channel active: {}", ctx.channel());
 		super.channelActive(ctx);
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		log.debug("Channel disconnected: {}", ctx.channel());
+		log.debug("Channel inactive: {}", ctx.channel());
 		super.channelInactive(ctx);
 	}
 
@@ -77,7 +77,6 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
-        cause.printStackTrace();
 	}
 
 	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {

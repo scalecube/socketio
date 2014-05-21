@@ -46,7 +46,7 @@ public class FlashPolicyHandlerTest {
     }
 
     @Test
-    public void testDecodeFlashPolicy() throws Exception {
+    public void testFlashPolicy() throws Exception {
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
         EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler,flashPolicyHandler);
         channel.writeInbound(policyRequestBuffer);
@@ -57,7 +57,7 @@ public class FlashPolicyHandlerTest {
     }
 
     @Test
-    public void testDecodeNonFlashPolicy() throws Exception {
+    public void testNonFlashPolicy() throws Exception {
         LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
         EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler,flashPolicyHandler);
         String message = "{ \"friends\": [" +
