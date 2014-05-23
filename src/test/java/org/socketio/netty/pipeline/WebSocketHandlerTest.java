@@ -29,6 +29,8 @@ import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 
+import java.util.concurrent.CountDownLatch;
+
 
 public class WebSocketHandlerTest {
 
@@ -65,30 +67,5 @@ public class WebSocketHandlerTest {
         channel.finish();
     }
 
-    @Test
-    public void testChannelRead() throws Exception {
-        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/socket.io/1/websocket/595f8d1b-a8bb-4453-88ef-b3620dba16c5");
-        HttpHeaders.addHeader(request,HttpHeaders.Names.SEC_WEBSOCKET_VERSION, 13);
-        HttpHeaders.addHeader(request,"Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits, x-webkit-deflate-frame");
-        String origin = "http://localhost:8080";
-        HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
-        HttpHeaders.addHeader(request, HttpHeaders.Names.SEC_WEBSOCKET_KEY,"key");
-        LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, webSocketHandler);
-        channel.writeInbound(request);
-        Object object = channel.readInbound();
-        Assert.assertTrue(object instanceof ConnectPacket);
-        IPacket packet = (ConnectPacket) object;
-        Assert.assertEquals(TransportType.WEBSOCKET ,packet.getTransportType());
-        Assert.assertEquals(origin,packet.getOrigin());
-        WebSocketFrame webSocketFrame = new TextWebSocketFrame("3:::{\"greetings\":\"Hello World!\"}");
-        channel.writeInbound(webSocketFrame);
-        object = channel.readInbound();
-        Assert.assertTrue(object instanceof Packet);
-        packet = (Packet) object;
-        Assert.assertEquals(TransportType.WEBSOCKET, packet.getTransportType());
-        Assert.assertEquals("{\"greetings\":\"Hello World!\"}", ((Packet)packet).getData());
-        channel.finish();
-    }
 
 }
