@@ -17,16 +17,7 @@ package org.socketio.netty.pipeline;
 
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -34,11 +25,20 @@ import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketFramer;
 
-@Sharable
-public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
-	
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
+
+@ChannelHandler.Sharable
+public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+
 	private final String connectPath;
 
 	public JsonpPollingHandler(final String handshakePath) {
@@ -46,56 +46,57 @@ public class JsonpPollingHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent e) throws Exception {
-		Object msg = e.getMessage();
-		if (msg instanceof HttpRequest) {
-			final HttpRequest req = (HttpRequest) msg;
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		if (msg instanceof FullHttpRequest) {
+			final FullHttpRequest req = (FullHttpRequest) msg;
 			final HttpMethod requestMethod = req.getMethod();
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-			final String requestPath = queryDecoder.getPath();
-			
+			final String requestPath = queryDecoder.path();
+
 			if (requestPath.startsWith(connectPath)) {
-				log.debug("Received HTTP JSONP-Polling request: {} {} from channel: {}", new Object[] {
-						requestMethod, requestPath, ctx.getChannel()});
-				
+				log.debug("Received HTTP JSONP-Polling request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
 				final String origin = PipelineUtils.getOrigin(req);
-				
+
 				if (HttpMethod.GET.equals(requestMethod)) {
 					// Process polling request from client
-					String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i"); 
+					String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i");
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.JSONP_POLLING);
 					packet.setJsonpIndexParam(jsonpIndexParam);
-					Channels.fireMessageReceived(ctx, packet);
-				} else if (HttpMethod.POST.equals(requestMethod) && req.getContent().hasArray()) {
+					ctx.fireChannelRead(packet);
+				} else if (HttpMethod.POST.equals(requestMethod)) {
 					// Process message request from client
-					ChannelBuffer buffer = req.getContent();
+					ByteBuf buffer = req.content();
 					String content = buffer.toString(CharsetUtil.UTF_8);
 					if (content.startsWith("d=")) {
-						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(
-								content, CharsetUtil.UTF_8, false);
+						QueryStringDecoder queryStringDecoder = new QueryStringDecoder(content, CharsetUtil.UTF_8, false);
 						content = PipelineUtils.extractParameter(queryStringDecoder, "d");
 						content = preprocessJsonpContent(content);
-						
-						List<Packet> packets = PacketFramer.decodePacketsFrame(content);
+						ByteBuf buf = PipelineUtils.copiedBuffer(ctx.alloc(), content);
+						List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
+                        buf.release();
 						for (Packet packet : packets) {
 							packet.setSessionId(sessionId);
 							packet.setOrigin(origin);
-							Channels.fireMessageReceived(ctx.getChannel(), packet);
+							ctx.fireChannelRead(packet);
 						}
 					} else {
-						log.warn("Can't process HTTP JSONP-Polling message. Incorrect content format: {} from channel: {}", content, ctx.getChannel());
+						log.warn("Can't process HTTP JSONP-Polling message. Incorrect content format: {} from channel: {}", content,
+								ctx.channel());
 					}
 				} else {
-					log.warn("Can't process HTTP JSONP-Polling request. Unknown request method: {} from channel: {}", requestMethod, ctx.getChannel());
+					log.warn("Can't process HTTP JSONP-Polling request. Unknown request method: {} from channel: {}", requestMethod,
+							ctx.channel());
 				}
+				ReferenceCountUtil.release(msg);
 				return;
 			}
 		}
-		ctx.sendUpstream(e);
+		super.channelRead(ctx, msg);
 	}
-	
+
 	private String preprocessJsonpContent(String content) {
 		if (content.startsWith("\"")) {
 			content = content.substring(1);

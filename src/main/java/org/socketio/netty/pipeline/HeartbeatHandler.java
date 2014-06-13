@@ -15,40 +15,38 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 import org.socketio.netty.session.IManagedSession;
 import org.socketio.netty.storage.SessionStorage;
 
-@Sharable
-public class HeartbeatHandler extends SimpleChannelUpstreamHandler {
-	
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+
+@ChannelHandler.Sharable
+public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
+
 	private final SessionStorage sessionFactory;
-	
+
 	public HeartbeatHandler(SessionStorage sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-	
+
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent event) throws Exception {
-		Object message = event.getMessage();
-		if (message instanceof Packet) {
-			final Packet packet = (Packet) message;
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		if (msg instanceof Packet) {
+			final Packet packet = (Packet) msg;
 			if (packet.getType() == PacketType.HEARTBEAT) {
-				final String sessionId = packet.getSessionId(); 
+				final String sessionId = packet.getSessionId();
 				final IManagedSession session = sessionFactory.getSessionIfExist(sessionId);
 				if (session != null) {
-					session.acceptPacket(ctx.getChannel(), packet);
+					session.acceptPacket(ctx.channel(), packet);
 					session.acceptHeartbeat();
 				}
 				return;
 			}
 		}
-		super.messageReceived(ctx, event);
+		super.channelRead(ctx, msg);
 	}
-	
 }

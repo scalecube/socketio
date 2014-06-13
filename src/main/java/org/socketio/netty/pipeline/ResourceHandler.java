@@ -20,203 +20,181 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.stream.ChunkedStream;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Sharable
-public class ResourceHandler extends SimpleChannelUpstreamHandler {
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedStream;
+import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.CharsetUtil;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+@ChannelHandler.Sharable
+public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
-    public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-    public static final int HTTP_CACHE_SECONDS = 60;
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<String, URL> resources = new HashMap<String, URL>();
+	public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+	public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
+	public static final int HTTP_CACHE_SECONDS = 60;
 
-    public ResourceHandler() {
-    }
+	private final Map<String, URL> resources = new HashMap<String, URL>();
 
-    public void addResource(String pathPart, String resourcePath) {
-        URL resUrl = getClass().getResource(resourcePath);
-        if (resUrl == null) {
-            log.error("The specified resource was not found: " + resourcePath);
-            return;
-        }
-        resources.put(pathPart, resUrl);
-    }
+	public ResourceHandler() {
+	}
 
-    @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)  throws Exception {
-    	Object msg = e.getMessage();
-        if (msg instanceof HttpRequest) {
-        	HttpRequest req = (HttpRequest) msg;
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            String requestPath = queryDecoder.getPath();
-            URL resUrl = resources.get(requestPath);
-            if (resUrl != null) {
-            	log.debug("Received HTTP resource request: {} {} from channel: {}", new Object[] {
-            			req.getMethod(), requestPath, ctx.getChannel()});
-            	
-                URLConnection fileUrl = resUrl.openConnection();
-                long lastModified = fileUrl.getLastModified();
-                // check if file has been modified since last request
-                if (isNotModified(req, lastModified)) {
-                    sendNotModified(ctx);
-                    return;
-                }
-                // create resource input-stream and check existence
-                final InputStream is = fileUrl.getInputStream();
-                if (is == null) {
-                    sendError(ctx, HttpResponseStatus.NOT_FOUND);
-                    return;
-                }
-                // create ok response
-                HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-                // set Content-Length header
-                HttpHeaders.setContentLength(res, fileUrl.getContentLengthLong());
-                // set Content-Type header
-                setContentTypeHeader(res, fileUrl);
-                // set Date, Expires, Cache-Control and Last-Modified headers
-                setDateAndCacheHeaders(res, lastModified);
-                // write initial response header
-                Channels.write(ctx.getChannel(), res);
+	public void addResource(String pathPart, String resourcePath) {
+		URL resUrl = getClass().getResource(resourcePath);
+		if (resUrl == null) {
+			log.error("The specified resource was not found: " + resourcePath);
+			return;
+		}
+		resources.put(pathPart, resUrl);
+	}
 
-                // write the content stream
-                ctx.getPipeline().addBefore(ctx.getName(), "chunked-writer-handler", new ChunkedWriteHandler());
-                ChannelFuture writeFuture = ctx.getChannel().write(new ChunkedStream(is, fileUrl.getContentLength()));
-                // add operation complete listener so we can close the channel and the input stream
-                writeFuture.addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
-        }
-        super.messageReceived(ctx, e);
-    }
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		if (msg instanceof HttpRequest) {
+			HttpRequest req = (HttpRequest) msg;
+			QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+			String requestPath = queryDecoder.path();
+			URL resUrl = resources.get(requestPath);
+			if (resUrl != null) {
+				log.debug("Received HTTP resource request: {} {} from channel: {}", req.getMethod(), requestPath, ctx.channel());
 
-    /*
-     * Checks if the content has been modified sicne the date provided by the IF_MODIFIED_SINCE http header
-     * */
-    private boolean isNotModified(HttpRequest request, long lastModified) throws ParseException {
-        String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
-        if (ifModifiedSince != null && !ifModifiedSince.equals("")) {
-            SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-            Date ifModifiedSinceDate = dateFormatter.parse(ifModifiedSince);
+				URLConnection fileUrl = resUrl.openConnection();
+				long lastModified = fileUrl.getLastModified();
+				// check if file has been modified since last request
+				if (isNotModified(req, lastModified)) {
+					sendNotModified(ctx);
+					return;
+				}
+				// create resource input-stream and check existence
+				final InputStream is = fileUrl.getInputStream();
+				if (is == null) {
+					sendError(ctx, HttpResponseStatus.NOT_FOUND);
+					return;
+				}
+				// create ok response
+				HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				// set Content-Length header
+				HttpHeaders.setContentLength(res, fileUrl.getContentLengthLong());
+				// set Content-Type header
+				setContentTypeHeader(res, fileUrl);
+				// set Date, Expires, Cache-Control and Last-Modified headers
+				setDateAndCacheHeaders(res, lastModified);
+				// write initial response header
+				ctx.write(res);
 
-            // Only compare up to the second because the datetime format we send to the client does
-            // not have milliseconds
-            long ifModifiedSinceDateSeconds = ifModifiedSinceDate.getTime() / 1000;
-            long fileLastModifiedSeconds = lastModified / 1000;
-            return ifModifiedSinceDateSeconds == fileLastModifiedSeconds;
-        }
-        return false;
-    }
+				// write the content stream
+				ctx.pipeline().addBefore(ctx.name(), "chunked-writer-handler", new ChunkedWriteHandler());
+				ChannelFuture writeFuture = ctx.writeAndFlush(new ChunkedStream(is, fileUrl.getContentLength()));
+				// add operation complete listener so we can close the channel and the input stream
+				writeFuture.addListener(ChannelFutureListener.CLOSE);
+				ReferenceCountUtil.release(msg);
+				return;
+			}
+		}
+		super.channelRead(ctx, msg);
+	}
 
-    /*
-     * Sends a Not Modified response to the client
-     *
-     * */
-    private void sendNotModified(ChannelHandlerContext ctx) {
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_MODIFIED);
-        setDateHeader(response);
+	/*
+	 * Checks if the content has been modified sicne the date provided by the IF_MODIFIED_SINCE http header
+	 * */
+	private boolean isNotModified(HttpRequest request, long lastModified) throws ParseException {
+		String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
+		if (ifModifiedSince != null && !ifModifiedSince.equals("")) {
+			SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+			Date ifModifiedSinceDate = dateFormatter.parse(ifModifiedSince);
 
-        // Close the connection as soon as the error message is sent.
-        ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
-    }
+			// Only compare up to the second because the datetime format we send to the client does
+			// not have milliseconds
+			long ifModifiedSinceDateSeconds = ifModifiedSinceDate.getTime() / 1000;
+			long fileLastModifiedSeconds = lastModified / 1000;
+			return ifModifiedSinceDateSeconds == fileLastModifiedSeconds;
+		}
+		return false;
+	}
 
-    /**
-     * Sets the Date header for the HTTP response
-     *
-     * @param response
-     *            HTTP response
-     */
-    private void setDateHeader(HttpResponse response) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-        dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
+	/*
+	 * Sends a Not Modified response to the client
+	 *
+	 * */
+	private void sendNotModified(ChannelHandlerContext ctx) {
+		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_MODIFIED);
+		setDateHeader(response);
 
-        Calendar time = new GregorianCalendar();
-        HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
-    }
+		// Close the connection as soon as the error message is sent.
+		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+	}
 
+	/**
+	 * Sets the Date header for the HTTP response
+	 *
+	 * @param response
+	 *            HTTP response
+	 */
+	private void setDateHeader(HttpResponse response) {
+		SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+		dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
-    /**
-     * Sends an Error response with status message
-     *
-     * @param ctx
-     * @param status
-     */
-    private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
-        HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-        ChannelBuffer content = ChannelBuffers.copiedBuffer( "Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8);
+		Calendar time = new GregorianCalendar();
+		HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
+	}
 
-        ctx.getChannel().write(response);
-        // Close the connection as soon as the error message is sent.
-        ctx.getChannel().write(content).addListener(ChannelFutureListener.CLOSE);
-    }
+	/**
+	 * Sends an Error response with status message
+	 *
+	 * @param ctx channel context
+	 * @param status status
+	 */
+	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+		HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+		ByteBuf content = Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8);
 
-    /**
-     * Sets the Date and Cache headers for the HTTP Response
-     *
-     * @param response
-     *            HTTP response
-     * @param fileToCache
-     *            file to extract content type
-     */
-    private void setDateAndCacheHeaders(HttpResponse response, long lastModified) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-        dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
+		ctx.write(response);
+		// Close the connection as soon as the error message is sent.
+		ctx.writeAndFlush(content).addListener(ChannelFutureListener.CLOSE);
+	}
 
-        // Date header
-        Calendar time = new GregorianCalendar();
-        HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
+	/**
+	 * Sets the Date and Cache headers for the HTTP Response
+	 *
+	 * @param response
+	 *            HTTP response
+	 */
+	private void setDateAndCacheHeaders(HttpResponse response, long lastModified) {
+		SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+		dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
-        // Add cache headers
-        time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
-        HttpHeaders.setHeader(response, HttpHeaders.Names.EXPIRES, dateFormatter.format(time.getTime()));
-        HttpHeaders.setHeader(response, HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
-        HttpHeaders.setHeader(response, HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(lastModified)));
-    }
+		// Date header
+		Calendar time = new GregorianCalendar();
+		HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
 
-    /**
-     * Sets the content type header for the HTTP Response
-     *
-     * @param response
-     *            HTTP response
-     * @param file
-     *            file to extract content type
-     */
-    private void setContentTypeHeader(HttpResponse response, URLConnection resUrlConnection) {
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        String resName = resUrlConnection.getURL().getFile();
-        HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(resName));
-    }
+		// Add cache headers
+		time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
+		HttpHeaders.setHeader(response, HttpHeaders.Names.EXPIRES, dateFormatter.format(time.getTime()));
+		HttpHeaders.setHeader(response, HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
+		HttpHeaders.setHeader(response, HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(lastModified)));
+	}
+
+	/**
+	 * Sets the content type header for the HTTP Response
+	 *
+	 * @param response
+	 *            HTTP response
+	 */
+	private void setContentTypeHeader(HttpResponse response, URLConnection resUrlConnection) {
+		MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+		String resName = resUrlConnection.getURL().getFile();
+		HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(resName));
+	}
 }

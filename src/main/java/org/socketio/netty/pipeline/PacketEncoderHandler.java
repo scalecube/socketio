@@ -15,12 +15,9 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
+import java.util.List;
+
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -29,6 +26,15 @@ import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketsFrame;
 import org.socketio.netty.serialization.PacketEncoder;
 import org.socketio.netty.serialization.PacketFramer;
+
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCounted;
 
 /**
  * <p>
@@ -52,38 +58,43 @@ import org.socketio.netty.serialization.PacketFramer;
  * @author Ronen Hamias, Anton Kharenko
  * 
  */
-@Sharable
-public class PacketEncoderHandler extends OneToOneEncoder {
+@ChannelHandler.Sharable
+public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 	
 	private final static String JSONP_TEMPLATE = "io.j[%s]('%s');";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Override
-	protected Object encode(final ChannelHandlerContext ctx, final Channel channel, final Object msg) throws Exception {
+	protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
 		if (msg instanceof IPacket) {
 			IPacket packet = (IPacket) msg;
 
-			log.debug("Sending packet: {} to channel: {}", msg, channel);
+			log.debug("Sending packet: {} to channel: {}", msg, ctx.channel());
 			String encodedPacket = encodePacket(packet);
 			log.debug("Encoded packet: {}", encodedPacket);
-			
+
 			TransportType transportType = packet.getTransportType();
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
-				return new TextWebSocketFrame(encodedPacket.toString());
+				out.add(new TextWebSocketFrame(encodedPacket));
 			} else if (transportType == TransportType.XHR_POLLING) {
-				return PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false);
+				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(),PipelineUtils.copiedBuffer(ctx.alloc(), encodedPacket), false));
 			} else if (transportType == TransportType.JSONP_POLLING) {
 				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
 				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
-				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), encodedJsonpPacket, true);
+				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(),
+						PipelineUtils.copiedBuffer(ctx.alloc(), encodedJsonpPacket), true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
-				return httpResponse;
+				out.add(httpResponse);
 			} else {
 				throw new UnsupportedTransportTypeException(transportType);
 			}
+		} else {
+			if (msg instanceof ReferenceCounted) {
+				((ReferenceCounted) msg).retain();
+			}
+			out.add(msg);
 		}
-		return msg;
 	}
 
 	private String encodePacket(final IPacket msg) throws Exception {
@@ -95,4 +106,5 @@ public class PacketEncoderHandler extends OneToOneEncoder {
 			throw new UnsupportedPacketTypeException(msg);
 		}
 	}
+
 }

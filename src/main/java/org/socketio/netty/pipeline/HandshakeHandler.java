@@ -15,27 +15,20 @@
  */
 package org.socketio.netty.pipeline;
 
-import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
 import java.util.UUID;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.serialization.JsonObjectMapperProvider;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 
 /**
  * This class implements Socket.IO handshake procedure described below:
@@ -110,8 +103,8 @@ import org.socketio.netty.serialization.JsonObjectMapperProvider;
  * @author Anton Kharenko, Ronen Hamias
  * 
  */
-@Sharable
-public class HandshakeHandler extends SimpleChannelUpstreamHandler {
+@ChannelHandler.Sharable
+public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -124,56 +117,56 @@ public class HandshakeHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx,
-			final MessageEvent e) throws Exception {
-		Object msg = e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof HttpRequest) {
 			final HttpRequest req = (HttpRequest) msg;
 			final HttpMethod requestMethod = req.getMethod();
-			final Channel channel = ctx.getChannel();
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-			final String requestPath = queryDecoder.getPath();
-			
+			final String requestPath = queryDecoder.path();
+
 			if (!requestPath.startsWith(handshakePath)) {
-				log.warn("Received HTTP bad request: {} {} from channel: {}", new Object[] {
-						requestMethod, requestPath, ctx.getChannel()});
-				
+				log.warn("Received HTTP bad request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+
 				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-				ChannelFuture f = channel.write(res);
+				ChannelFuture f = ctx.channel().writeAndFlush(res);
 				f.addListener(ChannelFutureListener.CLOSE);
+				ReferenceCountUtil.release(req);
 				return;
 			}
-			
+
 			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
-				log.debug("Received HTTP handshake request: {} {} from channel: {}", new Object[] {
-						requestMethod, requestPath, ctx.getChannel()});
-				
-				handshake(channel, req, queryDecoder);
+				log.debug("Received HTTP handshake request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+
+				handshake(ctx, req, queryDecoder);
+				ReferenceCountUtil.release(req);
 				return;
 			}
 		}
-		ctx.sendUpstream(e);
+
+		super.channelRead(ctx, msg);
 	}
-	
-	private void handshake(final Channel channel, final HttpRequest req, final QueryStringDecoder queryDecoder) throws IOException {
+
+	private void handshake(final ChannelHandlerContext ctx, final HttpRequest req, final QueryStringDecoder queryDecoder)
+			throws IOException {
 		// Generate session ID
 		final String sessionId = UUID.randomUUID().toString();
 		log.debug("New sessionId: {} generated", sessionId);
-		
+
 		// Send handshake response
 		final String handshakeMessage = getHandshakeMessage(sessionId, queryDecoder);
-		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), handshakeMessage, false);
-		ChannelFuture f = channel.write(res);
+
+		ByteBuf content = PipelineUtils.copiedBuffer(ctx.alloc(), handshakeMessage);
+		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), content, false);
+		ChannelFuture f = ctx.writeAndFlush(res);
 		f.addListener(ChannelFutureListener.CLOSE);
-		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, channel);
+		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx.channel());
 	}
-	
+
 	private String getHandshakeMessage(final String sessionId, final QueryStringDecoder queryDecoder) throws IOException {
 		String jsonpParam = PipelineUtils.extractParameter(queryDecoder, "jsonp");
 		String handshakeParameters = sessionId + commonHandshakeParameters;
-		if (jsonpParam != null) {            
-			return "io.j[" + jsonpParam + "]("  
-				+ JsonObjectMapperProvider.getObjectMapper().writeValueAsString(handshakeParameters) + ");";        
+		if (jsonpParam != null) {
+			return "io.j[" + jsonpParam + "](" + JsonObjectMapperProvider.getObjectMapper().writeValueAsString(handshakeParameters) + ");";
 		} else {
 			return handshakeParameters;
 		}

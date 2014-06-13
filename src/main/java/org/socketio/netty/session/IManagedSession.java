@@ -15,10 +15,11 @@
  */
 package org.socketio.netty.session;
 
-import org.jboss.netty.channel.Channel;
 import org.socketio.netty.ISession;
 import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.packets.Packet;
+
+import io.netty.channel.Channel;
 
 /**
  * This interface enrich ISession interface with control methods required to manage 
@@ -63,7 +64,7 @@ public interface IManagedSession extends ISession {
 	/**
 	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted
 	 * 
-	 * @param channel
+	 * @param channel channel to which client connected
 	 */
 	void acceptPacket(final Channel channel, final Packet packet);
 	

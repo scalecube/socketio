@@ -15,15 +15,16 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.socketio.netty.TransportType;
+
+import io.netty.channel.ChannelHandler;
 
 /**
  * 
  * @author Anton Kharenko
  *
  */
-@Sharable
+@ChannelHandler.Sharable
 public class FlashSocketHandler extends WebSocketHandler {
 
 	public FlashSocketHandler(String handshakePath, boolean secure) {

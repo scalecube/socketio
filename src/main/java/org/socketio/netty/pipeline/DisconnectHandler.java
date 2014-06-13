@@ -15,18 +15,18 @@
  */
 package org.socketio.netty.pipeline;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
+
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 /**
  * Class which provides handler for supporting forced socket disconnection
@@ -45,36 +45,33 @@ import org.socketio.netty.packets.PacketType;
  * <p/>
  * The server must respond with 200 OK, or 500 if a problem is detected.
  */
-@Sharable
-public class DisconnectHandler extends SimpleChannelUpstreamHandler {
+@ChannelHandler.Sharable
+public class DisconnectHandler extends ChannelInboundHandlerAdapter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private static final String DISCONNECT = "disconnect";
 
 	@Override
-	public void messageReceived(final ChannelHandlerContext ctx,
-			final MessageEvent e) throws Exception {
-		Object msg = e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof HttpRequest) {
 			final HttpRequest req = (HttpRequest) msg;
 			final HttpMethod requestMethod = req.getMethod();
 			final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-			final String requestPath = queryDecoder.getPath();
+			final String requestPath = queryDecoder.path();
 
-			boolean disconnect = queryDecoder.getParameters().containsKey(DISCONNECT);
+			boolean disconnect = queryDecoder.parameters().containsKey(DISCONNECT);
 			if (disconnect) {
-				log.debug("Received HTTP disconnect request: {} {} from channel: {}",
-						new Object[] {requestMethod, requestPath, ctx.getChannel()});
-				
+				log.debug("Received HTTP disconnect request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
 				final Packet disconnectPacket = new Packet(PacketType.DISCONNECT, sessionId);
 				disconnectPacket.setOrigin(PipelineUtils.getOrigin(req));
-				Channels.fireMessageReceived(ctx, disconnectPacket);
+				ctx.fireChannelRead(disconnectPacket);
+				ReferenceCountUtil.release(msg);
 				return;
 			}
 		}
-		ctx.sendUpstream(e);
+		ctx.fireChannelRead(msg);
 	}
-
 }

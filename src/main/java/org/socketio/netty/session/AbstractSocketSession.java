@@ -15,31 +15,27 @@
  */
 package org.socketio.netty.session;
 
-import org.jboss.netty.channel.Channel;
 import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
+
+import io.netty.channel.Channel;
 
 public abstract class AbstractSocketSession extends AbstractSession {
 
 	private final Channel channel;
 
-	public AbstractSocketSession(
-			Channel channel, 
-			String sessionId, 
-			String origin, 
-			ISessionDisconnectHandler disconnectHandler, 
-			final TransportType upgradedFromTransportType, 
-			int localPort) {
+	public AbstractSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
+			final TransportType upgradedFromTransportType, int localPort) {
 		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
 		this.channel = channel;
 	}
-	
+
 	@Override
 	public ISessionFuture sendPacket(Packet packet) {
 		return sendPacketToChannel(channel, packet);
 	}
-	
+
 	@Override
 	public void disconnect() {
 		disconnect(channel);
