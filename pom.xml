@@ -111,7 +111,6 @@
 					</execution>
 				</executions>
 				<configuration>
-					<linkXref>true</linkXref>
 					<minimumTokens>100</minimumTokens>
 					<targetJdk>1.6</targetJdk>
 					<verbose>true</verbose>
@@ -124,7 +123,6 @@
 					<source>1.6</source>
 					<target>1.6</target>
 					<optimize>true</optimize>
-					<showDeprecations>true</showDeprecations>
 				</configuration>
 			</plugin>
 			<plugin>
