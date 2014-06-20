@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.packets;
 
+import java.net.SocketAddress;
+
 /**
  * According to socket.io spec Connect packet is sent to socket.io client after handshake.
  * 
@@ -23,6 +25,8 @@ package org.socketio.netty.packets;
  */
 public class ConnectPacket extends Packet {
 	
+	private SocketAddress remoteAddress;
+
 	public ConnectPacket(final String sessionId) {
 		super(PacketType.CONNECT, sessionId);
 	}
@@ -32,11 +36,27 @@ public class ConnectPacket extends Packet {
 		this.setOrigin(origin);
 	}
 
+	/**
+	 * @return the remoteAddress
+	 */
+	public SocketAddress getRemoteAddress() {
+		return remoteAddress;
+	}
+
+	/**
+	 * @param remoteAddress the remoteAddress to set
+	 */
+	public void setRemoteAddress(SocketAddress remoteAddress) {
+		this.remoteAddress = remoteAddress;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ConnectPacket [");
 		builder.append(super.toString());
+		builder.append(", remoteAddress=");
+		builder.append(remoteAddress);
 		builder.append("]");
 		return builder.toString();
 	}

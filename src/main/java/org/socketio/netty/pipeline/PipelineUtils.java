@@ -15,14 +15,27 @@
  */
 package org.socketio.netty.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.Map;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilities methods class. 
@@ -32,6 +45,8 @@ import io.netty.util.CharsetUtil;
  */
 final class PipelineUtils {
 
+	private static final Logger log = LoggerFactory.getLogger(PipelineUtils.class);
+	
 	/**
 	 * Don't let anyone instantiate this class.
 	 */
@@ -87,4 +102,24 @@ final class PipelineUtils {
 		return buffer;
 	}
    
+	public static SocketAddress getHeaderClientIPParamValue(HttpMessage message, String paramName) {
+		
+		SocketAddress result = null;
+		
+		if (paramName == null || paramName.trim().isEmpty()) {
+			;
+		} else {
+			String ip = null;
+			try {
+				ip = HttpHeaders.getHeader(message, paramName);
+				if (ip != null) {
+					result = new InetSocketAddress(InetAddress.getByName(ip), 0);
+				}
+			} catch (Exception e) {
+				log.warn("Failed to parse IP address: {} from http header: {}", ip, paramName);
+			}
+		}
+		return result;
+	}
+
 }

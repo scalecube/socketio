@@ -44,7 +44,6 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketDecoder;
-import org.socketio.netty.utils.HeaderUtils;
 
 /**
  * 
@@ -136,7 +135,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
 		sessionIdByChannel.put(ctx.channel(), sessionId);
 		
-		SocketAddress clientIp = HeaderUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+		SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
 		
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
 		packet.setTransportType(getTransportType());

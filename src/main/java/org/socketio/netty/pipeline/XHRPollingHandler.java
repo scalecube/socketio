@@ -32,7 +32,6 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketFramer;
-import org.socketio.netty.utils.HeaderUtils;
 
 @ChannelHandler.Sharable
 public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
@@ -62,7 +61,7 @@ public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
 				final String origin = PipelineUtils.getOrigin(req);
 
 				if (HttpMethod.GET.equals(requestMethod)) {
-					SocketAddress clientIp = HeaderUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+					SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
 
 					// Process polling request from client
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);

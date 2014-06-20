@@ -34,7 +34,6 @@ import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketFramer;
-import org.socketio.netty.utils.HeaderUtils;
 
 @ChannelHandler.Sharable
 public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
@@ -65,7 +64,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 
 				if (HttpMethod.GET.equals(requestMethod)) {
 					// Process polling request from client
-					SocketAddress clientIp = HeaderUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+					SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
 					
 					String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i");
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
