@@ -3,6 +3,7 @@ Changes
 
 1.0.17-SNAPSHOT
 -----------------------
+* Added support of custom HTTP header to defining client IP
 
 1.0.16 / 2014-06-13
 -----------------------
