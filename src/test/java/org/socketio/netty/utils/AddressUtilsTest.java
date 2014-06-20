@@ -4,6 +4,7 @@
 package org.socketio.netty.utils;
 
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,22 +44,24 @@ public class AddressUtilsTest {
 		Assert.assertNotNull(socketAddress);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=UnknownHostException.class)
 	public void testFailHostname() throws Exception {
 		AddressUtils.toSocketAddress("abc");
 	}
 
-	@Test(expected=NumberFormatException.class)
+	@Test(expected=UnknownHostException.class)
 	public void testFailNonDigits() throws Exception {
 		AddressUtils.toSocketAddress("a.b.c.d");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testFailShort() throws Exception {
-		AddressUtils.toSocketAddress("11.22.33");
+	@Test
+	public void testPass3() throws Exception {
+		SocketAddress socketAddress = AddressUtils.toSocketAddress("11.22.33");
+		
+		Assert.assertNotNull(socketAddress);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=UnknownHostException.class)
 	public void testFailShort2() throws Exception {
 		AddressUtils.toSocketAddress("11.22.33.");
 	}

@@ -68,7 +68,7 @@ public class SocketIOServer {
 
 	private boolean alwaysSecureWebSocketLocation = false;
 
-	private String headerClientIpAddressName = "";
+	private String headerClientIpAddressName;
 	
 	/**
 	 * Creates Socket.IO server with default settings.
@@ -306,11 +306,7 @@ public class SocketIOServer {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("SocketIOServer [state=");
-		builder.append(state);
-		builder.append(", heartbeatScheduller=");
-		builder.append(heartbeatScheduller);
-		builder.append(", port=");
+		builder.append("SocketIOServer [port=");
 		builder.append(port);
 		builder.append(", heartbeatThreadpoolSize=");
 		builder.append(heartbeatThreadpoolSize);
