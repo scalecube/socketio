@@ -27,8 +27,8 @@ import io.netty.channel.ChannelHandler;
 @ChannelHandler.Sharable
 public class FlashSocketHandler extends WebSocketHandler {
 
-	public FlashSocketHandler(String handshakePath, boolean secure) {
-		super(handshakePath, secure);
+	public FlashSocketHandler(final String handshakePath, final boolean secure, final String headerClientIpAddressName) {
+		super(handshakePath, secure, headerClientIpAddressName);
 	}
 
 	@Override

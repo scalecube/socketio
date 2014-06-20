@@ -15,15 +15,17 @@
  */
 package org.socketio.netty.session;
 
+import java.net.SocketAddress;
+
 import org.socketio.netty.TransportType;
 
 import io.netty.channel.Channel;
 
 public class WebSocketSession extends AbstractSocketSession {
 
-	public WebSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
-			final TransportType upgradedFromTransportType, int localPort) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+	public WebSocketSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+			final TransportType upgradedFromTransportType, final int localPort, final SocketAddress remoteAddress) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 	}
 
 	@Override

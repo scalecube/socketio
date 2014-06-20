@@ -15,20 +15,35 @@
  */
 package org.socketio.netty.pipeline;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.util.ReferenceCountUtil;
+
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketDecoder;
-
-import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.websocketx.*;
 
 /**
  * 
@@ -43,10 +58,12 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	private final Map<Object, String> sessionIdByChannel = new ConcurrentHashMap<Object, String>();
 	private final String connectPath;
 	private final boolean secure;
+	private final String headerClientIpAddressName;
 
-	public WebSocketHandler(String handshakePath, boolean secure) {
+	public WebSocketHandler(final String handshakePath, final boolean secure, final String headerClientIpAddressName) {
 		this.connectPath = handshakePath + getTransportType().getName();
 		this.secure = secure;
+		this.headerClientIpAddressName = headerClientIpAddressName;
 	}
 
 	protected TransportType getTransportType() {
@@ -115,10 +132,15 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 		return webSocketLocation;
 	}
 
-	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
+	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
 		sessionIdByChannel.put(ctx.channel(), sessionId);
+		
+		SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+		
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
 		packet.setTransportType(getTransportType());
+		packet.setRemoteAddress(clientIp);
+		
 		ctx.fireChannelRead(packet);
 	}
 

@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.session;
 
+import java.net.SocketAddress;
+
 import org.socketio.netty.TransportType;
 
 import io.netty.channel.Channel;
@@ -22,8 +24,9 @@ import io.netty.channel.Channel;
 public class XHRPollingSession extends AbstractPollingSession {
 
 	public XHRPollingSession(final Channel channel, final String sessionId, final String origin,
-			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
+			final SocketAddress remoteAddress) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 	}
 
 	@Override

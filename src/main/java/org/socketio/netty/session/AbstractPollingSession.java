@@ -15,6 +15,7 @@
  */
 package org.socketio.netty.session;
 
+import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.socketio.netty.ISessionFuture;
@@ -34,8 +35,9 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	private DelayedSessionFuture delayedSendSessionFuture;
 
 	public AbstractPollingSession(final Channel channel, final String sessionId, final String origin,
-			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, int localPort) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
+			final SocketAddress remoteAddress) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 	}
 
 	@Override

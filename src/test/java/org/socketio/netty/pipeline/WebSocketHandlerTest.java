@@ -41,7 +41,7 @@ public class WebSocketHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH,false);
+        webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH,false, "X-Forwarded-For");
     }
 
     @Test

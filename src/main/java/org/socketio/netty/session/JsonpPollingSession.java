@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.session;
 
+import java.net.SocketAddress;
+
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 
@@ -24,9 +26,9 @@ public class JsonpPollingSession extends AbstractPollingSession {
 
 	private final String jsonpIndexParam;
 
-	public JsonpPollingSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
-			TransportType upgradedFromTransportType, int localPort, String jsonpIndexParam) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+	public JsonpPollingSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+			final TransportType upgradedFromTransportType, final int localPort, final String jsonpIndexParam, final SocketAddress remoteAddress) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 		this.jsonpIndexParam = jsonpIndexParam;
 	}
 

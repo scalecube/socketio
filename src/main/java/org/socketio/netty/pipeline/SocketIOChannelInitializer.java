@@ -15,13 +15,6 @@
  */
 package org.socketio.netty.pipeline;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-
-import org.socketio.netty.ISocketIOListener;
-import org.socketio.netty.TransportType;
-import org.socketio.netty.storage.SessionStorage;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -31,6 +24,13 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
+import org.socketio.netty.ISocketIOListener;
+import org.socketio.netty.TransportType;
+import org.socketio.netty.storage.SessionStorage;
 
 public class SocketIOChannelInitializer extends ChannelInitializer {
 
@@ -79,11 +79,16 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	private final SessionStorage sessionFactory;
 	private final SSLContext sslContext;
 	private final boolean isFlashSupported;
+	
+	private final String headerClientIpAddressName;
 
 	public SocketIOChannelInitializer(final ISocketIOListener listener, final int heartbeatTimeout, final int closeTimeout,
-			final String transports, final SSLContext sslContext, final boolean alwaysSecureWebSocketLocation, final int localPort) {
+			final String transports, final SSLContext sslContext, final boolean alwaysSecureWebSocketLocation, final int localPort,
+			final String headerClientIpAddressName) {
 		// Initialize state variables
 		this.sslContext = sslContext;
+		this.headerClientIpAddressName = headerClientIpAddressName;
+		
 		sessionFactory = new SessionStorage(localPort);
 		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
 
@@ -101,11 +106,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 		heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
 		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
-		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure);
-		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure);
+		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
+		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 
-		xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH);
-		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH);
+		xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
+		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 
 		packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
 	}
