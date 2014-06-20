@@ -6,6 +6,8 @@ package org.socketio.netty.utils;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import org.slf4j.Logger;
@@ -38,7 +40,7 @@ public class HeaderUtils {
 			try {
 				ip = HttpHeaders.getHeader(message, paramName);
 				if (ip != null) {
-					result = AddressUtils.toSocketAddress(ip);
+					result = new InetSocketAddress(InetAddress.getByName(ip), 0);
 				}
 			} catch (Exception e) {
 				log.warn("Failed to parse IP address: {} from http header: {}", ip, paramName);
