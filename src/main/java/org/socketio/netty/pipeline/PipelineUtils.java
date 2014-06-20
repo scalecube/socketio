@@ -88,8 +88,8 @@ final class PipelineUtils {
 		}
 		HttpHeaders.addHeader(res, HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		if (origin != null) {
-			res.headers().add("Access-Control-Allow-Origin", origin);
-			res.headers().add("Access-Control-Allow-Credentials", "true");
+			res.headers().add(HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+			res.headers().add(HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
 		}
 		HttpHeaders.setContentLength(res, content.readableBytes());
 
@@ -103,12 +103,10 @@ final class PipelineUtils {
 	}
    
 	public static SocketAddress getHeaderClientIPParamValue(HttpMessage message, String paramName) {
-		
+
 		SocketAddress result = null;
-		
-		if (paramName == null || paramName.trim().isEmpty()) {
-			;
-		} else {
+
+		if (paramName != null && !paramName.trim().isEmpty()) {
 			String ip = null;
 			try {
 				ip = HttpHeaders.getHeader(message, paramName);
