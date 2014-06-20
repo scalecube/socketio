@@ -15,6 +15,11 @@
  */
 package org.socketio.netty;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,11 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.pipeline.SocketIOChannelInitializer;
 import org.socketio.netty.session.SocketIOHeartbeatScheduler;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * A Socket.IO server launcher class.
@@ -68,6 +68,8 @@ public class SocketIOServer {
 
 	private boolean alwaysSecureWebSocketLocation = false;
 
+	private String headerClientIpAddressName = "";
+	
 	/**
 	 * Creates Socket.IO server with default settings.
 	 */
@@ -100,7 +102,8 @@ public class SocketIOServer {
                 getTransports(),
                 sslContext,
                 alwaysSecureWebSocketLocation,
-                port);
+                port,
+                headerClientIpAddressName);
 		bootstrap = new ServerBootstrap()
                 .group(new NioEventLoopGroup(), new NioEventLoopGroup())
                 .channel(NioServerSocketChannel.class)
@@ -283,10 +286,31 @@ public class SocketIOServer {
 		this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
 	}
 
+	/**
+	 * @return the headerClientIpAddressName
+	 */
+	public String getHeaderClientIpAddressName() {
+		return headerClientIpAddressName;
+	}
+
+	/**
+	 * @param headerClientIpAddressName the headerClientIpAddressName to set
+	 */
+	public void setHeaderClientIpAddressName(String headerClientIpAddressName) {
+		this.headerClientIpAddressName = headerClientIpAddressName;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("SocketIOServer [port=");
+		builder.append("SocketIOServer [state=");
+		builder.append(state);
+		builder.append(", heartbeatScheduller=");
+		builder.append(heartbeatScheduller);
+		builder.append(", port=");
 		builder.append(port);
 		builder.append(", heartbeatThreadpoolSize=");
 		builder.append(heartbeatThreadpoolSize);
@@ -302,6 +326,8 @@ public class SocketIOServer {
 		builder.append(sslContext != null);
 		builder.append(", alwaysSecureWebSocketLocation=");
 		builder.append(alwaysSecureWebSocketLocation);
+		builder.append(", headerClientIpAddressName=");
+		builder.append(headerClientIpAddressName);
 		builder.append("]");
 		return builder.toString();
 	}

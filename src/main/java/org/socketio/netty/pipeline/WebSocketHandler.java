@@ -19,12 +19,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.netty.util.ReferenceCountUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketDecoder;
+import org.socketio.netty.utils.AddressUtils;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -43,10 +45,12 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	private final Map<Object, String> sessionIdByChannel = new ConcurrentHashMap<Object, String>();
 	private final String connectPath;
 	private final boolean secure;
+	private final String headerClientIpAddressName;
 
-	public WebSocketHandler(String handshakePath, boolean secure) {
+	public WebSocketHandler(final String handshakePath, final boolean secure, final String headerClientIpAddressName) {
 		this.connectPath = handshakePath + getTransportType().getName();
 		this.secure = secure;
+		this.headerClientIpAddressName = headerClientIpAddressName;
 	}
 
 	protected TransportType getTransportType() {
@@ -115,10 +119,15 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 		return webSocketLocation;
 	}
 
-	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) {
+	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
 		sessionIdByChannel.put(ctx.channel(), sessionId);
+		
+		String clientIp = HttpHeaders.getHeader(req, headerClientIpAddressName);
+		
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
 		packet.setTransportType(getTransportType());
+		packet.setRemoteAddress(AddressUtils.toSocketAddress(clientIp));
+		
 		ctx.fireChannelRead(packet);
 	}
 

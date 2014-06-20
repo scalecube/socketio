@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.session;
 
+import java.net.SocketAddress;
+
 import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
@@ -25,9 +27,9 @@ public abstract class AbstractSocketSession extends AbstractSession {
 
 	private final Channel channel;
 
-	public AbstractSocketSession(Channel channel, String sessionId, String origin, ISessionDisconnectHandler disconnectHandler,
-			final TransportType upgradedFromTransportType, int localPort) {
-		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort);
+	public AbstractSocketSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+			final TransportType upgradedFromTransportType, final int localPort, final SocketAddress remoteAddress) {
+		super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 		this.channel = channel;
 	}
 

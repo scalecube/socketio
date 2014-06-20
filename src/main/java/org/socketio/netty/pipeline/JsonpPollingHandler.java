@@ -15,24 +15,26 @@
  */
 package org.socketio.netty.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
+
 import java.util.List;
 
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketFramer;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.CharsetUtil;
+import org.socketio.netty.utils.AddressUtils;
 
 @ChannelHandler.Sharable
 public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
@@ -40,9 +42,11 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final String connectPath;
+	private final String headerClientIpAddressName;
 
-	public JsonpPollingHandler(final String handshakePath) {
+	public JsonpPollingHandler(final String handshakePath, final String headerClientIpAddressName) {
 		this.connectPath = handshakePath + TransportType.JSONP_POLLING.getName();
+		this.headerClientIpAddressName = headerClientIpAddressName;
 	}
 
 	@Override
@@ -61,10 +65,14 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 
 				if (HttpMethod.GET.equals(requestMethod)) {
 					// Process polling request from client
+					String clientIp = HttpHeaders.getHeader(req, headerClientIpAddressName);
+					
 					String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i");
 					final ConnectPacket packet = new ConnectPacket(sessionId, origin);
 					packet.setTransportType(TransportType.JSONP_POLLING);
 					packet.setJsonpIndexParam(jsonpIndexParam);
+					packet.setRemoteAddress(AddressUtils.toSocketAddress(clientIp));
+					
 					ctx.fireChannelRead(packet);
 				} else if (HttpMethod.POST.equals(requestMethod)) {
 					// Process message request from client

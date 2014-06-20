@@ -15,6 +15,7 @@
  */
 package org.socketio.netty.packets;
 
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +32,8 @@ public class Packet extends AbstractPacket {
 	private String endpoint = "";
 	private Object data;
 	private int sequenceNumber = 0;
+	
+	private SocketAddress remoteAddress;
 
 	private ErrorReason reason;
 	private ErrorAdvice advice;
@@ -135,17 +138,53 @@ public class Packet extends AbstractPacket {
 		this.sequenceNumber = sequenceNumber;
 	}
 	
-	
+	/**
+	 * @return the remoteAddress
+	 */
+	public SocketAddress getRemoteAddress() {
+		return remoteAddress;
+	}
 
+	/**
+	 * @param remoteAddress the remoteAddress to set
+	 */
+	public void setRemoteAddress(SocketAddress remoteAddress) {
+		this.remoteAddress = remoteAddress;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Packet [");
-		builder.append(super.toString());
+		builder.append("Packet [args=");
+		builder.append(args);
+		builder.append(", qs=");
+		builder.append(qs);
+		builder.append(", ack=");
+		builder.append(ack);
+		builder.append(", ackId=");
+		builder.append(ackId);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", id=");
+		builder.append(id);
+		builder.append(", endpoint=");
+		builder.append(endpoint);
 		builder.append(", data=");
 		builder.append(data);
+		builder.append(", sequenceNumber=");
+		builder.append(sequenceNumber);
+		builder.append(", remoteAddress=");
+		builder.append(remoteAddress);
+		builder.append(", reason=");
+		builder.append(reason);
+		builder.append(", advice=");
+		builder.append(advice);
+		builder.append(", AbstractPacket.toString()=");
+		builder.append(super.toString());
 		builder.append("]");
 		return builder.toString();
 	}
-
 }

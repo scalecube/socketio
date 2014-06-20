@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.storage;
 
+import java.net.SocketAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -83,6 +85,7 @@ public class SessionStorage {
 		final String sessionId = connectPacket.getSessionId();
 		final String origin = connectPacket.getOrigin();
 		final String jsonpIndexParam = connectPacket.getJsonpIndexParam();
+		final SocketAddress remoteAddress = connectPacket.getRemoteAddress();
 		try {
 			return sessionsMemoizer.get(sessionId,
 					new Computable<String, IManagedSession>() {
@@ -90,16 +93,16 @@ public class SessionStorage {
 						public IManagedSession compute(String sessionId) throws Exception {
 							if (transportType == TransportType.WEBSOCKET) {
 								return new WebSocketSession(channel, sessionId,
-										origin, disconnectHandler, upgradedFromTransportType, localPort);
+										origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 							} else if (transportType == TransportType.FLASHSOCKET) {
 								return new FlashSocketSession(channel, sessionId,
-										origin, disconnectHandler, upgradedFromTransportType, localPort);
+										origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 							} else if (transportType == TransportType.XHR_POLLING) {
 								return new XHRPollingSession(channel,sessionId, 
-										origin, disconnectHandler, upgradedFromTransportType, localPort);
+										origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
 							} else if (transportType == TransportType.JSONP_POLLING) {
 								return new JsonpPollingSession(channel,sessionId, 
-										origin, disconnectHandler, upgradedFromTransportType, localPort, jsonpIndexParam);
+										origin, disconnectHandler, upgradedFromTransportType, localPort, jsonpIndexParam, remoteAddress);
 							} else {
 								throw new UnsupportedTransportTypeException(transportType);
 							}

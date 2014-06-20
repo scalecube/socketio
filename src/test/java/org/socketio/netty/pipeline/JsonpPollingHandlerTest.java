@@ -21,6 +21,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import junit.framework.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.socketio.netty.TransportType;
@@ -28,14 +29,15 @@ import org.socketio.netty.packets.ConnectPacket;
 import org.socketio.netty.packets.Packet;
 
 public class JsonpPollingHandlerTest {
-    private static final int PROTOCOL = 1;
+    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
+	private static final int PROTOCOL = 1;
     private static final String CONTEXT_PATH = "/socket.io";
     private static final String HANDSHAKE_PATH = CONTEXT_PATH + "/" + PROTOCOL + "/";
     private JsonpPollingHandler jsonpPollingHandler;
 
     @Before
     public void setUp() throws Exception {
-        jsonpPollingHandler = new JsonpPollingHandler(HANDSHAKE_PATH);
+        jsonpPollingHandler = new JsonpPollingHandler(HANDSHAKE_PATH, X_FORWARDED_FOR);
     }
     @Test
     public void testChannelReadNonHttp() throws Exception{
@@ -74,6 +76,25 @@ public class JsonpPollingHandlerTest {
         ConnectPacket packet = (ConnectPacket) object;
         Assert.assertEquals(TransportType.JSONP_POLLING ,packet.getTransportType());
         Assert.assertEquals(origin,packet.getOrigin());
+        Assert.assertNull(packet.getRemoteAddress());
+        channel.finish();
+    }
+    @Test
+    public void testChannelReadConnectWithClientIpInHeader() throws Exception {
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/socket.io/1/jsonp-polling");
+        String origin = "http://localhost:8080";
+        HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
+        HttpHeaders.addHeader(request, X_FORWARDED_FOR, "1.2.3.4");
+        
+        LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
+        channel.writeInbound(request);
+        Object object = channel.readInbound();
+        Assert.assertTrue(object instanceof ConnectPacket);
+        ConnectPacket packet = (ConnectPacket) object;
+        Assert.assertEquals(TransportType.JSONP_POLLING ,packet.getTransportType());
+        Assert.assertEquals(origin,packet.getOrigin());
+        Assert.assertEquals("/1.2.3.4:0", packet.getRemoteAddress().toString());
         channel.finish();
     }
     @Test

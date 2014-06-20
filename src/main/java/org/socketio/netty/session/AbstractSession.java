@@ -50,13 +50,15 @@ public abstract class AbstractSession implements IManagedSession {
 	private volatile boolean upgraded = false;
 	
 	public AbstractSession (
-final Channel channel,			final String sessionId, 
+			final Channel channel,
+			final String sessionId, 
 			final String origin, 
 			final ISessionDisconnectHandler disconnectHandler, 
 			final TransportType upgradedFromTransportType, 
-			final int localPort) {
+			final int localPort,
+			final SocketAddress remoteAddress) {
 		this.sessionId = sessionId;
-		this.remoteAddress = channel.remoteAddress();
+		this.remoteAddress = remoteAddress == null ? channel.remoteAddress() : remoteAddress;
 		this.origin = origin;
 		this.localPort = localPort;
 		this.disconnectHandler = disconnectHandler;
