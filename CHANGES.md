@@ -1,7 +1,7 @@
 Changes
 =======================
 
-1.0.17-SNAPSHOT
+1.0.17 / 2014-06-23
 -----------------------
 * Added support of custom HTTP header for discovering client IP address
 
