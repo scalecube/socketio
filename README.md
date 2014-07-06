@@ -7,6 +7,9 @@ With 4vCPU, 2GB RAM - can support
 - 10,000 long-polling sessions on single node 
 - 50,000 WebSocket    sessions on single node
 
+TPS:
+- 4000 requests per second.
+
 SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
 [Netty](http://netty.io) server framework. Supports 0.7+ up to latest 0.9.16 versions of 
 Socket.IO-client.
