@@ -2,16 +2,16 @@ SocketIo4j
 =======================
 
 Performance: 
+Tested on VM: OS: CentOS, 4vCPU, 2GB RAM,Java 7
 
 Client Sessions:
-With 4vCPU, 2GB RAM - can support  
+
+can support:   
 - 10,000 long-polling sessions on single node
-or 
 - 50,000 WebSocket    sessions on single node
 
 TPS:
 - 4,000 requests per second per single channel.
-or
 - 80,000 requests per second total. 
 
 SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
