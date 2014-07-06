@@ -1,3 +1,5 @@
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/0d069b0ed5626821f3611b4c229bbe58 "githalytics.com")](http://githalytics.com/socketIo4Netty/socketIo4j)
+
 SocketIo4j
 =======================
 
