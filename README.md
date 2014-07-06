@@ -3,6 +3,7 @@ SocketIo4j
 
 Performance: 
 
+Client Sessions:
 With 4vCPU, 2GB RAM - can support  
 - 10,000 long-polling sessions on single node
 or 
