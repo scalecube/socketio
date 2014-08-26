@@ -38,7 +38,9 @@ import org.socketio.netty.session.SocketIOHeartbeatScheduler;
  */
 public class SocketIOServer {
 
-	private enum State {
+    private final ServerProperites serverProperites = new ServerProperites();
+
+    private enum State {
 		STARTED, STOPPED
 	}
 
@@ -52,25 +54,9 @@ public class SocketIOServer {
 
 	private ISocketIOListener listener;
 
-	private int port = 8080;
+    private SSLContext sslContext = null;
 
-	private int heartbeatThreadpoolSize = 5;
-
-	private int heartbeatTimeout = 30;
-
-	private int heartbeatInterval = 20;
-
-	private int closeTimeout = 25;
-
-	private String transports = "websocket,flashsocket,xhr-polling,jsonp-polling";
-
-	private SSLContext sslContext = null;
-
-	private boolean alwaysSecureWebSocketLocation = false;
-
-	private String headerClientIpAddressName;
-	
-	/**
+    /**
 	 * Creates Socket.IO server with default settings.
 	 */
 	public SocketIOServer() {
@@ -90,27 +76,22 @@ public class SocketIOServer {
 		log.info("Socket.IO server starting");
 
 		// Configure heartbeat scheduler
-		heartbeatScheduller = Executors.newScheduledThreadPool(getHeartbeatThreadpoolSize());
+		heartbeatScheduller = Executors.newScheduledThreadPool(serverProperites.getHeartbeatThreadpoolSize());
 		SocketIOHeartbeatScheduler.setScheduledExecutorService(heartbeatScheduller);
-		SocketIOHeartbeatScheduler.setHeartbeatInterval(getHeartbeatInterval());
+		SocketIOHeartbeatScheduler.setHeartbeatInterval(serverProperites.getHeartbeatInterval());
 
 		// Configure server
         SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(
                 listener,
-                getHeartbeatTimeout(),
-                getCloseTimeout(),
-                getTransports(),
                 sslContext,
-                alwaysSecureWebSocketLocation,
-                port,
-                headerClientIpAddressName);
+                serverProperites);
 		bootstrap = new ServerBootstrap()
                 .group(new NioEventLoopGroup(), new NioEventLoopGroup())
                 .channel(NioServerSocketChannel.class)
 				.childHandler(channelInitializer)
                 .childOption(ChannelOption.TCP_NODELAY, true);
 
-		int port = getPort();
+		int port = serverProperites.getPort();
 		bootstrap.bind(new InetSocketAddress(port));
 
 		log.info("Started {}", this);
@@ -182,14 +163,14 @@ public class SocketIOServer {
 	 * Port on which Socket.IO server will be started. Default value is 8080.
 	 */
 	public int getPort() {
-		return port;
-	}
+        return serverProperites.getPort();
+    }
 
 	/**
 	 * {@link SocketIOServer#getPort}
 	 */
 	public void setPort(int port) {
-		this.port = port;
+        this.serverProperites.port = port;
 	}
 
 	/**
@@ -197,14 +178,14 @@ public class SocketIOServer {
 	 * fine-tuning heartbeat scheduler performance.
 	 */
 	public int getHeartbeatThreadpoolSize() {
-		return heartbeatThreadpoolSize;
-	}
+        return serverProperites.getHeartbeatThreadpoolSize();
+    }
 
 	/**
 	 * {@link SocketIOServer#getListener}
 	 */
 	public void setHeartbeatThreadpoolSize(int heartbeatThreadpoolSize) {
-		this.heartbeatThreadpoolSize = heartbeatThreadpoolSize;
+        this.serverProperites.heartbeatThreadpoolSize = heartbeatThreadpoolSize;
 	}
 
 	/**
@@ -213,14 +194,14 @@ public class SocketIOServer {
 	 * handshake. The default value is 30.
 	 */
 	public int getHeartbeatTimeout() {
-		return heartbeatTimeout;
-	}
+        return serverProperites.getHeartbeatTimeout();
+    }
 
 	/**
 	 * {@link SocketIOServer#getHeartbeatTimeout}
 	 */
 	public void setHeartbeatTimeout(int heartbeatTimeout) {
-		this.heartbeatTimeout = heartbeatTimeout;
+        this.serverProperites.heartbeatTimeout = heartbeatTimeout;
 	}
 
 	/**
@@ -229,14 +210,14 @@ public class SocketIOServer {
 	 * sent to the client after a successful handshake. Default value is 25.
 	 */
 	public int getCloseTimeout() {
-		return closeTimeout;
-	}
+        return serverProperites.getCloseTimeout();
+    }
 
 	/**
 	 * {@link SocketIOServer#getCloseTimeout}
 	 */
 	public void setCloseTimeout(int closeTimeout) {
-		this.closeTimeout = closeTimeout;
+        this.serverProperites.closeTimeout = closeTimeout;
 	}
 
 	/**
@@ -244,14 +225,14 @@ public class SocketIOServer {
 	 * Default value is "websocket,xhr-polling".
 	 */
 	public String getTransports() {
-		return transports;
-	}
+        return serverProperites.getTransports();
+    }
 
 	/**
 	 * {@link SocketIOServer#getTransports}
 	 */
 	public void setTransports(String transports) {
-		this.transports = transports;
+        this.serverProperites.transports = transports;
 	}
 
 	/**
@@ -260,14 +241,14 @@ public class SocketIOServer {
 	 * timeout. Default value is 20.
 	 */
 	public int getHeartbeatInterval() {
-		return heartbeatInterval;
-	}
+        return serverProperites.getHeartbeatInterval();
+    }
 
 	/**
 	 * {@link SocketIOServer#getHeartbeatInterval}
 	 */
 	public void setHeartbeatInterval(int heartbeatInterval) {
-		this.heartbeatInterval = heartbeatInterval;
+        this.serverProperites.heartbeatInterval = heartbeatInterval;
 	}
 
 	public SSLContext getSslContext() {
@@ -279,25 +260,25 @@ public class SocketIOServer {
 	}
 
 	public boolean isAlwaysSecureWebSocketLocation() {
-		return alwaysSecureWebSocketLocation;
-	}
+        return serverProperites.isAlwaysSecureWebSocketLocation();
+    }
 
 	public void setAlwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
-		this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
+        this.serverProperites.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
 	}
 
 	/**
 	 * @return the headerClientIpAddressName
 	 */
 	public String getHeaderClientIpAddressName() {
-		return headerClientIpAddressName;
-	}
+        return serverProperites.getHeaderClientIpAddressName();
+    }
 
 	/**
 	 * @param headerClientIpAddressName the headerClientIpAddressName to set
 	 */
 	public void setHeaderClientIpAddressName(String headerClientIpAddressName) {
-		this.headerClientIpAddressName = headerClientIpAddressName;
+        this.serverProperites.headerClientIpAddressName = headerClientIpAddressName;
 	}
 
 	/* (non-Javadoc)
@@ -307,23 +288,23 @@ public class SocketIOServer {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("SocketIOServer [port=");
-		builder.append(port);
+		builder.append(serverProperites.getPort());
 		builder.append(", heartbeatThreadpoolSize=");
-		builder.append(heartbeatThreadpoolSize);
+		builder.append(serverProperites.getHeartbeatThreadpoolSize());
 		builder.append(", heartbeatTimeout=");
-		builder.append(heartbeatTimeout);
+		builder.append(serverProperites.getHeartbeatTimeout());
 		builder.append(", heartbeatInterval=");
-		builder.append(heartbeatInterval);
+		builder.append(serverProperites.getHeartbeatInterval());
 		builder.append(", closeTimeout=");
-		builder.append(closeTimeout);
+		builder.append(serverProperites.getCloseTimeout());
 		builder.append(", transports=");
-		builder.append(transports);
+		builder.append(serverProperites.getTransports());
 		builder.append(", ssl=");
 		builder.append(sslContext != null);
 		builder.append(", alwaysSecureWebSocketLocation=");
-		builder.append(alwaysSecureWebSocketLocation);
+		builder.append(serverProperites.isAlwaysSecureWebSocketLocation());
 		builder.append(", headerClientIpAddressName=");
-		builder.append(headerClientIpAddressName);
+		builder.append(serverProperites.getHeaderClientIpAddressName());
 		builder.append("]");
 		return builder.toString();
 	}
