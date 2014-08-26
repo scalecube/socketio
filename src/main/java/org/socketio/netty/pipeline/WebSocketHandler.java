@@ -46,7 +46,7 @@ import org.socketio.netty.packets.Packet;
 import org.socketio.netty.serialization.PacketDecoder;
 
 /**
- * 
+ *
  * @author Anton Kharenko
  *
  */
@@ -88,7 +88,6 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 			}
 		} else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
 			handleWebSocketFrame(ctx, (WebSocketFrame) msg);
-			ReferenceCountUtil.release(msg);
 			return;
 		}
 		ctx.fireChannelRead(msg);
@@ -134,37 +133,39 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
 	private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
 		sessionIdByChannel.put(ctx.channel(), sessionId);
-		
+
 		SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
-		
+
 		final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
 		packet.setTransportType(getTransportType());
 		packet.setRemoteAddress(clientIp);
-		
+
 		ctx.fireChannelRead(packet);
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
 		log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.channel());
 
-		if (msg instanceof CloseWebSocketFrame) {
-			sessionIdByChannel.remove(ctx.channel());
-			ChannelFuture f = ctx.writeAndFlush(msg);
-			f.addListener(ChannelFutureListener.CLOSE);
-			return;
-		} else if (msg instanceof PingWebSocketFrame) {
-			ctx.writeAndFlush(new PongWebSocketFrame(msg.content()));
-			return;
-		} else if (!(msg instanceof TextWebSocketFrame)) {
-			throw new UnsupportedOperationException(String.format("%s frame types not supported", msg.getClass().getName()));
-		}
+        if (msg instanceof CloseWebSocketFrame) {
+            sessionIdByChannel.remove(ctx.channel());
+            ChannelFuture f = ctx.writeAndFlush(msg);
+            f.addListener(ChannelFutureListener.CLOSE);
+            return;
+        } else if (msg instanceof PingWebSocketFrame) {
+            ctx.writeAndFlush(new PongWebSocketFrame(msg.content()));
+            return;
+        } else if (!(msg instanceof TextWebSocketFrame)) {
+            msg.release();
+            throw new UnsupportedOperationException(String.format("%s frame types not supported", msg.getClass().getName()));
+        }
 
 		TextWebSocketFrame frame = (TextWebSocketFrame) msg;
 		Packet packet = PacketDecoder.decodePacket(frame.text());
 		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.channel());
 		packet.setSessionId(sessionId);
-		ctx.fireChannelRead(packet);
+        msg.release();
+        ctx.fireChannelRead(packet);
 	}
 
 }
