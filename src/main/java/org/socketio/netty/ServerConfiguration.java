@@ -1,19 +1,35 @@
 package org.socketio.netty;
 
-public class SocketIOServerConfiguration {
-    int port = 8080;
-    int heartbeatThreadpoolSize = 5;
-    int heartbeatTimeout = 30;
-    int heartbeatInterval = 20;
-    int closeTimeout = 25;
-    String transports = "websocket,flashsocket,xhr-polling,jsonp-polling";
-    boolean alwaysSecureWebSocketLocation = false;
-    String headerClientIpAddressName;
-    boolean eventExecutorEnabled = true;
-    int eventWorkersNumber = Runtime.getRuntime().availableProcessors();
-    
+/**
+ * Class represents different options of socket.io server
+ */
 
-    SocketIOServerConfiguration() {
+public class ServerConfiguration {
+
+    // Default parameters
+    private static final int DEFAULT_PORT = 8080;
+    private static final int DEFAULT_HEARTBEAT_THREADPOOL_SIZE = 5;
+    private static final int DEFAULT_HEARTBEAT_TIMEOUT = 30;
+    private static final int DEFAULT_HEARTBEAT_INTERVAL = 20;
+    private static final int DEFAULT_CLOSE_TIMEOUT = 25;
+
+
+    private int port = DEFAULT_PORT;
+    private int heartbeatThreadpoolSize = DEFAULT_HEARTBEAT_THREADPOOL_SIZE;
+    private int heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
+    private int heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
+    private int closeTimeout = DEFAULT_CLOSE_TIMEOUT;
+    private String transports = "websocket,flashsocket,xhr-polling,jsonp-polling";
+    private boolean alwaysSecureWebSocketLocation = false;
+    private String headerClientIpAddressName;
+    private boolean eventExecutorEnabled = true;
+    private int eventWorkersNumber = Runtime.getRuntime().availableProcessors();
+
+
+    /**
+     * Private constructor. Use {@link org.socketio.netty.ServerConfiguration.Builder} to build configuration.
+     */
+    ServerConfiguration() {
     }
 
     void setPort(int port) {
@@ -128,13 +144,13 @@ public class SocketIOServerConfiguration {
     }
 
     public static class Builder{
-        private final SocketIOServerConfiguration configuration = new SocketIOServerConfiguration();
+        private final ServerConfiguration configuration = new ServerConfiguration();
 
         /**
          * Port on which Socket.IO server will be started. Default value is 8080.
          */
         public Builder setPort(int port){
-            configuration.port = port;
+            configuration.setPort(port);
             return this;
         }
 
@@ -222,7 +238,7 @@ public class SocketIOServerConfiguration {
          * Return server configuration
          * @return server configuration
          */
-        public SocketIOServerConfiguration build(){
+        public ServerConfiguration build(){
             return configuration;
         }
 

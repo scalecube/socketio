@@ -29,7 +29,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.socketio.netty.ISocketIOListener;
-import org.socketio.netty.SocketIOServerConfiguration;
+import org.socketio.netty.ServerConfiguration;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.storage.SessionStorage;
 
@@ -59,7 +59,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	private static final int MAX_HTTP_CONTENT_LENGTH = 1048576;
 	private static final String FLASH_SOCKET_RESOURCE_PATH = "/static/flashsocket/WebSocketMain.swf";
 	private static final String FLASH_SOCKET_INSECURE_RESOURCE_PATH = "/static/flashsocket/WebSocketMainInsecure.swf";
-	private static final int EXECUTOR_CORE_POOL_SIZE = 16;
 
 	// Sharable handlers
 	private final FlashPolicyHandler flashPolicyHandler;
@@ -78,14 +77,14 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     private final SSLContext sslContext;
 	private final boolean isFlashSupported;
 
-    public SocketIOChannelInitializer(SocketIOServerConfiguration socketIOServerConfiguration, final ISocketIOListener listener,
+    public SocketIOChannelInitializer(ServerConfiguration serverConfiguration, final ISocketIOListener listener,
                                       final SSLContext sslContext) {
 		// Initialize state variables
 		this.sslContext = sslContext;
-        String headerClientIpAddressName = socketIOServerConfiguration.getHeaderClientIpAddressName();
+        String headerClientIpAddressName = serverConfiguration.getHeaderClientIpAddressName();
 
-        SessionStorage sessionFactory = new SessionStorage(socketIOServerConfiguration.getPort());
-		isFlashSupported = socketIOServerConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
+        SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
+		isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
 
 		// Initialize sharable handlers
 		flashPolicyHandler = new FlashPolicyHandler();
@@ -96,24 +95,24 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
 		packetEncoderHandler = new PacketEncoderHandler();
 
-		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, socketIOServerConfiguration.getHeartbeatTimeout(), socketIOServerConfiguration.getCloseTimeout(), socketIOServerConfiguration.getTransports());
+		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, serverConfiguration.getHeartbeatTimeout(), serverConfiguration.getCloseTimeout(), serverConfiguration.getTransports());
 		disconnectHanler = new DisconnectHandler();
 		heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
-		final boolean secure = (sslContext != null) || socketIOServerConfiguration.isAlwaysSecureWebSocketLocation();
+		final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
 		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 
 		xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 
-		packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
-        if(socketIOServerConfiguration.isEventExecutorEnabled()){
-            executorGroup = new DefaultEventExecutorGroup(socketIOServerConfiguration.getEventWorkersNumber());
-        }else{
+        packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
+        if (serverConfiguration.isEventExecutorEnabled()) {
+            executorGroup = new DefaultEventExecutorGroup(serverConfiguration.getEventWorkersNumber());
+        } else {
             executorGroup = null;
         }
-	}
+    }
 
 	@Override
 	protected void initChannel(Channel ch) throws Exception {
