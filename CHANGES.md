@@ -3,6 +3,7 @@ Changes
 
 1.0.18-SNAPSHOT
 -----------------------
+* Hide stacktraces for IOExceptions caught in channel
 
 1.0.17 / 2014-06-23
 -----------------------
