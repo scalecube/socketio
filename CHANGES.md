@@ -3,6 +3,9 @@ Changes
 
 1.0.18-SNAPSHOT
 -----------------------
+* Hide stacktraces for IOExceptions caught in channel
+* Make library osgi compatible with netty4
+* Fix IllegalReferenceCountException on websocket disconnection
 
 1.0.17 / 2014-06-23
 -----------------------

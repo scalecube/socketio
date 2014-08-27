@@ -32,6 +32,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.io.IOException;
+
 @ChannelHandler.Sharable
 public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implements ISessionDisconnectHandler {
 
@@ -74,10 +76,14 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 		}
 	}
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
-	}
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (cause instanceof IOException) {
+            log.warn("Exception caught at channel: {}, {}", ctx.channel(), cause.getMessage());
+        } else {
+            log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
+        }
+    }
 
 	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
