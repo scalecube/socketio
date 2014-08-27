@@ -29,7 +29,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.socketio.netty.ISocketIOListener;
-import org.socketio.netty.ServerProperites;
+import org.socketio.netty.SocketIOServerConfiguration;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.storage.SessionStorage;
 
@@ -72,20 +72,20 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	private final XHRPollingHandler xhrPollingHanler;
 	private final JsonpPollingHandler jsonpPollingHanler;
 	private final HeartbeatHandler heartbeatHandler;
-	private final EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(EXECUTOR_CORE_POOL_SIZE);
+	private final EventExecutorGroup executorGroup;
 	private final PacketDispatcherHandler packetDispatcherHandler;
 
     private final SSLContext sslContext;
 	private final boolean isFlashSupported;
 
-    public SocketIOChannelInitializer(final ISocketIOListener listener,
-                                      final SSLContext sslContext, ServerProperites serverProperites) {
+    public SocketIOChannelInitializer(SocketIOServerConfiguration socketIOServerConfiguration, final ISocketIOListener listener,
+                                      final SSLContext sslContext) {
 		// Initialize state variables
 		this.sslContext = sslContext;
-        String headerClientIpAddressName = serverProperites.getHeaderClientIpAddressName();
+        String headerClientIpAddressName = socketIOServerConfiguration.getHeaderClientIpAddressName();
 
-        SessionStorage sessionFactory = new SessionStorage(serverProperites.getPort());
-		isFlashSupported =serverProperites.getTransports().contains(TransportType.FLASHSOCKET.getName());
+        SessionStorage sessionFactory = new SessionStorage(socketIOServerConfiguration.getPort());
+		isFlashSupported = socketIOServerConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
 
 		// Initialize sharable handlers
 		flashPolicyHandler = new FlashPolicyHandler();
@@ -96,11 +96,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
 		packetEncoderHandler = new PacketEncoderHandler();
 
-		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, serverProperites.getHeartbeatTimeout(), serverProperites.getCloseTimeout(), serverProperites.getTransports());
+		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, socketIOServerConfiguration.getHeartbeatTimeout(), socketIOServerConfiguration.getCloseTimeout(), socketIOServerConfiguration.getTransports());
 		disconnectHanler = new DisconnectHandler();
 		heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
-		final boolean secure = (sslContext != null) || serverProperites.isAlwaysSecureWebSocketLocation();
+		final boolean secure = (sslContext != null) || socketIOServerConfiguration.isAlwaysSecureWebSocketLocation();
 		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 
@@ -108,6 +108,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 
 		packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
+        if(socketIOServerConfiguration.isEventExecutorEnabled()){
+            executorGroup = new DefaultEventExecutorGroup(socketIOServerConfiguration.getEventWorkersNumber());
+        }else{
+            executorGroup = null;
+        }
 	}
 
 	@Override
