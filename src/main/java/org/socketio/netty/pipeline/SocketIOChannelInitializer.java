@@ -29,6 +29,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.socketio.netty.ISocketIOListener;
+import org.socketio.netty.ServerConfiguration;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.storage.SessionStorage;
 
@@ -49,7 +50,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	public static final String SOCKETIO_XHR_POLLING_HANDLER = "socketio-xhr-polling-handler";
 	public static final String SOCKETIO_JSONP_POLLING_HANDLER = "socketio-jsonp-polling-handler";
 	public static final String SOCKETIO_HEARTBEAT_HANDLER = "socketio-heartbeat-handler";
-	public static final String EXECUTION_HANDLER = "execution-handler";
 	public static final String SOCKETIO_PACKET_DISPATCHER = "socketio-packet-dispatcher";
 
 	// Constant parameters
@@ -59,7 +59,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	private static final int MAX_HTTP_CONTENT_LENGTH = 1048576;
 	private static final String FLASH_SOCKET_RESOURCE_PATH = "/static/flashsocket/WebSocketMain.swf";
 	private static final String FLASH_SOCKET_INSECURE_RESOURCE_PATH = "/static/flashsocket/WebSocketMainInsecure.swf";
-	private static final int EXECUTOR_CORE_POOL_SIZE = 16;
 
 	// Sharable handlers
 	private final FlashPolicyHandler flashPolicyHandler;
@@ -72,25 +71,20 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 	private final XHRPollingHandler xhrPollingHanler;
 	private final JsonpPollingHandler jsonpPollingHanler;
 	private final HeartbeatHandler heartbeatHandler;
-	private final EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(EXECUTOR_CORE_POOL_SIZE);
+	private final EventExecutorGroup executorGroup;
 	private final PacketDispatcherHandler packetDispatcherHandler;
 
-	// State variables
-	private final SessionStorage sessionFactory;
-	private final SSLContext sslContext;
+    private final SSLContext sslContext;
 	private final boolean isFlashSupported;
-	
-	private final String headerClientIpAddressName;
 
-	public SocketIOChannelInitializer(final ISocketIOListener listener, final int heartbeatTimeout, final int closeTimeout,
-			final String transports, final SSLContext sslContext, final boolean alwaysSecureWebSocketLocation, final int localPort,
-			final String headerClientIpAddressName) {
+    public SocketIOChannelInitializer(ServerConfiguration serverConfiguration, final ISocketIOListener listener,
+                                      final SSLContext sslContext) {
 		// Initialize state variables
 		this.sslContext = sslContext;
-		this.headerClientIpAddressName = headerClientIpAddressName;
-		
-		sessionFactory = new SessionStorage(localPort);
-		isFlashSupported = transports.contains(TransportType.FLASHSOCKET.getName());
+        String headerClientIpAddressName = serverConfiguration.getHeaderClientIpAddressName();
+
+        SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
+		isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
 
 		// Initialize sharable handlers
 		flashPolicyHandler = new FlashPolicyHandler();
@@ -101,19 +95,24 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
 		packetEncoderHandler = new PacketEncoderHandler();
 
-		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, heartbeatTimeout, closeTimeout, transports);
+		handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, serverConfiguration.getHeartbeatTimeout(), serverConfiguration.getCloseTimeout(), serverConfiguration.getTransports());
 		disconnectHanler = new DisconnectHandler();
 		heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
-		final boolean secure = (sslContext != null) || alwaysSecureWebSocketLocation;
+		final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
 		webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 		flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 
 		xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 		jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
 
-		packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
-	}
+        packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
+        if (serverConfiguration.isEventExecutorEnabled()) {
+            executorGroup = new DefaultEventExecutorGroup(serverConfiguration.getEventWorkersNumber());
+        } else {
+            executorGroup = null;
+        }
+    }
 
 	@Override
 	protected void initChannel(Channel ch) throws Exception {

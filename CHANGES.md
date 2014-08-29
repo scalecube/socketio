@@ -6,6 +6,7 @@ Changes
 * Hide stacktraces for IOExceptions caught in channel
 * Make library osgi compatible with netty4
 * Fix IllegalReferenceCountException on websocket disconnection
+* Add Builder for server configuration
 
 1.0.17 / 2014-06-23
 -----------------------
