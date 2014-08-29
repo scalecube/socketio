@@ -1,7 +1,7 @@
 Changes
 =======================
 
-1.0.18-SNAPSHOT
+1.0.18 / 2014-08-29
 -----------------------
 * Hide stacktraces for IOExceptions caught in channel
 * Make library osgi compatible with netty4
