@@ -15,15 +15,16 @@
  */
 package org.socketio.netty.serialization;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public final class JsonObjectMapperProvider {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	
 	static {
-		objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
 	
 	public static ObjectMapper getObjectMapper(){

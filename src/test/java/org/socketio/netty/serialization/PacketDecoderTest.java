@@ -19,14 +19,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.socketio.netty.packets.ErrorAdvice;
 import org.socketio.netty.packets.ErrorReason;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.serialization.PacketDecoder;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * 
