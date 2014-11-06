@@ -43,7 +43,6 @@ public class SocketIOHeartbeatScheduler {
         this.session = session;
     }
 
-
     public static void setHashedWheelTimer(HashedWheelTimer hashedWheelTimer) {
         SocketIOHeartbeatScheduler.hashedWheelTimer = hashedWheelTimer;
     }
@@ -94,7 +93,7 @@ public class SocketIOHeartbeatScheduler {
 
     }
 
-    public void scheduleDisconnect() {
+    public synchronized void scheduleDisconnect() {
         dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
 			@Override
 			public void run(Timeout timeout) throws Exception {
