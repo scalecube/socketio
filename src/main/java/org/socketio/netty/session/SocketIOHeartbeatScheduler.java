@@ -24,24 +24,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SocketIOHeartbeatScheduler {
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private static int heartbeatInterval;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static int heartbeatInterval;
     private static int heartbeatTimeout;
-	
+
     private static HashedWheelTimer hashedWheelTimer;
 
     private Timeout hTimeout = null;
     private Timeout dTimeout = null;
-	
-	private final IManagedSession session;
-	
-	private volatile boolean disabled = false;
-	
-	public SocketIOHeartbeatScheduler(final IManagedSession session) {
-		this.session = session;
-	}
+
+    private final IManagedSession session;
+
+    private volatile boolean disabled = false;
+
+    public SocketIOHeartbeatScheduler(final IManagedSession session) {
+        this.session = session;
+    }
 
 
     public static void setHashedWheelTimer(HashedWheelTimer hashedWheelTimer) {
@@ -49,39 +49,39 @@ public class SocketIOHeartbeatScheduler {
     }
 
     public static void setHeartbeatInterval(int heartbeatInterval) {
-		SocketIOHeartbeatScheduler.heartbeatInterval = heartbeatInterval;
-	}
+        SocketIOHeartbeatScheduler.heartbeatInterval = heartbeatInterval;
+    }
 
     public static void setHeartbeatTimeout(int heartbeatTimeout) {
         SocketIOHeartbeatScheduler.heartbeatTimeout = heartbeatTimeout;
     }
 
     public synchronized void reschedule() {
-		if (!disabled) {
+        if (!disabled) {
             cancelDisconnect();
-			cancelHeartbeat();
-			scheduleHeartbeat();
+            cancelHeartbeat();
+            scheduleHeartbeat();
             scheduleDisconnect();
-		}
-	}
-	
-	private void cancelHeartbeat() {
-		if (hTimeout != null && !hTimeout.isCancelled()) {
-            hTimeout.cancel();
-		}
-	}
+        }
+    }
 
-    private void cancelDisconnect(){
-        if(dTimeout != null && dTimeout.isCancelled()) {
+    private void cancelHeartbeat() {
+        if (hTimeout != null && !hTimeout.isCancelled()) {
+            hTimeout.cancel();
+        }
+    }
+
+    private void cancelDisconnect() {
+        if (dTimeout != null && dTimeout.isCancelled()) {
             dTimeout.cancel();
         }
     }
-	
-	public void disableHeartbeat() {
-		disabled = true;
-	}
-	
-	private void scheduleHeartbeat() {
+
+    public void disableHeartbeat() {
+        disabled = true;
+    }
+
+    private void scheduleHeartbeat() {
         hTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
             @Override
             public void run(Timeout timeout) throws Exception {
@@ -90,12 +90,12 @@ public class SocketIOHeartbeatScheduler {
                     scheduleHeartbeat();
                 }
             }
-        },heartbeatInterval, TimeUnit.SECONDS);
+        }, heartbeatInterval, TimeUnit.SECONDS);
 
-	}
-	
-	public void scheduleDisconnect() {
-		dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
+    }
+
+    public void scheduleDisconnect() {
+        dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
             @Override
             public void run(Timeout timeout) throws Exception {
                 if (!disabled) {
@@ -103,8 +103,8 @@ public class SocketIOHeartbeatScheduler {
                     session.disconnect();
                 }
             }
-        },heartbeatTimeout, TimeUnit.SECONDS);
+        }, heartbeatTimeout, TimeUnit.SECONDS);
 
 
-	}
+    }
 }

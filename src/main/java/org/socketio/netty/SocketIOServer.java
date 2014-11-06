@@ -76,13 +76,13 @@ public class SocketIOServer {
 			throw new IllegalStateException("Failed to start Socket.IO server: server already started");
 		}
 
-		log.info("Socket.IO server starting");
+        log.info("Socket.IO server starting");
 
-		// Configure heartbeat scheduler
+        // Configure heartbeat scheduler
         timer = new HashedWheelTimer();
         timer.start();
-		SocketIOHeartbeatScheduler.setHashedWheelTimer(timer);
-		SocketIOHeartbeatScheduler.setHeartbeatInterval(configuration.getHeartbeatInterval());
+        SocketIOHeartbeatScheduler.setHashedWheelTimer(timer);
+        SocketIOHeartbeatScheduler.setHeartbeatInterval(configuration.getHeartbeatInterval());
         SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
 		// Configure server
@@ -110,20 +110,20 @@ public class SocketIOServer {
 	 * @throws IllegalStateException
 	 *             if server already stopped
 	 */
-	public synchronized void stop() {
-		if (isStopped()) {
-			throw new IllegalStateException("Failed to stop Socket.IO server: server already stopped");
-		}
+    public synchronized void stop() {
+        if (isStopped()) {
+            throw new IllegalStateException("Failed to stop Socket.IO server: server already stopped");
+        }
 
-		log.info("Socket.IO server stopping");
+        log.info("Socket.IO server stopping");
 
         timer.stop();
-		bootstrap.group().shutdownGracefully();
+        bootstrap.group().shutdownGracefully();
 
-		log.info("Socket.IO server stopped");
+        log.info("Socket.IO server stopped");
 
-		state = State.STOPPED;
-	}
+        state = State.STOPPED;
+    }
 
 	/**
 	 * Restarts Socket.IO server. If server already started it stops server;
