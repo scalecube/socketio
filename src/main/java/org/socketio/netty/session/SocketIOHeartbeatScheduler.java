@@ -15,13 +15,13 @@
  */
 package org.socketio.netty.session;
 
-import java.util.concurrent.TimeUnit;
-
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class SocketIOHeartbeatScheduler {
 
@@ -72,7 +72,7 @@ public class SocketIOHeartbeatScheduler {
     }
 
     private void cancelDisconnect() {
-        if (dTimeout != null && dTimeout.isCancelled()) {
+        if (dTimeout != null && !dTimeout.isCancelled()) {
             dTimeout.cancel();
         }
     }
@@ -96,15 +96,13 @@ public class SocketIOHeartbeatScheduler {
 
     public void scheduleDisconnect() {
         dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
-                if (!disabled) {
-                    log.debug("{} Session will be disconnected due missed Heartbeat", session.getSessionId());
-                    session.disconnect();
-                }
-            }
-        }, heartbeatTimeout, TimeUnit.SECONDS);
-
-
+			@Override
+			public void run(Timeout timeout) throws Exception {
+				if (!disabled) {
+					log.debug("{} Session will be disconnected due missed Heartbeat", session.getSessionId());
+					session.disconnect();
+				}
+			}
+		}, heartbeatTimeout, TimeUnit.SECONDS);
     }
 }
