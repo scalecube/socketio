@@ -21,11 +21,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import javax.net.ssl.SSLContext;
 
+import io.netty.util.HashedWheelTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.pipeline.SocketIOChannelInitializer;
@@ -39,6 +38,7 @@ import org.socketio.netty.session.SocketIOHeartbeatScheduler;
 public class SocketIOServer {
 
     private final ServerConfiguration configuration;
+    private HashedWheelTimer timer;
 
     private enum State {
 		STARTED, STOPPED
@@ -50,9 +50,7 @@ public class SocketIOServer {
 
 	private ServerBootstrap bootstrap;
 
-	private ScheduledExecutorService heartbeatScheduller;
-
-	private ISocketIOListener listener;
+    private ISocketIOListener listener;
 
     private SSLContext sslContext = null;
 
@@ -81,9 +79,11 @@ public class SocketIOServer {
 		log.info("Socket.IO server starting");
 
 		// Configure heartbeat scheduler
-		heartbeatScheduller = Executors.newScheduledThreadPool(configuration.getHeartbeatThreadpoolSize());
-		SocketIOHeartbeatScheduler.setScheduledExecutorService(heartbeatScheduller);
+        timer = new HashedWheelTimer();
+        timer.start();
+		SocketIOHeartbeatScheduler.setHashedWheelTimer(timer);
 		SocketIOHeartbeatScheduler.setHeartbeatInterval(configuration.getHeartbeatInterval());
+        SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
 		// Configure server
         SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(
@@ -117,7 +117,7 @@ public class SocketIOServer {
 
 		log.info("Socket.IO server stopping");
 
-		heartbeatScheduller.shutdown();
+        timer.stop();
 		bootstrap.group().shutdownGracefully();
 
 		log.info("Socket.IO server stopped");

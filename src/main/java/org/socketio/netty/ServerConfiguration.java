@@ -97,7 +97,9 @@ public class ServerConfiguration {
     /**
      * gets heartbeat thread pool size. This parameter can be used for
      * fine-tuning heartbeat scheduler performance.
+     * @deprecated now hashedWheelTimer used to manage heartbeat schedule, so this option is not used
      */
+    @Deprecated
     public int getHeartbeatThreadpoolSize() {
         return heartbeatThreadpoolSize;
     }
@@ -172,7 +174,9 @@ public class ServerConfiguration {
         /**
          * sets heartbeat thread pool size. This parameter can be used for
          * fine-tuning heartbeat scheduler performance.
+         * @deprecated will do not affect anything
          */
+        @Deprecated
         public Builder setHeartbeatThreadpoolSize(int heartbeatThreadpoolSize) {
             configuration.setHeartbeatThreadpoolSize(heartbeatThreadpoolSize);
             return this;
