@@ -158,7 +158,7 @@ public abstract class AbstractSession implements IManagedSession {
 	public void acceptPacket(final Channel channel, final Packet packet) {
 	}
 	
-	public void markAsUpdgraded() {
+	public void markAsUpgraded() {
 		upgraded = true;
 	}
 	
