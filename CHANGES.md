@@ -4,6 +4,7 @@ Changes
 1.0.20
 -----------------------
 * Update Netty to version 4.0.24
+* Use PooledByteBufAllocator
 
 1.0.19 / 2014-10-07
 -----------------------
