@@ -24,9 +24,9 @@ public class ServerConfiguration {
     // Default parameters
     private static final int DEFAULT_PORT = 8080;
     private static final int DEFAULT_HEARTBEAT_THREADPOOL_SIZE = 5;
-    private static final int DEFAULT_HEARTBEAT_TIMEOUT = 30;
-    private static final int DEFAULT_HEARTBEAT_INTERVAL = 20;
-    private static final int DEFAULT_CLOSE_TIMEOUT = 25;
+    private static final int DEFAULT_HEARTBEAT_TIMEOUT = 60;
+    private static final int DEFAULT_HEARTBEAT_INTERVAL = 25;
+    private static final int DEFAULT_CLOSE_TIMEOUT = 60;
 
 
     private int port = DEFAULT_PORT;
