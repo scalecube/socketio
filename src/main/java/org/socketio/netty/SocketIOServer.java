@@ -181,23 +181,6 @@ public class SocketIOServer {
 	}
 
 	/**
-	 * Sets heartbeat thread pool size. This parameter can be used for
-	 * fine-tuning heartbeat scheduler performance.
-	 */
-	public int getHeartbeatThreadpoolSize() {
-        return configuration.getHeartbeatThreadpoolSize();
-    }
-
-	/**
-     * @deprecated replaced by {@link ServerConfiguration} to configure parameter and
-     * server constructor which accept configuration {@link SocketIOServer#SocketIOServer(ServerConfiguration)}
-	 */
-    @Deprecated
-	public void setHeartbeatThreadpoolSize(int heartbeatThreadpoolSize) {
-        this.configuration.setHeartbeatThreadpoolSize(heartbeatThreadpoolSize);
-	}
-
-	/**
 	 * The timeout in seconds for the client when it should send a new heart
 	 * beat to the server. This value is sent to the client after a successful
 	 * handshake. The default value is 30.
@@ -312,8 +295,6 @@ public class SocketIOServer {
 		StringBuilder builder = new StringBuilder();
 		builder.append("SocketIOServer [port=");
 		builder.append(configuration.getPort());
-		builder.append(", heartbeatThreadpoolSize=");
-		builder.append(configuration.getHeartbeatThreadpoolSize());
 		builder.append(", heartbeatTimeout=");
 		builder.append(configuration.getHeartbeatTimeout());
 		builder.append(", heartbeatInterval=");

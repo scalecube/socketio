@@ -23,14 +23,12 @@ public class ServerConfiguration {
 
     // Default parameters
     private static final int DEFAULT_PORT = 8080;
-    private static final int DEFAULT_HEARTBEAT_THREADPOOL_SIZE = 5;
     private static final int DEFAULT_HEARTBEAT_TIMEOUT = 60;
     private static final int DEFAULT_HEARTBEAT_INTERVAL = 25;
     private static final int DEFAULT_CLOSE_TIMEOUT = 60;
 
 
     private int port = DEFAULT_PORT;
-    private int heartbeatThreadpoolSize = DEFAULT_HEARTBEAT_THREADPOOL_SIZE;
     private int heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
     private int heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
     private int closeTimeout = DEFAULT_CLOSE_TIMEOUT;
@@ -49,10 +47,6 @@ public class ServerConfiguration {
 
     void setPort(int port) {
         this.port = port;
-    }
-
-    void setHeartbeatThreadpoolSize(int heartbeatThreadpoolSize) {
-        this.heartbeatThreadpoolSize = heartbeatThreadpoolSize;
     }
 
     void setHeartbeatTimeout(int heartbeatTimeout) {
@@ -92,16 +86,6 @@ public class ServerConfiguration {
      */
     public int getPort() {
         return port;
-    }
-
-    /**
-     * gets heartbeat thread pool size. This parameter can be used for
-     * fine-tuning heartbeat scheduler performance.
-     * @deprecated now hashedWheelTimer used to manage heartbeat schedule, so this option is not used
-     */
-    @Deprecated
-    public int getHeartbeatThreadpoolSize() {
-        return heartbeatThreadpoolSize;
     }
 
     /**
@@ -168,17 +152,6 @@ public class ServerConfiguration {
          */
         public Builder setPort(int port){
             configuration.setPort(port);
-            return this;
-        }
-
-        /**
-         * sets heartbeat thread pool size. This parameter can be used for
-         * fine-tuning heartbeat scheduler performance.
-         * @deprecated will do not affect anything
-         */
-        @Deprecated
-        public Builder setHeartbeatThreadpoolSize(int heartbeatThreadpoolSize) {
-            configuration.setHeartbeatThreadpoolSize(heartbeatThreadpoolSize);
             return this;
         }
 
