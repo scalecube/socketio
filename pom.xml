@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
-	<version>1.0.21</version>
+	<version>1.0.22-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>socketIo4Netty</name>
 	<description>Socket.IO Java server based on Netty</description>
