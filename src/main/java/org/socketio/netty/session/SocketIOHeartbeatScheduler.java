@@ -55,7 +55,7 @@ public class SocketIOHeartbeatScheduler {
         SocketIOHeartbeatScheduler.heartbeatTimeout = heartbeatTimeout;
     }
 
-    public synchronized void reschedule() {
+    public void reschedule() {
         if (!disabled) {
             cancelDisconnect();
             cancelHeartbeat();
@@ -93,7 +93,7 @@ public class SocketIOHeartbeatScheduler {
 
     }
 
-    public synchronized void scheduleDisconnect() {
+    public void scheduleDisconnect() {
         dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
 			@Override
 			public void run(Timeout timeout) throws Exception {
