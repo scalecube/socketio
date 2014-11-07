@@ -5,6 +5,8 @@ Changes
 -----------------------
 * Update Netty to version 4.0.24
 * Use PooledByteBufAllocator
+* Use HashedWheelTimer for scheduling heartbeats and disconnection
+* Use "heartbeatInterval" for scheduling heartbeats and "heartbeatTimeout" for disconnection 
 
 1.0.19 / 2014-10-07
 -----------------------
