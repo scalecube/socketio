@@ -61,7 +61,7 @@ public class SessionStorage {
 		
 		// If transport protocol was changed then remove old session and create new one instead
 		if (connectPacket.getTransportType() != session.getTransportType()) {
-			session.markAsUpdgraded();
+			session.markAsUpgraded();
 			
 			String oldSessionId = session.getSessionId();
 			TransportType oldTransportType = session.getTransportType();

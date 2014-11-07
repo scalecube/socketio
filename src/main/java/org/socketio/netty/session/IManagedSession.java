@@ -77,6 +77,6 @@ public interface IManagedSession extends ISession {
 	 * Marks session as upgraded when session is going to be 
 	 * upgraded to another transport type. 
 	 */
-	void markAsUpdgraded();
+	void markAsUpgraded();
 	
 }

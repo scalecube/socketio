@@ -15,77 +15,93 @@
  */
 package org.socketio.netty.session;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 public class SocketIOHeartbeatScheduler {
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private static int heartbeatInterval;
-	
-	private static ScheduledExecutorService executorService;
-	
-	private final IManagedSession session;
-	
-	private ScheduledFuture<?> future = null;
-	
-	private volatile boolean disabled = false;
-	
-	public SocketIOHeartbeatScheduler(final IManagedSession session) {
-		this.session = session;
-	}
 
-	public static void setScheduledExecutorService(final ScheduledExecutorService executorService) {
-		SocketIOHeartbeatScheduler.executorService = executorService;
-	}
-	
-	public static void setHeartbeatInterval(int heartbeatInterval) {
-		SocketIOHeartbeatScheduler.heartbeatInterval = heartbeatInterval;
-	}
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	public synchronized void reschedule() {
-		if (!disabled) {
-			cancelHeartbeat();
-			scheduleHeartbeat();
-		}
-	}
-	
-	private void cancelHeartbeat() {
-		if (future != null && !future.isCancelled()) {
-			future.cancel(true);
-		}
-	}
-	
-	public void disableHeartbeat() {
-		disabled = true;
-	}
-	
-	private void scheduleHeartbeat() {
-		future = executorService.schedule(new Runnable() {
+    private static int heartbeatInterval;
+    private static int heartbeatTimeout;
+
+    private static HashedWheelTimer hashedWheelTimer;
+
+    private Timeout hTimeout = null;
+    private Timeout dTimeout = null;
+
+    private final IManagedSession session;
+
+    private volatile boolean disabled = false;
+
+    public SocketIOHeartbeatScheduler(final IManagedSession session) {
+        this.session = session;
+    }
+
+    public static void setHashedWheelTimer(HashedWheelTimer hashedWheelTimer) {
+        SocketIOHeartbeatScheduler.hashedWheelTimer = hashedWheelTimer;
+    }
+
+    public static void setHeartbeatInterval(int heartbeatInterval) {
+        SocketIOHeartbeatScheduler.heartbeatInterval = heartbeatInterval;
+    }
+
+    public static void setHeartbeatTimeout(int heartbeatTimeout) {
+        SocketIOHeartbeatScheduler.heartbeatTimeout = heartbeatTimeout;
+    }
+
+    public void reschedule() {
+        if (!disabled) {
+            cancelDisconnect();
+            cancelHeartbeat();
+            scheduleHeartbeat();
+            scheduleDisconnect();
+        }
+    }
+
+    private void cancelHeartbeat() {
+        if (hTimeout != null && !hTimeout.isCancelled()) {
+            hTimeout.cancel();
+        }
+    }
+
+    private void cancelDisconnect() {
+        if (dTimeout != null && !dTimeout.isCancelled()) {
+            dTimeout.cancel();
+        }
+    }
+
+    public void disableHeartbeat() {
+        disabled = true;
+    }
+
+    private void scheduleHeartbeat() {
+        hTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
+            @Override
+            public void run(Timeout timeout) throws Exception {
+                if (!disabled) {
+                    session.sendHeartbeat();
+                    scheduleHeartbeat();
+                }
+            }
+        }, heartbeatInterval, TimeUnit.SECONDS);
+
+    }
+
+    public void scheduleDisconnect() {
+        dTimeout = hashedWheelTimer.newTimeout(new TimerTask() {
 			@Override
-			public void run() {
+			public void run(Timeout timeout) throws Exception {
 				if (!disabled) {
-					session.sendHeartbeat();
-					scheduleDisconnect();
-				}
-			}
-		}, heartbeatInterval, TimeUnit.SECONDS);
-	}
-	
-	public synchronized void scheduleDisconnect() {
-		future = executorService.schedule(new Runnable() {
-			@Override
-			public void run() {
-				if (!disabled) {
-					log.debug("{} Session will be disconnected due missed Heartbeat", session.getSessionId());
+					log.debug("{} Session will be disconnected by timeout", session.getSessionId());
 					session.disconnect();
 				}
 			}
-		}, heartbeatInterval, TimeUnit.SECONDS);
-	}
+		}, heartbeatTimeout, TimeUnit.SECONDS);
+    }
 }
