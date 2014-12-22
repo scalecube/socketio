@@ -218,14 +218,20 @@ public enum PacketType {
 	 */
 	NOOP(8);
 
-	private int value;
+	private final int value;
+	private final String valueAsString;
 
 	PacketType(final int value) {
 		this.value = value;
+		this.valueAsString = String.valueOf(value);
 	}
 
 	public int getValue() {
 		return value;
+	}
+
+	public String getValueAsString() {
+		return valueAsString;
 	}
 
 	public static PacketType valueOf(final int value) {

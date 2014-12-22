@@ -81,18 +81,8 @@ public abstract class AbstractPacket implements IPacket {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("type=");
-		builder.append(type);
-		builder.append(", origin=");
-		builder.append(origin);
-		builder.append(", sessionId=");
-		builder.append(sessionId);
-		builder.append(", transportType=");
-		builder.append(transportType);
-		builder.append(",jsonpIndexParam=");
-		builder.append(jsonpIndexParam);
-		return builder.toString();
+		return "type=" + type + ", origin=" + origin + ", sessionId=" + sessionId + ", transportType=" + transportType + ",jsonpIndexParam="
+				+ jsonpIndexParam;
 	}
 
 }

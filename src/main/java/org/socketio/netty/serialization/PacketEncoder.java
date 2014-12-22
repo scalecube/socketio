@@ -16,11 +16,7 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
-import org.socketio.netty.packets.Event;
 import org.socketio.netty.packets.Packet;
 
 /**
@@ -51,6 +47,14 @@ import org.socketio.netty.packets.Packet;
 public final class PacketEncoder {
 
 	private static final String DELIMITER = ":";
+	private static final int DELIMITER_LENGTH = DELIMITER.length();
+
+	private static final ThreadLocal<StringBuilder> reusableStringBuilder = new ThreadLocal<StringBuilder>() {
+		@Override
+		protected StringBuilder initialValue() {
+			return new StringBuilder();
+		}
+	};
 
 	/**
 	 * Don't let anyone instantiate this class.
@@ -59,16 +63,34 @@ public final class PacketEncoder {
 	}
 
 	public static String encodePacket(final Packet packet) throws IOException {
-		StringBuilder result = new StringBuilder();
-		result.append(packet.getType().getValue());
+		String type = packet.getType().getValueAsString();
+		String messageId = packet.getId();
+		String endpoint = packet.getEndpoint();
+		String data = packet.getData();
+
+		int capacity = type.length() + DELIMITER_LENGTH + messageId.length() + DELIMITER_LENGTH + endpoint.length();
+		if (data != null) {
+			capacity += DELIMITER_LENGTH + data.length();
+		}
+
+		StringBuilder result = getReusableStringBuilder(capacity);
+		result.ensureCapacity(capacity);
+		result.append(type);
 		result.append(DELIMITER);
-		result.append(packet.getId());
+		result.append(messageId);
 		result.append(DELIMITER);
-		result.append(packet.getEndpoint());
-		if (packet.getData() != null) {
+		result.append(endpoint);
+		if (data != null) {
 			result.append(DELIMITER);
-			result.append(packet.getData());
+			result.append(data);
 		}
 		return result.toString();
+	}
+
+	private static StringBuilder getReusableStringBuilder(int capacity) {
+		StringBuilder stringBuilder = reusableStringBuilder.get();
+		stringBuilder.setLength(0);
+		stringBuilder.ensureCapacity(capacity);
+		return stringBuilder;
 	}
 }
