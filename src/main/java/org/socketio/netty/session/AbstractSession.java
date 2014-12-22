@@ -26,7 +26,6 @@ import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 
 public abstract class AbstractSession implements IManagedSession {
 	

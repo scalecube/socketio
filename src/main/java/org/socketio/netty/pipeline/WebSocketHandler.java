@@ -127,7 +127,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	private String getWebSocketLocation(HttpRequest req) {
 		String protocol = secure ? "wss://" : "ws://";
 		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
-		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);
+		log.debug("Created {} at: {}", getTransportType().getName(), webSocketLocation);
 		return webSocketLocation;
 	}
 
