@@ -17,7 +17,6 @@ package org.socketio.netty.session;
 
 import java.net.SocketAddress;
 
-import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
 
@@ -34,8 +33,8 @@ public abstract class AbstractSocketSession extends AbstractSession {
 	}
 
 	@Override
-	public ISessionFuture sendPacket(Packet packet) {
-		return sendPacketToChannel(channel, packet);
+	public void sendPacket(Packet packet) {
+		sendPacketToChannel(channel, packet);
 	}
 
 	@Override

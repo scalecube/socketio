@@ -16,7 +16,6 @@
 package org.socketio.netty.session;
 
 import org.socketio.netty.ISession;
-import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.packets.Packet;
 
 import io.netty.channel.Channel;
@@ -52,14 +51,14 @@ public interface IManagedSession extends ISession {
 	/**
 	 * Send heartbeat packet to client.
 	 */
-	ISessionFuture sendHeartbeat();
+	void sendHeartbeat();
 	
 	/**
 	 * Send packet message to client.
 	 * 
 	 * @param messagePacket message to be sent to client
 	 */
-	ISessionFuture sendPacket(final Packet messagePacket);
+	void sendPacket(final Packet messagePacket);
 	
 	/**
 	 * Send acknowledgment (e.g. HTTP 200) to client that message was accepted

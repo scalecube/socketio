@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
@@ -133,25 +132,20 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
-	public ISessionFuture sendHeartbeat() {
-		return sendPacket(heartbeatPacket);
+	public void sendHeartbeat() {
+		sendPacket(heartbeatPacket);
 	}
 	
 	@Override
-	public ISessionFuture send(final String message) {
+	public void send(final String message) {
 		Packet messagePacket = new Packet(PacketType.MESSAGE);
         messagePacket.setData(message);
-        return sendPacket(messagePacket);
+        sendPacket(messagePacket);
 	}
 	
-	protected ISessionFuture sendPacketToChannel(final Channel channel, IPacket packet) {
-		try {
-			fillPacketHeaders(packet);
-			ChannelFuture channelFuture = channel.writeAndFlush(packet);
-			return new DefaultSessionFuture(channelFuture, this);
-		} catch (Exception e) {
-			return new CompleteSessionFuture(this, false, e);
-		}
+	protected void sendPacketToChannel(final Channel channel, IPacket packet) {
+		fillPacketHeaders(packet);
+		channel.writeAndFlush(packet);
 	}
 	
 	@Override
