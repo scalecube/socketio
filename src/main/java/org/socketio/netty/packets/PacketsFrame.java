@@ -32,13 +32,7 @@ public class PacketsFrame extends AbstractPacket {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("PacketsFrame [");
-		builder.append(super.toString());
-		builder.append(", packets=");
-		builder.append(packets);
-		builder.append("]");
-		return builder.toString();
+		return "PacketsFrame [" + super.toString() + ", packets=" + packets + "]";
 	}
 	
 }

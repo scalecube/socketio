@@ -17,7 +17,9 @@ package org.socketio.netty.packets;
 
 public enum ErrorReason {
 
-    TRANSPORT_NOT_SUPPORTED(0), SESSION_NOT_HANDSHAKEN(1), UNAUTHORIZED(2);
+    TRANSPORT_NOT_SUPPORTED(0),
+	SESSION_NOT_HANDSHAKEN(1),
+	UNAUTHORIZED(2);
 
     private final int value;
 
@@ -29,7 +31,7 @@ public enum ErrorReason {
         return value;
     }
 
-    public static final ErrorReason valueOf(final int value) {
+    public static ErrorReason valueOf(final int value) {
         return values()[value];
     }
 

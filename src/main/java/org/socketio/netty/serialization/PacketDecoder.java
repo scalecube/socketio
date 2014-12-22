@@ -16,117 +16,55 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.socketio.netty.packets.ErrorAdvice;
-import org.socketio.netty.packets.ErrorReason;
-import org.socketio.netty.packets.Event;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
-
 public final class PacketDecoder {
 
-	private static final Pattern packetPattern = Pattern.compile("([^:]+):([0-9]+)?(\\+)?:([^:]+)?:?([\\s\\S]*)?");
-	private static final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");
-    
-    /**
-     * Don't let anyone instantiate this class.
-     */
-	private PacketDecoder() {}
-    
-    public static Packet decodePacket(final String msg) throws IOException {
-        Matcher matcher = packetPattern.matcher(msg);
-        if (!matcher.matches()) {
-            return Packet.NULL_INSTANCE;
-        }
-        String id = extract(matcher, 2);
-        String data = extract(matcher, 5);
-        int typeId = Integer.valueOf(matcher.group(1));
-        PacketType type = PacketType.valueOf(typeId);
-        String endpoint = extract(matcher, 4);
+	private static final Pattern PACKET_SPLIT_PATTERN = Pattern.compile("[:]");
+	private static final int PACKET_TYPE_INDEX = 0;
+	private static final int PACKET_MESSAGE_ID_INDEX = 1;
+	private static final int PACKET_ENDPOINT_INDEX = 2;
+	private static final int PACKET_DATA_INDEX = 3;
 
-        Packet packet = new Packet(type);
-        packet.setEndpoint(endpoint);
-        packet.setId(id);
-        if (id != null) {
-            String ackData = extract(matcher, 3);
-            if (ackData != null) {
-                packet.setAck("data");
-            } else {
-                packet.setAck(true);
-            }
-        }
+	/**
+	 * Don't let anyone instantiate this class.
+	 */
+	private PacketDecoder() {
+	}
 
-        switch (type) {
-        case ERROR:
-            String[] pieces = data.split("\\+");
-            if (pieces.length > 0 && pieces[0].trim().length() > 0) {
-                ErrorReason reason = ErrorReason.valueOf(Integer.valueOf(pieces[0]));
-                packet.setReason(reason);
-                if (pieces.length > 1) {
-                    ErrorAdvice advice = ErrorAdvice.valueOf(Integer.valueOf(pieces[1]));
-                    packet.setAdvice(advice);
-                }
-            }
-            break;
+	public static Packet decodePacket(final String msg) throws IOException {
+		String[] messageTokens = PACKET_SPLIT_PATTERN.split(msg, 4);
 
-        case MESSAGE:
-            if (data != null) {
-                packet.setData(data);
-            } else {
-                packet.setData("");
-            }
-            break;
+		if (messageTokens.length < 3 || messageTokens.length > 4) {
+			return Packet.NULL_INSTANCE;
+		}
 
-        case EVENT:
-            Event event = JsonObjectMapperProvider.getObjectMapper().readValue(data, Event.class);
-            packet.setName(event.getName());
-            if (event.getArgs() != null) {
-                packet.setArgs(event.getArgs());
-            }
-            break;
+		// Resolve type
+		int typeId = Integer.valueOf(messageTokens[PACKET_TYPE_INDEX]);
+		PacketType type = PacketType.valueOf(typeId);
 
-        case JSON:
-            Object obj = JsonObjectMapperProvider.getObjectMapper().readValue(data, Object.class);
-            packet.setData(obj);
-            break;
+		// Resolve message id
+		String messageId = messageTokens[PACKET_MESSAGE_ID_INDEX];
 
-        case CONNECT:
-            packet.setQs(data);
-            break;
+		// Resolve endpoint
+		String endpoint = messageTokens[PACKET_ENDPOINT_INDEX];
 
-        case ACK:
-            if (data == null) {
-                break;
-            }
-            Matcher ackMatcher = ackPattern.matcher(data);
-            if (ackMatcher.matches()) {
-                packet.setAckId(ackMatcher.group(1));
-                String ackArgsJSON = extract(ackMatcher, 3);
-                if (ackArgsJSON != null && ackArgsJSON.trim().length() > 0) {
-                    List<?> args = JsonObjectMapperProvider.getObjectMapper().readValue(ackArgsJSON, List.class);
-                    packet.setArgs(args);
-                }
-            }
-            break;
+		// Resolve data
+		String data = "";
+		if (messageTokens.length > PACKET_DATA_INDEX) {
+			data = messageTokens[PACKET_DATA_INDEX];
+		}
 
-        case DISCONNECT:
-        case HEARTBEAT:
-        case NOOP:
-            break;
-        }
+		// Create instance of packet
+		Packet packet = new Packet(type);
+		packet.setId(messageId);
+		packet.setEndpoint(endpoint);
+		packet.setData(data);
 
-        return packet;
-    }
-
-    private static String extract(final Matcher matcher, final int index) {
-        if (index > matcher.groupCount()) {
-            return null;
-        }
-        return matcher.group(index);
-    }
+		return packet;
+	}
 
 }

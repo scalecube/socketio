@@ -16,16 +16,11 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.socketio.netty.packets.ErrorAdvice;
-import org.socketio.netty.packets.ErrorReason;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.serialization.PacketEncoder;
 
 /**
  * 
@@ -38,7 +33,7 @@ public class PacketEncoderTest {
     public void testEncodeAckPacket() throws IOException {
 		// Given
 		Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("140");
+        packet.setData("140");
     	
     	// When
         String result = PacketEncoder.encodePacket(packet);
@@ -51,9 +46,8 @@ public class PacketEncoderTest {
     public void testEncodeAckPacketWithArgs() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("12");
-        packet.setArgs(Arrays.asList("woot", "wa"));
-    	
+        packet.setData("12+[\"woot\",\"wa\"]");
+
     	// When
         String result = PacketEncoder.encodePacket(packet);
         
@@ -104,7 +98,7 @@ public class PacketEncoderTest {
     	// Given
     	Packet packet = new Packet(PacketType.CONNECT);
         packet.setEndpoint("/test");
-        packet.setQs("?test=1");
+        packet.setData("?test=1");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
@@ -129,7 +123,7 @@ public class PacketEncoderTest {
     public void testEncodeErrorPacketWithReason() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ERROR);
-        packet.setReason(ErrorReason.TRANSPORT_NOT_SUPPORTED);
+        packet.setData("0");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
@@ -142,9 +136,8 @@ public class PacketEncoderTest {
     public void testEncodeErrorPacketWithReasonAndAdvice() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ERROR);
-        packet.setReason(ErrorReason.UNAUTHORIZED);
-        packet.setAdvice(ErrorAdvice.RECONNECT);
-    	
+        packet.setData("2+0");
+
     	// When
     	String result = PacketEncoder.encodePacket(packet);
         
@@ -169,7 +162,7 @@ public class PacketEncoderTest {
     public void testEncodeEventPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setName("woot");
+        packet.setData("{\"name\":\"woot\"}");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
@@ -182,10 +175,9 @@ public class PacketEncoderTest {
     public void testEncodeEventPacketWithMessageIdAndAck() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setId("1");
-        packet.setAck("data");
-        packet.setName("tobi");
-    	
+        packet.setId("1+");
+        packet.setData("{\"name\":\"tobi\"}");
+
     	// When
     	String result = PacketEncoder.encodePacket(packet);
         
@@ -197,9 +189,8 @@ public class PacketEncoderTest {
     public void testEncodeEventPacketWithData() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setName("edwald");
-        packet.setArgs(Arrays.asList(Collections.singletonMap("a", "b"), 2, "3"));
-    	
+        packet.setData("{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}");
+
     	// When
     	String result = PacketEncoder.encodePacket(packet);
         
@@ -211,7 +202,7 @@ public class PacketEncoderTest {
     public void testEncodeJsonPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.JSON);
-        packet.setData("2");
+        packet.setData("\"2\"");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
@@ -224,9 +215,8 @@ public class PacketEncoderTest {
     public void testEncodeJsonPacketWithMessageIdAndAckData() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.JSON);
-        packet.setId("1");
-        packet.setAck("data");
-        packet.setData(Collections.singletonMap("a", "b"));
+        packet.setId("1+");
+        packet.setData("{\"a\":\"b\"}");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
@@ -253,7 +243,6 @@ public class PacketEncoderTest {
     	// Given
     	Packet packet = new Packet(PacketType.MESSAGE);
         packet.setId("5");
-        packet.setAck(true);
         packet.setEndpoint("/tobi");
     	
     	// When

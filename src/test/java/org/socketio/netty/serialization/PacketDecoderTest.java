@@ -16,13 +16,10 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.socketio.netty.packets.ErrorAdvice;
-import org.socketio.netty.packets.ErrorReason;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
@@ -72,7 +69,7 @@ public class PacketDecoderTest {
         // Then
         Assert.assertEquals(PacketType.CONNECT, packet.getType());
         Assert.assertEquals("/test", packet.getEndpoint());
-        Assert.assertEquals("?test=1", packet.getQs());
+        Assert.assertEquals("?test=1", packet.getData());
     }
     
     @Test
@@ -111,7 +108,6 @@ public class PacketDecoderTest {
         // Then
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
         Assert.assertEquals("5", packet.getId());
-        Assert.assertEquals(true, packet.getAck());
         Assert.assertEquals("/tobi", packet.getEndpoint());
     }
     
@@ -125,7 +121,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals("2", packet.getData());
+        Assert.assertEquals("\"2\"", packet.getData());
     }
 
     @Test
@@ -138,11 +134,8 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals("1", packet.getId());
-        Assert.assertEquals("data", packet.getAck());
-        Map<?, ?> obj = (Map<?, ?>) packet.getData();
-        Assert.assertEquals("b", obj.get("a"));
-        Assert.assertEquals(1, obj.size());
+        Assert.assertEquals("1+", packet.getId());
+        Assert.assertEquals("{\"a\":\"b\"}", packet.getData());
     }
     
     @Test
@@ -155,7 +148,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals("Привет", packet.getData());
+        Assert.assertEquals("\"Привет\"", packet.getData());
     }
     
     @Test
@@ -168,7 +161,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("woot", packet.getName());
+        Assert.assertEquals("{\"name\":\"woot\"}", packet.getData());
     }
 
     @Test
@@ -181,9 +174,8 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("1", packet.getId());
-        Assert.assertEquals("data", packet.getAck());
-        Assert.assertEquals("tobi", packet.getName());
+        Assert.assertEquals("1+", packet.getId());
+        Assert.assertEquals("{\"name\":\"tobi\"}", packet.getData());
     }
 
     @Test
@@ -196,12 +188,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("edwald", packet.getName());
-        Assert.assertEquals(3, packet.getArgs().size());
-        Map<?, ?> obj = (Map<?, ?>) packet.getArgs().get(0);
-        Assert.assertEquals("b", obj.get("a"));
-        Assert.assertEquals(2, packet.getArgs().get(1));
-        Assert.assertEquals("3", packet.getArgs().get(2));
+        Assert.assertEquals("{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", packet.getData());
     }
 	
 	@Test
@@ -214,8 +201,7 @@ public class PacketDecoderTest {
 		
 		// Then
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("140", packet.getAckId());
-        Assert.assertTrue(packet.getArgs().isEmpty());
+        Assert.assertEquals("140", packet.getData());
 	}
 	
 	@Test
@@ -228,11 +214,11 @@ public class PacketDecoderTest {
 		
 		// Then
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("12", packet.getAckId());
-        Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
+        Assert.assertEquals("12+[\"woot\",\"wa\"]", packet.getData());
     }
 
     @Test
+	@Ignore // Removed verification of JSON correctness during packet decoding phase
     public void testDecodeAckPacketWithBadJson() throws IOException {
     	// Given
     	String message = "6:::1+{\"++]";
@@ -268,7 +254,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.ERROR, packet.getType());
-        Assert.assertEquals(ErrorReason.TRANSPORT_NOT_SUPPORTED, packet.getReason());
+        Assert.assertEquals("0", packet.getData());
     }
 
     @Test
@@ -281,8 +267,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.ERROR, packet.getType());
-        Assert.assertEquals(ErrorReason.UNAUTHORIZED, packet.getReason());
-        Assert.assertEquals(ErrorAdvice.RECONNECT, packet.getAdvice());
+        Assert.assertEquals("2+0", packet.getData());
     }
 
     @Test
