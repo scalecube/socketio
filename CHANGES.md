@@ -3,6 +3,8 @@ Changes
 
 1.0.26
 -----------------------
+* Reduce GC and CPU overhead of packet encoding/decoding
+* Remove returning future on `ISession` send operation feature to reduce GC overhead
 
 1.0.20 / 2014-11-07
 -----------------------
