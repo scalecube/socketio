@@ -168,7 +168,7 @@ public abstract class AbstractSession implements IManagedSession {
 	
 	protected State setState(final State state) {
 		State previousState = stateHolder.getAndSet(state);
-		if (previousState != state) {
+		if (previousState != state && log.isDebugEnabled()) {
 			log.debug("Session {} state changed from {} to {}", getSessionId(), previousState, state);
 		}
 		return previousState;

@@ -57,7 +57,8 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 			final String requestPath = queryDecoder.path();
 
 			if (requestPath.startsWith(connectPath)) {
-				log.debug("Received HTTP JSONP-Polling request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+				if (log.isDebugEnabled())
+					log.debug("Received HTTP JSONP-Polling request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
 				final String origin = PipelineUtils.getOrigin(req);

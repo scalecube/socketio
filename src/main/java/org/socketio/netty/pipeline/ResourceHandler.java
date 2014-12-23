@@ -67,7 +67,8 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
 			String requestPath = queryDecoder.path();
 			URL resUrl = resources.get(requestPath);
 			if (resUrl != null) {
-				log.debug("Received HTTP resource request: {} {} from channel: {}", req.getMethod(), requestPath, ctx.channel());
+				if (log.isDebugEnabled())
+					log.debug("Received HTTP resource request: {} {} from channel: {}", req.getMethod(), requestPath, ctx.channel());
 
 				URLConnection fileUrl = resUrl.openConnection();
 				long lastModified = fileUrl.getLastModified();

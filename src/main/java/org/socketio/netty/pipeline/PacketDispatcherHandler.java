@@ -50,13 +50,15 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		log.debug("Channel active: {}", ctx.channel());
+		if (log.isDebugEnabled())
+			log.debug("Channel active: {}", ctx.channel());
 		super.channelActive(ctx);
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		log.debug("Channel inactive: {}", ctx.channel());
+		if (log.isDebugEnabled())
+			log.debug("Channel inactive: {}", ctx.channel());
 		super.channelInactive(ctx);
 	}
 
@@ -66,7 +68,8 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 		if (message instanceof IPacket) {
 			final IPacket packet = (IPacket) message;
 			try {
-				log.debug("Dispatching packet: {} from channel: {}", packet, channel);
+				if (log.isDebugEnabled())
+					log.debug("Dispatching packet: {} from channel: {}", packet, channel);
 				dispatchPacket(channel, packet);
 			} catch (Exception e) {
 				log.error("Failed to dispatch packet: {}", packet, e);
@@ -111,7 +114,8 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 
 	private void onPacket(final Channel channel, final IManagedSession session, final Packet packet) {
 		if (packet.getType() == PacketType.DISCONNECT) {
-			log.debug("Got {} packet, {} session will be disconnected", packet.getType().name(), session.getSessionId());
+			if (log.isDebugEnabled())
+				log.debug("Got {} packet, {} session will be disconnected", packet.getType().name(), session.getSessionId());
 			session.disconnect(channel);
 		} else {
 			session.acceptPacket(channel, packet);
@@ -128,7 +132,8 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 	@Override
 	public void onSessionDisconnect(ISession session) {
 		if (sessionStorage.containSession(session.getSessionId())) {
-			log.debug("Client with sessionId: {} disconnected", session.getSessionId());
+			if (log.isDebugEnabled())
+				log.debug("Client with sessionId: {} disconnected", session.getSessionId());
 			sessionStorage.removeSession(session.getSessionId());
 			if (listener != null) {
 				listener.onDisconnect(session);

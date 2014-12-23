@@ -17,7 +17,6 @@ package org.socketio.netty.pipeline;
 
 import java.util.List;
 
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -27,13 +26,11 @@ import org.socketio.netty.packets.PacketsFrame;
 import org.socketio.netty.serialization.PacketEncoder;
 import org.socketio.netty.serialization.PacketFramer;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCounted;
 
 /**
@@ -70,9 +67,11 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 		if (msg instanceof IPacket) {
 			IPacket packet = (IPacket) msg;
 
-			log.debug("Sending packet: {} to channel: {}", msg, ctx.channel());
+			if (log.isDebugEnabled())
+				log.debug("Sending packet: {} to channel: {}", msg, ctx.channel());
 			String encodedPacket = encodePacket(packet);
-			log.debug("Encoded packet: {}", encodedPacket);
+			if (log.isDebugEnabled())
+				log.debug("Encoded packet: {}", encodedPacket);
 
 			TransportType transportType = packet.getTransportType();
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {

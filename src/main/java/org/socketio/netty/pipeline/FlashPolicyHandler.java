@@ -61,7 +61,8 @@ public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
                     ByteBuf response = PipelineUtils.copiedBuffer(ctx.alloc(), policyResponse);
                     ChannelFuture f = ctx.writeAndFlush(response);
                     f.addListener(ChannelFutureListener.CLOSE);
-                    log.debug("Sent flash policy file to channel: {}", ctx.channel());
+					if (log.isDebugEnabled())
+                    	log.debug("Sent flash policy file to channel: {}", ctx.channel());
                     message.release();
                     return;
                 }
