@@ -116,12 +116,12 @@ public final class PacketFramer {
 
 			ByteBuf frame = buffer.slice(packetStartIndex, packetBytesCount);
 
-			packet = PacketDecoder.decodePacket(frame.toString(CharsetUtil.UTF_8));
+			packet = PacketDecoder.decodePacket(frame);
 			buffer.readerIndex(packetStartIndex + packetBytesCount);
 			
 			return packet;
 		} else {
-			packet = PacketDecoder.decodePacket(buffer.toString(CharsetUtil.UTF_8));
+			packet = PacketDecoder.decodePacket(buffer);
 			buffer.readerIndex(buffer.readableBytes());
 			
 			return packet;

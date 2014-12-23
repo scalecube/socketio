@@ -163,7 +163,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         }
 
 		TextWebSocketFrame frame = (TextWebSocketFrame) msg;
-		Packet packet = PacketDecoder.decodePacket(frame.text());
+		Packet packet = PacketDecoder.decodePacket(frame.content());
 		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.channel());
 		packet.setSessionId(sessionId);

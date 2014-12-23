@@ -18,6 +18,8 @@ package org.socketio.netty.serialization;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
@@ -35,7 +37,10 @@ public final class PacketDecoder {
 	private PacketDecoder() {
 	}
 
-	public static Packet decodePacket(final String msg) throws IOException {
+	public static Packet decodePacket(final ByteBuf payload) throws IOException {
+
+		String msg = payload.toString(CharsetUtil.UTF_8); //TODO
+
 		String[] messageTokens = PACKET_SPLIT_PATTERN.split(msg, 4);
 
 		if (messageTokens.length < 3 || messageTokens.length > 4) {
@@ -49,9 +54,6 @@ public final class PacketDecoder {
 		// Resolve message id
 		String messageId = messageTokens[PACKET_MESSAGE_ID_INDEX];
 
-		// Resolve endpoint
-		String endpoint = messageTokens[PACKET_ENDPOINT_INDEX];
-
 		// Resolve data
 		String data = "";
 		if (messageTokens.length > PACKET_DATA_INDEX) {
@@ -61,7 +63,6 @@ public final class PacketDecoder {
 		// Create instance of packet
 		Packet packet = new Packet(type);
 		packet.setId(messageId);
-		packet.setEndpoint(endpoint);
 		packet.setData(data);
 
 		return packet;

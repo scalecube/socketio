@@ -65,10 +65,9 @@ public final class PacketEncoder {
 	public static String encodePacket(final Packet packet) throws IOException {
 		String type = packet.getType().getValueAsString();
 		String messageId = packet.getId();
-		String endpoint = packet.getEndpoint();
 		String data = packet.getData();
 
-		int capacity = type.length() + DELIMITER_LENGTH + messageId.length() + DELIMITER_LENGTH + endpoint.length();
+		int capacity = type.length() + DELIMITER_LENGTH + messageId.length() + DELIMITER_LENGTH;
 		if (data != null) {
 			capacity += DELIMITER_LENGTH + data.length();
 		}
@@ -79,11 +78,11 @@ public final class PacketEncoder {
 		result.append(DELIMITER);
 		result.append(messageId);
 		result.append(DELIMITER);
-		result.append(endpoint);
 		if (data != null) {
 			result.append(DELIMITER);
 			result.append(data);
 		}
+
 		return result.toString();
 	}
 

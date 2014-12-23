@@ -23,7 +23,6 @@ public class Packet extends AbstractPacket {
 	public static final Packet NULL_INSTANCE = new Packet(null);
 
 	private String id = "";
-	private String endpoint = "";
 	private String data;
 	private int sequenceNumber = 0;
 
@@ -41,14 +40,6 @@ public class Packet extends AbstractPacket {
 
 	public final String getData() {
 		return data;
-	}
-
-	public void setEndpoint(final String endpoint) {
-		this.endpoint = endpoint;
-	}
-
-	public final String getEndpoint() {
-		return endpoint;
 	}
 
 	public final String getId() {

@@ -39,7 +39,7 @@ public class PacketFramerTest {
 		// Given
 		String messagesFrame =
 			"\ufffd3\ufffd0::" +
-			"\ufffd9\ufffd0::/woot5" +
+			"\ufffd3\ufffd0::" +
 			"\ufffd7\ufffd3:::53d" +
 			"\ufffd3\ufffd2::";
 
@@ -50,7 +50,6 @@ public class PacketFramerTest {
 		Assert.assertEquals(4, packets.size());
 		Assert.assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
 		Assert.assertEquals(PacketType.DISCONNECT, packets.get(1).getType());
-		Assert.assertEquals("/woot5", packets.get(1).getEndpoint());
 		Assert.assertEquals(PacketType.MESSAGE, packets.get(2).getType());
 		Assert.assertEquals("53d", packets.get(2).getData());
 		Assert.assertEquals(PacketType.HEARTBEAT, packets.get(3).getType());
