@@ -72,22 +72,67 @@ public final class PacketFramer {
 			Packet packet = packets.get(0);
 			return PacketEncoder.encodePacket(packet);
 		} else {
-			StringBuilder packetsFrameStringBuilder = new StringBuilder();
+			CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(packets.size() * 2);
+			int compositeReadableBytes = 0;
+
 			for (Packet packet : packets) {
+				// Decode packet
 				ByteBuf packetByteBuf = PacketEncoder.encodePacket(packet);
-				String packetString = packetByteBuf.toString(CharsetUtil.UTF_8);
-				packetsFrameStringBuilder.append(PacketFramer.DELIMITER);
-				packetsFrameStringBuilder.append(packetString.length());
-				packetsFrameStringBuilder.append(PacketFramer.DELIMITER);
-				packetsFrameStringBuilder.append(packetString);
-				packetByteBuf.release();
+
+				// Prepare length prepender
+				int packetLength = getUtf8CharCountByByteCount(packetByteBuf, 0, packetByteBuf.readableBytes());
+				byte[] packetLengthBytes = String.valueOf(packetLength).getBytes(CharsetUtil.UTF_8);
+				int packetLengthPrependerCapacity = packetLengthBytes.length + DELIMITER_BYTES_SIZE + DELIMITER_BYTES_SIZE;
+				ByteBuf packetLengthPrependerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(packetLengthPrependerCapacity, packetLengthPrependerCapacity);
+				packetLengthPrependerByteBuf.writeBytes(DELIMITER_BYTES);
+				packetLengthPrependerByteBuf.writeBytes(packetLengthBytes);
+				packetLengthPrependerByteBuf.writeBytes(DELIMITER_BYTES);
+
+				// Update composite byte buffer
+				compositeByteBuf.addComponent(packetLengthPrependerByteBuf);
+				compositeByteBuf.addComponent(packetByteBuf);
+				compositeReadableBytes += packetLengthPrependerByteBuf.readableBytes() + packetByteBuf.readableBytes();
 			}
-			String packetsFrameString = packetsFrameStringBuilder.toString();
-			byte[] packetsFrameBytes = packetsFrameString.getBytes(CharsetUtil.UTF_8);
-			ByteBuf packetsFrameByteBuf = PooledByteBufAllocator.DEFAULT.buffer(packetsFrameBytes.length, packetsFrameBytes.length);
-			packetsFrameByteBuf.writeBytes(packetsFrameBytes);
-			return packetsFrameByteBuf;
+
+			compositeByteBuf.writerIndex(compositeReadableBytes);
+			return compositeByteBuf;
 		}
+	}
+
+	private static int getUtf8CharCountByByteCount(final ByteBuf buffer, final int startByteIndex, final int bytesCount) {
+		int charCount = 0;
+		int endByteIndex = startByteIndex + bytesCount;
+		int byteIndex = startByteIndex;
+		while (byteIndex < endByteIndex) {
+			charCount++;
+			// Define next char first byte
+			short charFirstByte = buffer.getUnsignedByte(byteIndex);
+
+			// Scan first byte of UTF-8 character according to:
+			// http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+			if ((charFirstByte >= 0x20) && (charFirstByte <= 0x7F)) {
+				// characters U-00000000 - U-0000007F (same as ASCII)
+				byteIndex++;
+			} else if ((charFirstByte & 0xE0) == 0xC0) {
+				// characters U-00000080 - U-000007FF, mask 110XXXXX
+				byteIndex += 2;
+			} else if ((charFirstByte & 0xF0) == 0xE0) {
+				// characters U-00000800 - U-0000FFFF, mask 1110XXXX
+				byteIndex += 3;
+			} else if ((charFirstByte & 0xF8) == 0xF0) {
+				// characters U-00010000 - U-001FFFFF, mask 11110XXX
+				byteIndex += 4;
+			} else if ((charFirstByte & 0xFC) == 0xF8) {
+				// characters U-00200000 - U-03FFFFFF, mask 111110XX
+				byteIndex += 5;
+			} else if ((charFirstByte & 0xFE) == 0xFC) {
+				// characters U-04000000 - U-7FFFFFFF, mask 1111110X
+				byteIndex += 6;
+			} else {
+				byteIndex++;
+			}
+		}
+		return charCount;
 	}
 
 	public static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
