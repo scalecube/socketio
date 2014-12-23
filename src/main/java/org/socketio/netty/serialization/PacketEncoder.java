@@ -52,14 +52,8 @@ import org.socketio.netty.packets.Packet;
 public final class PacketEncoder {
 
 	private static final String DELIMITER = ":";
-	private static final int DELIMITER_LENGTH = DELIMITER.length();
-
-	private static final ThreadLocal<StringBuilder> reusableStringBuilder = new ThreadLocal<StringBuilder>() {
-		@Override
-		protected StringBuilder initialValue() {
-			return new StringBuilder();
-		}
-	};
+	private static final byte[] DELIMITER_BYTES = DELIMITER.getBytes(CharsetUtil.UTF_8);
+	private static final int DELIMITER_LENGTH = DELIMITER_BYTES.length;
 
 	/**
 	 * Don't let anyone instantiate this class.
@@ -68,25 +62,20 @@ public final class PacketEncoder {
 	}
 
 	public static ByteBuf encodePacket(final Packet packet) throws IOException {
-		CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(2);
-
 		ByteBuf dataBytes = packet.getData();
 		boolean hasData = dataBytes != null;
 
-		String type = packet.getType().getValueAsString();
-		int capacity = computeCapacity(type, hasData);
-		StringBuilder result = getReusableStringBuilder(capacity);
-		result.append(type);
-		result.append(DELIMITER);
-		result.append(DELIMITER);
-		if (hasData) {
-			result.append(DELIMITER);
-		}
-		String header = result.toString();
+		CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(hasData ? 1 : 2);
 
-		byte[] headerBytes = header.getBytes(CharsetUtil.UTF_8);
-		ByteBuf headerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(headerBytes.length, headerBytes.length);
-		headerByteBuf.writeBytes(headerBytes);
+		byte[] typeBytes = packet.getType().getValueAsBytes();
+		int headerCapacity = typeBytes.length + DELIMITER_LENGTH + DELIMITER_LENGTH + (hasData ? DELIMITER_LENGTH : 0);
+		ByteBuf headerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(headerCapacity, headerCapacity);
+		headerByteBuf.writeBytes(typeBytes);
+		headerByteBuf.writeBytes(DELIMITER_BYTES);
+		headerByteBuf.writeBytes(DELIMITER_BYTES);
+		if (hasData) {
+			headerByteBuf.writeBytes(DELIMITER_BYTES);
+		}
 		compositeByteBuf.addComponent(headerByteBuf);
 		int compositeReadableBytes = headerByteBuf.readableBytes();
 
@@ -97,16 +86,5 @@ public final class PacketEncoder {
 
 		compositeByteBuf.writerIndex(compositeReadableBytes);
 		return compositeByteBuf;
-	}
-
-	private static int computeCapacity(final String type, final boolean hasData) {
-		return type.length() + DELIMITER_LENGTH + DELIMITER_LENGTH + (hasData ? DELIMITER_LENGTH : 0);
-	}
-
-	private static StringBuilder getReusableStringBuilder(final int capacity) {
-		StringBuilder stringBuilder = reusableStringBuilder.get();
-		stringBuilder.setLength(0);
-		stringBuilder.ensureCapacity(capacity);
-		return stringBuilder;
 	}
 }

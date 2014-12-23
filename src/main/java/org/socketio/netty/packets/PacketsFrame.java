@@ -21,12 +21,12 @@ import java.util.List;
 
 public class PacketsFrame extends AbstractPacket {
 
-	private List<IPacket> packets = new LinkedList<IPacket>();
+	private List<Packet> packets = new LinkedList<Packet>();
 
 	public PacketsFrame() {
 	}
 
-	public List<IPacket> getPackets() {
+	public List<Packet> getPackets() {
 		return packets;
 	}
 	

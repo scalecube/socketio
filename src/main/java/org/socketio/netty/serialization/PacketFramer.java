@@ -67,31 +67,27 @@ public final class PacketFramer {
 	}
 
 	public static ByteBuf encodePacketsFrame(final PacketsFrame packetsFrame) throws IOException {
-		List<IPacket> packets = packetsFrame.getPackets();
-		StringBuilder result = new StringBuilder();
+		List<Packet> packets = packetsFrame.getPackets();
 		if (packets.size() == 1) {
-			IPacket p = packets.get(0);
-			if (p instanceof Packet) {
-				result.append(PacketEncoder.encodePacket((Packet) packets
-						.get(0)).toString(CharsetUtil.UTF_8));
-			}
+			Packet packet = packets.get(0);
+			return PacketEncoder.encodePacket(packet);
 		} else {
-			for (IPacket p : packets) {
-				if (p instanceof Packet) {
-					Packet item = (Packet) p;
-					String message = PacketEncoder.encodePacket(item).toString(CharsetUtil.UTF_8);
-					result.append(PacketFramer.DELIMITER)
-							.append(message.length())
-							.append(PacketFramer.DELIMITER).append(message);
-				}
+			StringBuilder packetsFrameStringBuilder = new StringBuilder();
+			for (Packet packet : packets) {
+				ByteBuf packetByteBuf = PacketEncoder.encodePacket(packet);
+				String packetString = packetByteBuf.toString(CharsetUtil.UTF_8);
+				packetsFrameStringBuilder.append(PacketFramer.DELIMITER);
+				packetsFrameStringBuilder.append(packetString.length());
+				packetsFrameStringBuilder.append(PacketFramer.DELIMITER);
+				packetsFrameStringBuilder.append(packetString);
+				packetByteBuf.release();
 			}
+			String packetsFrameString = packetsFrameStringBuilder.toString();
+			byte[] packetsFrameBytes = packetsFrameString.getBytes(CharsetUtil.UTF_8);
+			ByteBuf packetsFrameByteBuf = PooledByteBufAllocator.DEFAULT.buffer(packetsFrameBytes.length, packetsFrameBytes.length);
+			packetsFrameByteBuf.writeBytes(packetsFrameBytes);
+			return packetsFrameByteBuf;
 		}
-
-		String frame = result.toString();
-		byte[] frameBytes = frame.getBytes(CharsetUtil.UTF_8);
-		ByteBuf frameByteBuf = PooledByteBufAllocator.DEFAULT.buffer(frameBytes.length, frameBytes.length);
-		frameByteBuf.writeBytes(frameBytes);
-		return frameByteBuf;
 	}
 
 	public static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {

@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.packets;
 
+import io.netty.util.CharsetUtil;
+
 /**
  * Socket.IO packet type.
  * 
@@ -228,19 +230,19 @@ public enum PacketType {
 	}
 
 	private final int value;
-	private final String valueAsString;
+	private final byte[] valueAsBytes;
 
 	PacketType(final int value) {
 		this.value = value;
-		this.valueAsString = String.valueOf(value);
+		this.valueAsBytes = String.valueOf(value).getBytes(CharsetUtil.UTF_8);
 	}
 
 	public int getValue() {
 		return value;
 	}
 
-	public String getValueAsString() {
-		return valueAsString;
+	public byte[] getValueAsBytes() {
+		return valueAsBytes;
 	}
 
 	public static PacketType valueOf(final int value) {

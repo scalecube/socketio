@@ -63,6 +63,15 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 	}
 
 	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		if (cause instanceof IOException) {
+			log.warn("Exception caught at channel: {}, {}", ctx.channel(), cause.getMessage());
+		} else {
+			log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
+		}
+	}
+
+	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
 		final Channel channel = ctx.channel();
 		if (message instanceof IPacket) {
@@ -78,15 +87,6 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 			log.warn("Received unknown message: {} from channel {}", message, channel);
 		}
 	}
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause instanceof IOException) {
-            log.warn("Exception caught at channel: {}, {}", ctx.channel(), cause.getMessage());
-        } else {
-            log.error("Exception caught at channel: {}, {}", ctx.channel(), cause);
-        }
-    }
 
 	private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
 		if (packet instanceof ConnectPacket) {
