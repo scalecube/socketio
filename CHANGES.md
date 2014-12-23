@@ -5,6 +5,7 @@ Changes
 -----------------------
 * Reduce GC and CPU overhead of packet encoding/decoding
 * Remove returning future on `ISession` send operation feature to reduce GC overhead
+* Expose and accept `ByteBuf` as external message class instead of `String`
 
 1.0.20 / 2014-11-07
 -----------------------
