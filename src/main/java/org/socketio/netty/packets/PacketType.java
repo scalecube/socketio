@@ -221,8 +221,8 @@ public enum PacketType {
 	 */
 	NOOP(8);
 
-	private static final int MAX_VALUE = 8;
-	private static final PacketType valueToType[] = new PacketType[MAX_VALUE];
+	private static final int TYPES_SIZE = 9;
+	private static final PacketType valueToType[] = new PacketType[TYPES_SIZE];
 
 	static {
 		for (PacketType type : values()) {
