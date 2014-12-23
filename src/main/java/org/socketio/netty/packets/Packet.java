@@ -15,14 +15,13 @@
  */
 package org.socketio.netty.packets;
 
-import java.util.Collections;
-import java.util.List;
+import io.netty.buffer.ByteBuf;
 
 public class Packet extends AbstractPacket {
 
 	public static final Packet NULL_INSTANCE = new Packet(null);
 
-	private String data;
+	private ByteBuf data;
 	private int sequenceNumber = 0;
 
 	public Packet(final PacketType type) {
@@ -33,11 +32,11 @@ public class Packet extends AbstractPacket {
 		super(type, sessionId);
 	}
 
-	public void setData(final String data) {
+	public void setData(final ByteBuf data) {
 		this.data = data;
 	}
 
-	public final String getData() {
+	public final ByteBuf getData() {
 		return data;
 	}
 

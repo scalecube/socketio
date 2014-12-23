@@ -115,7 +115,7 @@ public class XHRPollingHandlerTest {
         Assert.assertTrue(object instanceof Packet);
         Packet packet = (Packet) object;
         Assert.assertEquals(origin,packet.getOrigin());
-        Assert.assertEquals("{\"greetings\":\"Hello World!\"}",packet.getData());
+        Assert.assertEquals("{\"greetings\":\"Hello World!\"}",packet.getData().toString(CharsetUtil.UTF_8));
         channel.finish();
     }
 }

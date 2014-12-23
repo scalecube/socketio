@@ -51,7 +51,7 @@ public class PacketFramerTest {
 		Assert.assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
 		Assert.assertEquals(PacketType.DISCONNECT, packets.get(1).getType());
 		Assert.assertEquals(PacketType.MESSAGE, packets.get(2).getType());
-		Assert.assertEquals("53d", packets.get(2).getData());
+		Assert.assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
 		Assert.assertEquals(PacketType.HEARTBEAT, packets.get(3).getType());
 	}
 
@@ -70,24 +70,24 @@ public class PacketFramerTest {
 		Assert.assertEquals(3, packets.size());
 		Assert.assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
 		Assert.assertEquals(PacketType.MESSAGE, packets.get(1).getType());
-		Assert.assertEquals("{\"ID\":100, \"greetings\":\"Привет\"}", packets.get(1).getData());
+		Assert.assertEquals("{\"ID\":100, \"greetings\":\"Привет\"}", packets.get(1).getData().toString(CharsetUtil.UTF_8));
 		Assert.assertEquals(PacketType.MESSAGE, packets.get(2).getType());
-		Assert.assertEquals("53d", packets.get(2).getData());
+		Assert.assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
 	}
 	
 	@Test
     public void testEncodePacketsFrame() throws IOException {
         // Given
 		Packet packet1 = new Packet(PacketType.MESSAGE);
-        packet1.setData("5");
+        packet1.setData(Unpooled.copiedBuffer("5", CharsetUtil.UTF_8));
         Packet packet2 = new Packet(PacketType.MESSAGE);
-        packet2.setData("53d");
+        packet2.setData(Unpooled.copiedBuffer("53d", CharsetUtil.UTF_8));
         PacketsFrame packetsFrame = new PacketsFrame();
         packetsFrame.getPackets().add(packet1);
         packetsFrame.getPackets().add(packet2);
         
         // When
-        String result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result);
@@ -97,12 +97,12 @@ public class PacketFramerTest {
     public void testEncodePacketsFrameWithOnePacket() throws IOException {
         // Given
 		Packet packet1 = new Packet(PacketType.MESSAGE);
-        packet1.setData("5");
+        packet1.setData(Unpooled.copiedBuffer("5", CharsetUtil.UTF_8));
         PacketsFrame packetsFrame = new PacketsFrame();
         packetsFrame.getPackets().add(packet1);
         
         // When
-        String result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("3:::5", result);
@@ -112,18 +112,18 @@ public class PacketFramerTest {
     public void testEncodePacketsFrameWithUtf8Symbols() throws IOException {
         // Given
 		Packet packet1 = new Packet(PacketType.MESSAGE);
-        packet1.setData("5");
+        packet1.setData(Unpooled.copiedBuffer("5", CharsetUtil.UTF_8));
 		Packet packet2 = new Packet(PacketType.MESSAGE);
-        packet2.setData("{\"ID\":100, \"greetings\":\"Привет\"}");
+        packet2.setData(Unpooled.copiedBuffer("{\"ID\":100, \"greetings\":\"Привет\"}", CharsetUtil.UTF_8));
         Packet packet3 = new Packet(PacketType.MESSAGE);
-        packet3.setData("53d");
+        packet3.setData(Unpooled.copiedBuffer("53d", CharsetUtil.UTF_8));
         PacketsFrame packetsFrame = new PacketsFrame();
         packetsFrame.getPackets().add(packet1);
         packetsFrame.getPackets().add(packet2);
         packetsFrame.getPackets().add(packet3);
         
         // When
-        String result = PacketFramer.encodePacketsFrame(packetsFrame);
+        String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result);

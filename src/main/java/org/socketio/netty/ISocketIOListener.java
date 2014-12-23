@@ -15,14 +15,13 @@
  */
 package org.socketio.netty;
 
+import io.netty.buffer.ByteBuf;
 
 public interface ISocketIOListener {
 
     void onConnect(final ISession session);
 
-    void onJsonObject(final ISession session, final Object obj);
-
-    void onMessage(final ISession session, final String message);
+    void onMessage(final ISession session, final ByteBuf message);
 
     void onDisconnect(final ISession session);
 

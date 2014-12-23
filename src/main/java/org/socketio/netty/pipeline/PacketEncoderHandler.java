@@ -17,6 +17,8 @@ package org.socketio.netty.pipeline;
 
 import java.util.List;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -69,7 +71,7 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 
 			if (log.isDebugEnabled())
 				log.debug("Sending packet: {} to channel: {}", msg, ctx.channel());
-			String encodedPacket = encodePacket(packet);
+			ByteBuf encodedPacket = encodePacket(packet);
 			if (log.isDebugEnabled())
 				log.debug("Encoded packet: {}", encodedPacket);
 
@@ -77,12 +79,13 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 			if (transportType == TransportType.WEBSOCKET || transportType == TransportType.FLASHSOCKET) {
 				out.add(new TextWebSocketFrame(encodedPacket));
 			} else if (transportType == TransportType.XHR_POLLING) {
-				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(),PipelineUtils.copiedBuffer(ctx.alloc(), encodedPacket), false));
+				out.add(PipelineUtils.createHttpResponse(packet.getOrigin(), encodedPacket, false));
 			} else if (transportType == TransportType.JSONP_POLLING) {
 				String jsonpIndexParam = (packet.getJsonpIndexParam() != null) ? packet.getJsonpIndexParam() : "0";
-				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedPacket);
-				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(),
-						PipelineUtils.copiedBuffer(ctx.alloc(), encodedJsonpPacket), true);
+				String encodedStringPacket = encodedPacket.toString(CharsetUtil.UTF_8);
+				encodedPacket.release();
+				String encodedJsonpPacket = String.format(JSONP_TEMPLATE, jsonpIndexParam, encodedStringPacket);
+				HttpResponse httpResponse = PipelineUtils.createHttpResponse(packet.getOrigin(), PipelineUtils.copiedBuffer(ctx.alloc(), encodedJsonpPacket), true);
 				httpResponse.headers().add("X-XSS-Protection", "0");
 				out.add(httpResponse);
 			} else {
@@ -96,7 +99,7 @@ public class PacketEncoderHandler extends MessageToMessageEncoder<Object> {
 		}
 	}
 
-	private String encodePacket(final IPacket msg) throws Exception {
+	private ByteBuf encodePacket(final IPacket msg) throws Exception {
 		if (msg instanceof PacketsFrame) {
 			return PacketFramer.encodePacketsFrame((PacketsFrame) msg);
 		} else if (msg instanceof Packet) {

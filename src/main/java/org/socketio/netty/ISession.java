@@ -15,6 +15,8 @@
  */
 package org.socketio.netty;
 
+import io.netty.buffer.ByteBuf;
+
 import java.net.SocketAddress;
 
 /**
@@ -86,7 +88,7 @@ public interface ISession {
 	 * @param message
 	 *            message to be sent to client
 	 */
-	void send(final String message);
+	void send(final ByteBuf message);
 
 	/**
 	 * disconnect this session

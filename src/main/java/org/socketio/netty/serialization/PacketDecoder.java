@@ -44,6 +44,9 @@ public final class PacketDecoder {
 
 		// Decode packet type
 		int typeDelimiterIndex = payload.forEachByte(packetDelimiterFinder);
+		if (typeDelimiterIndex == -1) {
+			return Packet.NULL_INSTANCE;
+		}
 		ByteBuf typeBytes = payload.slice(0, typeDelimiterIndex);
 		String typeString = typeBytes.toString(CharsetUtil.UTF_8);
 		int typeId = Integer.valueOf(typeString);
@@ -51,22 +54,21 @@ public final class PacketDecoder {
 
 		// Skip message id
 		int messageIdDelimiterIndex = payload.forEachByte(typeDelimiterIndex + 1, payloadSize - typeDelimiterIndex - 1, packetDelimiterFinder);
+		if (messageIdDelimiterIndex == -1) {
+			return Packet.NULL_INSTANCE;
+		}
 
 		// Skip endpoint
 		int endpointDelimiterIndex = payload.forEachByte(messageIdDelimiterIndex + 1, payloadSize - messageIdDelimiterIndex - 1, packetDelimiterFinder);
 
-		// Decode data
-		String dataString;
-		if (endpointDelimiterIndex != -1) {
-			ByteBuf dataBytes = payload.slice(endpointDelimiterIndex + 1, payloadSize - endpointDelimiterIndex - 1);
-			dataString =  dataBytes.toString(CharsetUtil.UTF_8);
-		} else {
-			dataString = "";
-		}
-
 		// Create instance of packet
 		Packet packet = new Packet(type);
-		packet.setData(dataString);
+
+		// Decode data
+		if (endpointDelimiterIndex != -1) {
+			ByteBuf data = payload.copy(endpointDelimiterIndex + 1, payloadSize - endpointDelimiterIndex - 1);
+			packet.setData(data);
+		}
 
 		return packet;
 	}

@@ -18,6 +18,7 @@ package org.socketio.netty.session;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.TransportType;
@@ -136,7 +137,7 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
-	public void send(final String message) {
+	public void send(final ByteBuf message) {
 		Packet messagePacket = new Packet(PacketType.MESSAGE);
         messagePacket.setData(message);
         sendPacket(messagePacket);

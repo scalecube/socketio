@@ -16,7 +16,6 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -76,7 +75,7 @@ public class PacketDecoderTest {
         // Then
         Assert.assertEquals(PacketType.CONNECT, packet.getType());
         //Assert.assertEquals("/test", packet.getEndpoint());
-        Assert.assertEquals("?test=1", packet.getData());
+        Assert.assertEquals("?test=1", packet.getData().toString(CharsetUtil.UTF_8));
     }
     
     @Test
@@ -103,7 +102,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
-        Assert.assertEquals("woot", packet.getData());
+        Assert.assertEquals("woot", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -132,7 +131,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals("\"2\"", packet.getData());
+        Assert.assertEquals("\"2\"", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -147,7 +146,7 @@ public class PacketDecoderTest {
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
         //Assert.assertEquals("1+", packet.getId());
-        Assert.assertEquals("{\"a\":\"b\"}", packet.getData());
+        Assert.assertEquals("{\"a\":\"b\"}", packet.getData().toString(CharsetUtil.UTF_8));
     }
     
     @Test
@@ -161,7 +160,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals("\"Привет\"", packet.getData());
+        Assert.assertEquals("\"Привет\"", packet.getData().toString(CharsetUtil.UTF_8));
     }
     
     @Test
@@ -175,7 +174,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("{\"name\":\"woot\"}", packet.getData());
+        Assert.assertEquals("{\"name\":\"woot\"}", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -190,7 +189,7 @@ public class PacketDecoderTest {
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
         //Assert.assertEquals("1+", packet.getId());
-        Assert.assertEquals("{\"name\":\"tobi\"}", packet.getData());
+        Assert.assertEquals("{\"name\":\"tobi\"}", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -204,7 +203,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", packet.getData());
+        Assert.assertEquals("{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", packet.getData().toString(CharsetUtil.UTF_8));
     }
 	
 	@Test
@@ -218,7 +217,7 @@ public class PacketDecoderTest {
 		
 		// Then
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("140", packet.getData());
+        Assert.assertEquals("140", packet.getData().toString(CharsetUtil.UTF_8));
 	}
 	
 	@Test
@@ -232,7 +231,7 @@ public class PacketDecoderTest {
 		
 		// Then
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("12+[\"woot\",\"wa\"]", packet.getData());
+        Assert.assertEquals("12+[\"woot\",\"wa\"]", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -275,7 +274,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.ERROR, packet.getType());
-        Assert.assertEquals("0", packet.getData());
+        Assert.assertEquals("0", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -289,7 +288,7 @@ public class PacketDecoderTest {
         
         // Then
         Assert.assertEquals(PacketType.ERROR, packet.getType());
-        Assert.assertEquals("2+0", packet.getData());
+        Assert.assertEquals("2+0", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -325,7 +324,7 @@ public class PacketDecoderTest {
 		ByteBuf byteMessage = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
         Packet packet = PacketDecoder.decodePacket(byteMessage);
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
-        Assert.assertEquals("\n", packet.getData());
+        Assert.assertEquals("\n", packet.getData().toString(CharsetUtil.UTF_8));
     }
     
 }

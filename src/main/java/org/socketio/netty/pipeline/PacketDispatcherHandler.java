@@ -120,10 +120,8 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
 		} else {
 			session.acceptPacket(channel, packet);
 			if (listener != null) {
-				if (packet.getType() == PacketType.MESSAGE) {
+				if (packet.getType() == PacketType.MESSAGE || packet.getType() == PacketType.JSON) {
 					listener.onMessage(session, packet.getData());
-				} else if (packet.getType() == PacketType.JSON) {
-					listener.onJsonObject(session, packet.getData());
 				}
 			}
 		}

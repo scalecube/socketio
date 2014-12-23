@@ -16,7 +16,12 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.util.CharsetUtil;
 import org.socketio.netty.packets.Packet;
 
 /**
@@ -62,28 +67,40 @@ public final class PacketEncoder {
 	private PacketEncoder() {
 	}
 
-	public static String encodePacket(final Packet packet) throws IOException {
+	public static ByteBuf encodePacket(final Packet packet) throws IOException {
+		CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(2);
+
+		ByteBuf dataBytes = packet.getData();
+		boolean hasData = dataBytes != null;
+
 		String type = packet.getType().getValueAsString();
-		String data = packet.getData();
-		int capacity = computeCapacity(type, data);
+		int capacity = computeCapacity(type, hasData);
 		StringBuilder result = getReusableStringBuilder(capacity);
 		result.append(type);
 		result.append(DELIMITER);
 		result.append(DELIMITER);
-		if (data != null) {
+		if (hasData) {
 			result.append(DELIMITER);
-			result.append(data);
+		}
+		String header = result.toString();
+
+		byte[] headerBytes = header.getBytes(CharsetUtil.UTF_8);
+		ByteBuf headerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(headerBytes.length, headerBytes.length);
+		headerByteBuf.writeBytes(headerBytes);
+		compositeByteBuf.addComponent(headerByteBuf);
+		int compositeReadableBytes = headerByteBuf.readableBytes();
+
+		if (hasData) {
+			compositeByteBuf.addComponent(dataBytes);
+			compositeReadableBytes += dataBytes.readableBytes();
 		}
 
-		return result.toString();
+		compositeByteBuf.writerIndex(compositeReadableBytes);
+		return compositeByteBuf;
 	}
 
-	private static int computeCapacity(final String type, final String data) {
-		int capacity = type.length() + DELIMITER_LENGTH + DELIMITER_LENGTH;
-		if (data != null) {
-			capacity += DELIMITER_LENGTH + data.length();
-		}
-		return capacity;
+	private static int computeCapacity(final String type, final boolean hasData) {
+		return type.length() + DELIMITER_LENGTH + DELIMITER_LENGTH + (hasData ? DELIMITER_LENGTH : 0);
 	}
 
 	private static StringBuilder getReusableStringBuilder(final int capacity) {
