@@ -15,6 +15,9 @@
  */
 package org.socketio.netty.packets;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Socket.IO packet type.
  * 
@@ -218,6 +221,15 @@ public enum PacketType {
 	 */
 	NOOP(8);
 
+	private static final int MAX_VALUE = 8;
+	private static final PacketType valueToType[] = new PacketType[MAX_VALUE];
+
+	static {
+		for (PacketType type : values()) {
+			valueToType[type.getValue()] = type;
+		}
+	}
+
 	private final int value;
 	private final String valueAsString;
 
@@ -235,7 +247,7 @@ public enum PacketType {
 	}
 
 	public static PacketType valueOf(final int value) {
-		return values()[value];
+		return valueToType[value];
 	}
 
 }
