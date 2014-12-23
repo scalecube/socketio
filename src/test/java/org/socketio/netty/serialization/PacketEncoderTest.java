@@ -179,14 +179,15 @@ public class PacketEncoderTest {
     public void testEncodeEventPacketWithMessageIdAndAck() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setId("1+");
+        //packet.setId("1+");
         packet.setData("{\"name\":\"tobi\"}");
 
     	// When
     	String result = PacketEncoder.encodePacket(packet);
         
         // Then
-        Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result);
+        //Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result);
+		Assert.assertEquals("5:::{\"name\":\"tobi\"}", result);
     }
 
     @Test
@@ -219,14 +220,15 @@ public class PacketEncoderTest {
     public void testEncodeJsonPacketWithMessageIdAndAckData() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.JSON);
-        packet.setId("1+");
+        //packet.setId("1+");
         packet.setData("{\"a\":\"b\"}");
     	
     	// When
     	String result = PacketEncoder.encodePacket(packet);
         
         // Then
-        Assert.assertEquals("4:1+::{\"a\":\"b\"}", result);
+        //Assert.assertEquals("4:1+::{\"a\":\"b\"}", result);
+		Assert.assertEquals("4:::{\"a\":\"b\"}", result);
     }
     
     @Test
@@ -246,7 +248,7 @@ public class PacketEncoderTest {
     public void testEncodeMessagePacketWithIdAndEndpoint() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setId("5");
+        //packet.setId("5");
         //packet.setEndpoint("/tobi");
     	
     	// When
@@ -254,7 +256,7 @@ public class PacketEncoderTest {
         
         // Then
         //Assert.assertEquals("3:5:/tobi", result);
-		Assert.assertEquals("3:5:", result);
+		Assert.assertEquals("3::", result);
     }
 	
 }

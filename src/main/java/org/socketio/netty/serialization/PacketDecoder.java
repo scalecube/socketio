@@ -16,20 +16,22 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufProcessor;
 import io.netty.util.CharsetUtil;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
 public final class PacketDecoder {
 
-	private static final Pattern PACKET_SPLIT_PATTERN = Pattern.compile("[:]");
-	private static final int PACKET_TYPE_INDEX = 0;
-	private static final int PACKET_MESSAGE_ID_INDEX = 1;
-	private static final int PACKET_ENDPOINT_INDEX = 2;
-	private static final int PACKET_DATA_INDEX = 3;
+	private static final byte DELIMITER = (byte) ':';
+	private static final ByteBufProcessor packetDelimiterFinder =  new ByteBufProcessor() {
+		@Override
+		public boolean process(byte value) throws Exception {
+			return value != DELIMITER;
+		}
+	};
 
 	/**
 	 * Don't let anyone instantiate this class.
@@ -38,32 +40,33 @@ public final class PacketDecoder {
 	}
 
 	public static Packet decodePacket(final ByteBuf payload) throws IOException {
+		int payloadSize = payload.readableBytes();
 
-		String msg = payload.toString(CharsetUtil.UTF_8); //TODO
-
-		String[] messageTokens = PACKET_SPLIT_PATTERN.split(msg, 4);
-
-		if (messageTokens.length < 3 || messageTokens.length > 4) {
-			return Packet.NULL_INSTANCE;
-		}
-
-		// Resolve type
-		int typeId = Integer.valueOf(messageTokens[PACKET_TYPE_INDEX]);
+		// Decode packet type
+		int typeDelimiterIndex = payload.forEachByte(packetDelimiterFinder);
+		ByteBuf typeBytes = payload.slice(0, typeDelimiterIndex);
+		String typeString = typeBytes.toString(CharsetUtil.UTF_8);
+		int typeId = Integer.valueOf(typeString);
 		PacketType type = PacketType.valueOf(typeId);
 
-		// Resolve message id
-		String messageId = messageTokens[PACKET_MESSAGE_ID_INDEX];
+		// Skip message id
+		int messageIdDelimiterIndex = payload.forEachByte(typeDelimiterIndex + 1, payloadSize - typeDelimiterIndex - 1, packetDelimiterFinder);
 
-		// Resolve data
-		String data = "";
-		if (messageTokens.length > PACKET_DATA_INDEX) {
-			data = messageTokens[PACKET_DATA_INDEX];
+		// Skip endpoint
+		int endpointDelimiterIndex = payload.forEachByte(messageIdDelimiterIndex + 1, payloadSize - messageIdDelimiterIndex - 1, packetDelimiterFinder);
+
+		// Decode data
+		String dataString;
+		if (endpointDelimiterIndex != -1) {
+			ByteBuf dataBytes = payload.slice(endpointDelimiterIndex + 1, payloadSize - endpointDelimiterIndex - 1);
+			dataString =  dataBytes.toString(CharsetUtil.UTF_8);
+		} else {
+			dataString = "";
 		}
 
 		// Create instance of packet
 		Packet packet = new Packet(type);
-		packet.setId(messageId);
-		packet.setData(data);
+		packet.setData(dataString);
 
 		return packet;
 	}

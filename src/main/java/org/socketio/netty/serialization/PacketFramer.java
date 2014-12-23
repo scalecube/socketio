@@ -104,7 +104,7 @@ public final class PacketFramer {
 
 	private static Packet decodeNextPacket(final ByteBuf buffer) throws IOException {
 		Packet packet;
-		if (isDelimeter(buffer, buffer.readerIndex())) {
+		if (isDelimiter(buffer, buffer.readerIndex())) {
 			CharSequence packetCharsCountString = decodePacketLength(buffer);
 			final Integer packetCharsCount = Integer
 					.valueOf(packetCharsCountString.toString());
@@ -168,7 +168,7 @@ public final class PacketFramer {
 		final int scanStartIndex = buffer.readerIndex() + DELIMITER_BYTES_SIZE;
 		final int scanEndIndex = buffer.readerIndex() + buffer.readableBytes();
 		for (int charIndex = scanStartIndex; charIndex < scanEndIndex; charIndex++) {
-			if (isDelimeter(buffer, charIndex)) {
+			if (isDelimiter(buffer, charIndex)) {
 				break;
 			} else {
 				length.append((char) buffer.getUnsignedByte(charIndex));
@@ -177,7 +177,7 @@ public final class PacketFramer {
 		return length;
 	}
 
-	private static boolean isDelimeter(final ByteBuf buffer, final int index) {
+	private static boolean isDelimiter(final ByteBuf buffer, final int index) {
 		for (int i = 0; i < DELIMITER_BYTES_SIZE; i++) {
 			if (buffer.getByte(index + i) != DELIMITER_BYTES[i]) {
 				return false;

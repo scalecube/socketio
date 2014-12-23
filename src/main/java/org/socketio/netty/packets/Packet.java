@@ -22,7 +22,6 @@ public class Packet extends AbstractPacket {
 
 	public static final Packet NULL_INSTANCE = new Packet(null);
 
-	private String id = "";
 	private String data;
 	private int sequenceNumber = 0;
 
@@ -40,14 +39,6 @@ public class Packet extends AbstractPacket {
 
 	public final String getData() {
 		return data;
-	}
-
-	public final String getId() {
-		return id;
-	}
-
-	public void setId(final String id) {
-		this.id = id;
 	}
 
 	/**

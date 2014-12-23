@@ -64,19 +64,11 @@ public final class PacketEncoder {
 
 	public static String encodePacket(final Packet packet) throws IOException {
 		String type = packet.getType().getValueAsString();
-		String messageId = packet.getId();
 		String data = packet.getData();
-
-		int capacity = type.length() + DELIMITER_LENGTH + messageId.length() + DELIMITER_LENGTH;
-		if (data != null) {
-			capacity += DELIMITER_LENGTH + data.length();
-		}
-
+		int capacity = computeCapacity(type, data);
 		StringBuilder result = getReusableStringBuilder(capacity);
-		result.ensureCapacity(capacity);
 		result.append(type);
 		result.append(DELIMITER);
-		result.append(messageId);
 		result.append(DELIMITER);
 		if (data != null) {
 			result.append(DELIMITER);
@@ -86,7 +78,15 @@ public final class PacketEncoder {
 		return result.toString();
 	}
 
-	private static StringBuilder getReusableStringBuilder(int capacity) {
+	private static int computeCapacity(final String type, final String data) {
+		int capacity = type.length() + DELIMITER_LENGTH + DELIMITER_LENGTH;
+		if (data != null) {
+			capacity += DELIMITER_LENGTH + data.length();
+		}
+		return capacity;
+	}
+
+	private static StringBuilder getReusableStringBuilder(final int capacity) {
 		StringBuilder stringBuilder = reusableStringBuilder.get();
 		stringBuilder.setLength(0);
 		stringBuilder.ensureCapacity(capacity);
