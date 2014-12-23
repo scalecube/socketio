@@ -15,9 +15,6 @@
  */
 package org.socketio.netty.packets;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Socket.IO packet type.
  * 

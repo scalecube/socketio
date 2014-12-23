@@ -61,7 +61,6 @@ public class SocketIOHeartbeatSchedulerTest {
             {
                 exactly(2).of(session).sendHeartbeat();
                 oneOf(session).disconnect();
-                oneOf(session).getSessionId();
             }
 
         });
