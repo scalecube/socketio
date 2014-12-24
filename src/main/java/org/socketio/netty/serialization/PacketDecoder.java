@@ -65,9 +65,13 @@ public final class PacketDecoder {
 		Packet packet = new Packet(type);
 
 		// Decode data
-		if (endpointDelimiterIndex != -1) {
-			ByteBuf data = payload.copy(endpointDelimiterIndex + 1, payloadSize - endpointDelimiterIndex - 1);
-			packet.setData(data);
+		boolean messagingType = type == PacketType.MESSAGE || type == PacketType.JSON;
+		if (endpointDelimiterIndex != -1 && messagingType) {
+			int dataLength = payloadSize - endpointDelimiterIndex - 1;
+			if (dataLength > 0) {
+				ByteBuf data = payload.copy(endpointDelimiterIndex + 1, dataLength);
+				packet.setData(data);
+			}
 		}
 
 		return packet;
