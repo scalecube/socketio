@@ -31,8 +31,9 @@ How to use
 	SocketIOServer socketIoServer = new SocketIOServer();
 	socketIoServer.setPort(5000);
 	socketIoServer.setListener(new SocketIOAdapter() {
-		public void onMessage(ISession session, String message) {
-			System.out.println("Received message: " + message);
+		public void onMessage(ISession session, ByteBuf message) {
+			System.out.println("Received message: " + message.toString(CharsetUtil.UTF_8));
+			message.release();
 		}
 	});
 	socketIoServer.start();
@@ -47,7 +48,7 @@ Maven
 <dependency>
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
-	<version>1.0.19</version>
+	<version>1.1.0</version>
 </dependency>
 ```
 
