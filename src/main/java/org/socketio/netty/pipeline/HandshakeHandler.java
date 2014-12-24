@@ -135,7 +135,8 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 			}
 
 			if (HttpMethod.GET.equals(requestMethod) && requestPath.equals(handshakePath)) {
-				log.debug("Received HTTP handshake request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+				if (log.isDebugEnabled())
+					log.debug("Received HTTP handshake request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
 				handshake(ctx, req, queryDecoder);
 				ReferenceCountUtil.release(req);
@@ -150,7 +151,8 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 			throws IOException {
 		// Generate session ID
 		final String sessionId = UUID.randomUUID().toString();
-		log.debug("New sessionId: {} generated", sessionId);
+		if (log.isDebugEnabled())
+			log.debug("New sessionId: {} generated", sessionId);
 
 		// Send handshake response
 		final String handshakeMessage = getHandshakeMessage(sessionId, queryDecoder);
@@ -159,7 +161,8 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 		HttpResponse res = PipelineUtils.createHttpResponse(PipelineUtils.getOrigin(req), content, false);
 		ChannelFuture f = ctx.writeAndFlush(res);
 		f.addListener(ChannelFutureListener.CLOSE);
-		log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx.channel());
+		if (log.isDebugEnabled())
+			log.debug("Sent handshake response: {} to channel: {}", handshakeMessage, ctx.channel());
 	}
 
 	private String getHandshakeMessage(final String sessionId, final QueryStringDecoder queryDecoder) throws IOException {

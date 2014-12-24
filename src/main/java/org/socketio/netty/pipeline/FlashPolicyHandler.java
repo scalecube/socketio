@@ -32,7 +32,7 @@ public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final ByteBuf policyRequestBuffer = Unpooled.copiedBuffer("<policy-file-request/>", CharsetUtil.UTF_8);
+	private final static ByteBuf policyRequestBuffer = Unpooled.copiedBuffer("<policy-file-request/>", CharsetUtil.UTF_8);
 
 	private final static String policyResponse ="<?xml version=\"1.0\"?>"
 			+ "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">"
@@ -40,8 +40,6 @@ public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
 			+ "   <site-control permitted-cross-domain-policies=\"master-only\"/>"
             + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
 			+ "</cross-domain-policy>";
-
-
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -61,7 +59,8 @@ public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
                     ByteBuf response = PipelineUtils.copiedBuffer(ctx.alloc(), policyResponse);
                     ChannelFuture f = ctx.writeAndFlush(response);
                     f.addListener(ChannelFutureListener.CLOSE);
-                    log.debug("Sent flash policy file to channel: {}", ctx.channel());
+					if (log.isDebugEnabled())
+                    	log.debug("Sent flash policy file to channel: {}", ctx.channel());
                     message.release();
                     return;
                 }

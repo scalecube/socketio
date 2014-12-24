@@ -15,25 +15,14 @@
  */
 package org.socketio.netty.packets;
 
-import java.util.Collections;
-import java.util.List;
+import io.netty.buffer.ByteBuf;
 
 public class Packet extends AbstractPacket {
 
 	public static final Packet NULL_INSTANCE = new Packet(null);
 
-	private List<?> args = Collections.emptyList();
-	private String qs;
-	private Object ack;
-	private String ackId;
-	private String name;
-	private String id = "";
-	private String endpoint = "";
-	private Object data;
+	private ByteBuf data;
 	private int sequenceNumber = 0;
-
-	private ErrorReason reason;
-	private ErrorAdvice advice;
 
 	public Packet(final PacketType type) {
 		super(type);
@@ -43,84 +32,12 @@ public class Packet extends AbstractPacket {
 		super(type, sessionId);
 	}
 
-	public void setData(final Object data) {
+	public void setData(final ByteBuf data) {
 		this.data = data;
 	}
 
-	public final Object getData() {
+	public final ByteBuf getData() {
 		return data;
-	}
-
-	public void setEndpoint(final String endpoint) {
-		this.endpoint = endpoint;
-	}
-
-	public final String getEndpoint() {
-		return endpoint;
-	}
-
-	public final String getId() {
-		return id;
-	}
-
-	public void setId(final String id) {
-		this.id = id;
-	}
-
-	public void setAck(final Object ack) {
-		this.ack = ack;
-	}
-
-	public final Object getAck() {
-		return ack;
-	}
-
-	public final String getName() {
-		return name;
-	}
-
-	public void setName(final String name) {
-		this.name = name;
-	}
-
-	public final List<?> getArgs() {
-		return args;
-	}
-
-	public void setArgs(final List<?> args) {
-		this.args = args;
-	}
-
-	public final String getQs() {
-		return qs;
-	}
-
-	public void setQs(final String qs) {
-		this.qs = qs;
-	}
-
-	public final String getAckId() {
-		return ackId;
-	}
-
-	public void setAckId(final String ackId) {
-		this.ackId = ackId;
-	}
-
-	public final ErrorReason getReason() {
-		return reason;
-	}
-
-	public void setReason(final ErrorReason reason) {
-		this.reason = reason;
-	}
-
-	public final ErrorAdvice getAdvice() {
-		return advice;
-	}
-
-	public void setAdvice(final ErrorAdvice advice) {
-		this.advice = advice;
 	}
 
 	/**
@@ -134,18 +51,10 @@ public class Packet extends AbstractPacket {
 	public void setSequenceNumber(int sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
 	}
-	
-	
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Packet [");
-		builder.append(super.toString());
-		builder.append(", data=");
-		builder.append(data);
-		builder.append("]");
-		return builder.toString();
+		return "Packet [" + super.toString() + ", data=" + data + "]";
 	}
 
 }

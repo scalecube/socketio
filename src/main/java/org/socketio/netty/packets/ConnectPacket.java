@@ -52,13 +52,7 @@ public class ConnectPacket extends Packet {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ConnectPacket [");
-		builder.append(super.toString());
-		builder.append(", remoteAddress=");
-		builder.append(remoteAddress);
-		builder.append("]");
-		return builder.toString();
+		return "ConnectPacket [" + super.toString() + ", remoteAddress=" + remoteAddress + "]";
 	}
 
 }

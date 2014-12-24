@@ -78,8 +78,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 				final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 				final String requestPath = queryDecoder.path();
 
-				log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
-						requestPath, ctx.channel());
+				if (log.isDebugEnabled())
+					log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
+							requestPath, ctx.channel());
 
 				handshake(ctx, req, requestPath);
 
@@ -127,7 +128,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	private String getWebSocketLocation(HttpRequest req) {
 		String protocol = secure ? "wss://" : "ws://";
 		String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
-		log.info("Created {} at: {}", getTransportType().getName(), webSocketLocation);
+		if (log.isDebugEnabled())
+			log.debug("Created {} at: {}", getTransportType().getName(), webSocketLocation);
 		return webSocketLocation;
 	}
 
@@ -144,7 +146,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame msg) throws Exception {
-		log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.channel());
+		if (log.isDebugEnabled())
+			log.debug("Received {} WebSocketFrame: {} from channel: {}", getTransportType().getName(), msg, ctx.channel());
 
         if (msg instanceof CloseWebSocketFrame) {
             sessionIdByChannel.remove(ctx.channel());
@@ -160,7 +163,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         }
 
 		TextWebSocketFrame frame = (TextWebSocketFrame) msg;
-		Packet packet = PacketDecoder.decodePacket(frame.text());
+		Packet packet = PacketDecoder.decodePacket(frame.content());
 		packet.setTransportType(getTransportType());
 		String sessionId = sessionIdByChannel.get(ctx.channel());
 		packet.setSessionId(sessionId);

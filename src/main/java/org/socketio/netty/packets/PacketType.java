@@ -15,6 +15,8 @@
  */
 package org.socketio.netty.packets;
 
+import io.netty.util.CharsetUtil;
+
 /**
  * Socket.IO packet type.
  * 
@@ -218,18 +220,33 @@ public enum PacketType {
 	 */
 	NOOP(8);
 
-	private int value;
+	private static final int TYPES_SIZE = 9;
+	private static final PacketType valueToType[] = new PacketType[TYPES_SIZE];
+
+	static {
+		for (PacketType type : values()) {
+			valueToType[type.getValue()] = type;
+		}
+	}
+
+	private final int value;
+	private final byte[] valueAsBytes;
 
 	PacketType(final int value) {
 		this.value = value;
+		this.valueAsBytes = String.valueOf(value).getBytes(CharsetUtil.UTF_8);
 	}
 
 	public int getValue() {
 		return value;
 	}
 
+	public byte[] getValueAsBytes() {
+		return valueAsBytes;
+	}
+
 	public static PacketType valueOf(final int value) {
-		return values()[value];
+		return valueToType[value];
 	}
 
 }

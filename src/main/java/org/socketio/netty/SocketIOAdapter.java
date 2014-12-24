@@ -15,6 +15,7 @@
  */
 package org.socketio.netty;
 
+import io.netty.buffer.ByteBuf;
 
 /**
  * An empty implementation of the ISocketIOListener interface, provided as a convenience 
@@ -31,11 +32,7 @@ public class SocketIOAdapter implements ISocketIOListener {
 	}
 
 	@Override
-	public void onJsonObject(ISession session, Object obj) {
-	}
-
-	@Override
-	public void onMessage(ISession session, String message) {
+	public void onMessage(ISession session, ByteBuf message) {
 	}
 
 	@Override

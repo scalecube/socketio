@@ -69,9 +69,10 @@ public class SessionStorage {
 			final String sessionId = connectPacket.getSessionId();
 			removeSession(sessionId);
 			session = createSession(connectPacket, channel, disconnectHandler, session.getTransportType());
-			
-			log.debug("{} transport type {} session was upgraded to new transport type {} and session {}", 
-					oldTransportType.name(), oldSessionId, session.getTransportType().name(), session.getSessionId());
+
+			if (log.isDebugEnabled())
+				log.debug("{} transport type {} session was upgraded to new transport type {} and session {}",
+						oldTransportType.name(), oldSessionId, session.getTransportType().name(), session.getSessionId());
 		}
 		
 		return session;

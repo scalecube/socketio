@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketsFrame;
@@ -64,31 +66,74 @@ public final class PacketFramer {
 	private PacketFramer() {
 	}
 
-	public static String encodePacketsFrame(
-			final PacketsFrame packetsFrame) throws IOException {
-		List<IPacket> packets = packetsFrame.getPackets();
-		StringBuilder result = new StringBuilder();
+	public static ByteBuf encodePacketsFrame(final PacketsFrame packetsFrame) throws IOException {
+		List<Packet> packets = packetsFrame.getPackets();
 		if (packets.size() == 1) {
-			IPacket p = packets.get(0);
-			if (p instanceof Packet) {
-				result.append(PacketEncoder.encodePacket((Packet) packets
-						.get(0)));
-			}
+			Packet packet = packets.get(0);
+			return PacketEncoder.encodePacket(packet);
 		} else {
-			for (IPacket p : packets) {
-				if (p instanceof Packet) {
-					Packet item = (Packet) p;
-					String message = PacketEncoder.encodePacket(item);
-					result.append(PacketFramer.DELIMITER)
-							.append(message.length())
-							.append(PacketFramer.DELIMITER).append(message);
-				}
+			CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(packets.size() * 2);
+			int compositeReadableBytes = 0;
+
+			for (Packet packet : packets) {
+				// Decode packet
+				ByteBuf packetByteBuf = PacketEncoder.encodePacket(packet);
+
+				// Prepare length prepender
+				int packetLength = getUtf8CharCountByByteCount(packetByteBuf, 0, packetByteBuf.readableBytes());
+				byte[] packetLengthBytes = String.valueOf(packetLength).getBytes(CharsetUtil.UTF_8);
+				int packetLengthPrependerCapacity = packetLengthBytes.length + DELIMITER_BYTES_SIZE + DELIMITER_BYTES_SIZE;
+				ByteBuf packetLengthPrependerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(packetLengthPrependerCapacity, packetLengthPrependerCapacity);
+				packetLengthPrependerByteBuf.writeBytes(DELIMITER_BYTES);
+				packetLengthPrependerByteBuf.writeBytes(packetLengthBytes);
+				packetLengthPrependerByteBuf.writeBytes(DELIMITER_BYTES);
+
+				// Update composite byte buffer
+				compositeByteBuf.addComponent(packetLengthPrependerByteBuf);
+				compositeByteBuf.addComponent(packetByteBuf);
+				compositeReadableBytes += packetLengthPrependerByteBuf.readableBytes() + packetByteBuf.readableBytes();
+			}
+
+			compositeByteBuf.writerIndex(compositeReadableBytes);
+			return compositeByteBuf;
+		}
+	}
+
+	private static int getUtf8CharCountByByteCount(final ByteBuf buffer, final int startByteIndex, final int bytesCount) {
+		int charCount = 0;
+		int endByteIndex = startByteIndex + bytesCount;
+		int byteIndex = startByteIndex;
+		while (byteIndex < endByteIndex) {
+			charCount++;
+			// Define next char first byte
+			short charFirstByte = buffer.getUnsignedByte(byteIndex);
+
+			// Scan first byte of UTF-8 character according to:
+			// http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+			if ((charFirstByte >= 0x20) && (charFirstByte <= 0x7F)) {
+				// characters U-00000000 - U-0000007F (same as ASCII)
+				byteIndex++;
+			} else if ((charFirstByte & 0xE0) == 0xC0) {
+				// characters U-00000080 - U-000007FF, mask 110XXXXX
+				byteIndex += 2;
+			} else if ((charFirstByte & 0xF0) == 0xE0) {
+				// characters U-00000800 - U-0000FFFF, mask 1110XXXX
+				byteIndex += 3;
+			} else if ((charFirstByte & 0xF8) == 0xF0) {
+				// characters U-00010000 - U-001FFFFF, mask 11110XXX
+				byteIndex += 4;
+			} else if ((charFirstByte & 0xFC) == 0xF8) {
+				// characters U-00200000 - U-03FFFFFF, mask 111110XX
+				byteIndex += 5;
+			} else if ((charFirstByte & 0xFE) == 0xFC) {
+				// characters U-04000000 - U-7FFFFFFF, mask 1111110X
+				byteIndex += 6;
+			} else {
+				byteIndex++;
 			}
 		}
-		return result.toString();
+		return charCount;
 	}
-	
-
 
 	public static List<Packet> decodePacketsFrame(final ByteBuf buffer) throws IOException {
 		List<Packet> packets = new LinkedList<Packet>();
@@ -104,33 +149,28 @@ public final class PacketFramer {
 
 	private static Packet decodeNextPacket(final ByteBuf buffer) throws IOException {
 		Packet packet;
-		if (isDelimeter(buffer, buffer.readerIndex())) {
+		if (isDelimiter(buffer, buffer.readerIndex())) {
 			CharSequence packetCharsCountString = decodePacketLength(buffer);
-			final Integer packetCharsCount = Integer
-					.valueOf(packetCharsCountString.toString());
+			final Integer packetCharsCount = Integer.valueOf(packetCharsCountString.toString());
 			final int packetStartIndex = buffer.readerIndex()
-					+ DELIMITER_BYTES_SIZE + packetCharsCountString.length()
+					+ DELIMITER_BYTES_SIZE
+					+ packetCharsCountString.length()
 					+ DELIMITER_BYTES_SIZE;
-			final int packetBytesCount = getUtf8ByteCountByCharCount(buffer,
-					packetStartIndex, packetCharsCount);
+			final int packetBytesCount = getUtf8ByteCountByCharCount(buffer, packetStartIndex, packetCharsCount);
 
 			ByteBuf frame = buffer.slice(packetStartIndex, packetBytesCount);
 
-			packet = PacketDecoder.decodePacket(frame.toString(CharsetUtil.UTF_8));
+			packet = PacketDecoder.decodePacket(frame);
 			buffer.readerIndex(packetStartIndex + packetBytesCount);
-			
-			return packet;
 		} else {
-			packet = PacketDecoder.decodePacket(buffer.toString(CharsetUtil.UTF_8));
+			packet = PacketDecoder.decodePacket(buffer);
 			buffer.readerIndex(buffer.readableBytes());
-			
-			return packet;
 		}
+		return packet;
 	}
 
 	private static int getUtf8ByteCountByCharCount(final ByteBuf buffer, final int startIndex, final int charCount) {
 		int bytesCount = 0;
-
 		for (int charIndex = 0; charIndex < charCount; charIndex++) {
 			// Define next char first byte
 			int charFirstByteIndex = startIndex + bytesCount;
@@ -168,7 +208,7 @@ public final class PacketFramer {
 		final int scanStartIndex = buffer.readerIndex() + DELIMITER_BYTES_SIZE;
 		final int scanEndIndex = buffer.readerIndex() + buffer.readableBytes();
 		for (int charIndex = scanStartIndex; charIndex < scanEndIndex; charIndex++) {
-			if (isDelimeter(buffer, charIndex)) {
+			if (isDelimiter(buffer, charIndex)) {
 				break;
 			} else {
 				length.append((char) buffer.getUnsignedByte(charIndex));
@@ -177,7 +217,7 @@ public final class PacketFramer {
 		return length;
 	}
 
-	private static boolean isDelimeter(final ByteBuf buffer, final int index) {
+	private static boolean isDelimiter(final ByteBuf buffer, final int index) {
 		for (int i = 0; i < DELIMITER_BYTES_SIZE; i++) {
 			if (buffer.getByte(index + i) != DELIMITER_BYTES[i]) {
 				return false;

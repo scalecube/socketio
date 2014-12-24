@@ -18,26 +18,27 @@ package org.socketio.netty.session;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.socketio.netty.packets.IPacket;
+import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketsFrame;
 
 
 public class PollingQueue {
 
-	private final ConcurrentLinkedQueue<IPacket> packetQueue = new ConcurrentLinkedQueue<IPacket>();
+	private final ConcurrentLinkedQueue<Packet> packetQueue = new ConcurrentLinkedQueue<Packet>();
 	
 	public PollingQueue() {
 	}
 
 	public PacketsFrame takeAll() {
 		PacketsFrame frame = new PacketsFrame();
-		IPacket packet = null;
+		Packet packet;
 		while((packet = packetQueue.poll()) != null) {
 			frame.getPackets().add(packet);
 		}
 		return frame;
 	}
 		
-	public void add(final IPacket packet) {
+	public void add(final Packet packet) {
 		if (packet != null) {
 			packetQueue.add(packet);
 		}

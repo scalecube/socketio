@@ -16,16 +16,13 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
-import org.socketio.netty.packets.ErrorAdvice;
-import org.socketio.netty.packets.ErrorReason;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
-import org.socketio.netty.serialization.PacketEncoder;
 
 /**
  * 
@@ -38,10 +35,10 @@ public class PacketEncoderTest {
     public void testEncodeAckPacket() throws IOException {
 		// Given
 		Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("140");
+        packet.setData(Unpooled.copiedBuffer("140", CharsetUtil.UTF_8));
     	
     	// When
-        String result = PacketEncoder.encodePacket(packet);
+        String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("6:::140", result);
@@ -51,11 +48,10 @@ public class PacketEncoderTest {
     public void testEncodeAckPacketWithArgs() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("12");
-        packet.setArgs(Arrays.asList("woot", "wa"));
-    	
+        packet.setData(Unpooled.copiedBuffer("12+[\"woot\",\"wa\"]", CharsetUtil.UTF_8));
+
     	// When
-        String result = PacketEncoder.encodePacket(packet);
+        String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result);
@@ -67,7 +63,7 @@ public class PacketEncoderTest {
     	Packet packet = new Packet(PacketType.HEARTBEAT);
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("2::", result);
@@ -77,40 +73,43 @@ public class PacketEncoderTest {
     public void testEncodeDisconnectPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.DISCONNECT);
-    	packet.setEndpoint("/woot");
+    	//packet.setEndpoint("/woot");
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("0::/woot", result);
+        //Assert.assertEquals("0::/woot", result);
+		Assert.assertEquals("0::", result);
     }
 
     @Test
     public void testEncodeConnectPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.CONNECT);
-        packet.setEndpoint("/tobi");
+        //packet.setEndpoint("/tobi");
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("1::/tobi", result);
+        //Assert.assertEquals("1::/tobi", result);
+		Assert.assertEquals("1::", result);
     }
 
     @Test
     public void testEncodeConnectPacketWithQueryString() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.CONNECT);
-        packet.setEndpoint("/test");
-        packet.setQs("?test=1");
+        //packet.setEndpoint("/test");
+        packet.setData(Unpooled.copiedBuffer("?test=1", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("1::/test:?test=1", result);
+        //Assert.assertEquals("1::/test:?test=1", result);
+		Assert.assertEquals("1:::?test=1", result);
     }
     
     @Test
@@ -119,7 +118,7 @@ public class PacketEncoderTest {
     	Packet packet = new Packet(PacketType.ERROR);
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("7::", result);
@@ -129,10 +128,10 @@ public class PacketEncoderTest {
     public void testEncodeErrorPacketWithReason() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ERROR);
-        packet.setReason(ErrorReason.TRANSPORT_NOT_SUPPORTED);
+        packet.setData(Unpooled.copiedBuffer("0", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("7:::0", result);
@@ -142,11 +141,10 @@ public class PacketEncoderTest {
     public void testEncodeErrorPacketWithReasonAndAdvice() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ERROR);
-        packet.setReason(ErrorReason.UNAUTHORIZED);
-        packet.setAdvice(ErrorAdvice.RECONNECT);
-    	
+        packet.setData(Unpooled.copiedBuffer("2+0", CharsetUtil.UTF_8));
+
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("7:::2+0", result);
@@ -156,23 +154,24 @@ public class PacketEncoderTest {
     public void testEncodeErrorPacketWithEndpoint() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.ERROR);
-        packet.setEndpoint("/woot");
+        //packet.setEndpoint("/woot");
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("7::/woot", result);
+        //Assert.assertEquals("7::/woot", result);
+		Assert.assertEquals("7::", result);
     }
     
     @Test
     public void testEncodeEventPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setName("woot");
+        packet.setData(Unpooled.copiedBuffer("{\"name\":\"woot\"}", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("5:::{\"name\":\"woot\"}", result);
@@ -182,26 +181,25 @@ public class PacketEncoderTest {
     public void testEncodeEventPacketWithMessageIdAndAck() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setId("1");
-        packet.setAck("data");
-        packet.setName("tobi");
-    	
+        //packet.setId("1+");
+        packet.setData(Unpooled.copiedBuffer("{\"name\":\"tobi\"}", CharsetUtil.UTF_8));
+
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result);
+        //Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result);
+		Assert.assertEquals("5:::{\"name\":\"tobi\"}", result);
     }
 
     @Test
     public void testEncodeEventPacketWithData() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.EVENT);
-        packet.setName("edwald");
-        packet.setArgs(Arrays.asList(Collections.singletonMap("a", "b"), 2, "3"));
-    	
+        packet.setData(Unpooled.copiedBuffer("{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}", CharsetUtil.UTF_8));
+
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("5:::{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}", result);
@@ -211,10 +209,10 @@ public class PacketEncoderTest {
     public void testEncodeJsonPacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.JSON);
-        packet.setData("2");
+        packet.setData(Unpooled.copiedBuffer("\"2\"", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("4:::\"2\"", result);
@@ -224,25 +222,25 @@ public class PacketEncoderTest {
     public void testEncodeJsonPacketWithMessageIdAndAckData() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.JSON);
-        packet.setId("1");
-        packet.setAck("data");
-        packet.setData(Collections.singletonMap("a", "b"));
+        //packet.setId("1+");
+        packet.setData(Unpooled.copiedBuffer("{\"a\":\"b\"}", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("4:1+::{\"a\":\"b\"}", result);
+        //Assert.assertEquals("4:1+::{\"a\":\"b\"}", result);
+		Assert.assertEquals("4:::{\"a\":\"b\"}", result);
     }
     
     @Test
     public void testEncodeMessagePacket() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData("woot");
+        packet.setData(Unpooled.copiedBuffer("woot", CharsetUtil.UTF_8));
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
         Assert.assertEquals("3:::woot", result);
@@ -252,15 +250,15 @@ public class PacketEncoderTest {
     public void testEncodeMessagePacketWithIdAndEndpoint() throws IOException {
     	// Given
     	Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setId("5");
-        packet.setAck(true);
-        packet.setEndpoint("/tobi");
+        //packet.setId("5");
+        //packet.setEndpoint("/tobi");
     	
     	// When
-    	String result = PacketEncoder.encodePacket(packet);
+    	String result = PacketEncoder.encodePacket(packet).toString(CharsetUtil.UTF_8);
         
         // Then
-        Assert.assertEquals("3:5:/tobi", result);
+        //Assert.assertEquals("3:5:/tobi", result);
+		Assert.assertEquals("3::", result);
     }
 	
 }

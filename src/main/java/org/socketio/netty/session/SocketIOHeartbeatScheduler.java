@@ -98,7 +98,8 @@ public class SocketIOHeartbeatScheduler {
 			@Override
 			public void run(Timeout timeout) throws Exception {
 				if (!disabled) {
-					log.debug("{} Session will be disconnected by timeout", session.getSessionId());
+					if (log.isDebugEnabled())
+						log.debug("{} Session will be disconnected by timeout", session.getSessionId());
 					session.disconnect();
 				}
 			}

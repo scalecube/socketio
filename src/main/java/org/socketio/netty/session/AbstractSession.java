@@ -18,16 +18,15 @@ package org.socketio.netty.session;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.IPacket;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 
 public abstract class AbstractSession implements IManagedSession {
 	
@@ -133,25 +132,20 @@ public abstract class AbstractSession implements IManagedSession {
 	}
 	
 	@Override
-	public ISessionFuture sendHeartbeat() {
-		return sendPacket(heartbeatPacket);
+	public void sendHeartbeat() {
+		sendPacket(heartbeatPacket);
 	}
 	
 	@Override
-	public ISessionFuture send(final String message) {
+	public void send(final ByteBuf message) {
 		Packet messagePacket = new Packet(PacketType.MESSAGE);
         messagePacket.setData(message);
-        return sendPacket(messagePacket);
+        sendPacket(messagePacket);
 	}
 	
-	protected ISessionFuture sendPacketToChannel(final Channel channel, IPacket packet) {
-		try {
-			fillPacketHeaders(packet);
-			ChannelFuture channelFuture = channel.writeAndFlush(packet);
-			return new DefaultSessionFuture(channelFuture, this);
-		} catch (Exception e) {
-			return new CompleteSessionFuture(this, false, e);
-		}
+	protected void sendPacketToChannel(final Channel channel, IPacket packet) {
+		fillPacketHeaders(packet);
+		channel.writeAndFlush(packet);
 	}
 	
 	@Override
@@ -175,7 +169,7 @@ public abstract class AbstractSession implements IManagedSession {
 	
 	protected State setState(final State state) {
 		State previousState = stateHolder.getAndSet(state);
-		if (previousState != state) {
+		if (previousState != state && log.isDebugEnabled()) {
 			log.debug("Session {} state changed from {} to {}", getSessionId(), previousState, state);
 		}
 		return previousState;

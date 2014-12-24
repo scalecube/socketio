@@ -18,7 +18,6 @@ package org.socketio.netty.session;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.socketio.netty.ISessionFuture;
 import org.socketio.netty.TransportType;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
@@ -31,8 +30,6 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	private final Packet ackPacket = new Packet(PacketType.ACK);
 	private final PollingQueue messagesQueue = new PollingQueue();
 	private final AtomicReference<Channel> outChannelHolder = new AtomicReference<Channel>();
-
-	private DelayedSessionFuture delayedSendSessionFuture;
 
 	public AbstractPollingSession(final Channel channel, final String sessionId, final String origin,
 			final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
@@ -58,43 +55,29 @@ public abstract class AbstractPollingSession extends AbstractSession {
 	}
 
 	private void flush(final Channel channel) {
-		ISessionFuture sessionFuture = null;
-		DelayedSessionFuture currentDelayedSessionFuture = null;
 		synchronized (messagesQueue) {
 			if (messagesQueue.isEmpty()) {
 				outChannelHolder.set(channel);
 			} else {
 				PacketsFrame packetsFrame = messagesQueue.takeAll();
-				sessionFuture = sendPacketToChannel(channel, packetsFrame);
-				currentDelayedSessionFuture = delayedSendSessionFuture;
-				delayedSendSessionFuture = null;
+				sendPacketToChannel(channel, packetsFrame);
 			}
-		}
-
-		if (currentDelayedSessionFuture != null) {
-			currentDelayedSessionFuture.initSessionFuture(sessionFuture);
 		}
 	}
 
 	@Override
-	public ISessionFuture sendPacket(final Packet packet) {
+	public void sendPacket(final Packet packet) {
 		if (packet == null) {
-			return new CompleteSessionFuture(this, false, new NullPointerException("Packet is null"));
+			throw new IllegalArgumentException("Packet is null");
 		}
 
 		Channel channel = outChannelHolder.getAndSet(null);
 		if (channel != null && channel.isActive()) {
-			return sendPacketToChannel(channel, packet);
+			sendPacketToChannel(channel, packet);
 		} else {
 			synchronized (messagesQueue) {
 				messagesQueue.add(packet);
-
-				if (delayedSendSessionFuture == null) {
-					delayedSendSessionFuture = new DelayedSessionFuture(this);
-				}
 			}
-
-			return delayedSendSessionFuture;
 		}
 	}
 

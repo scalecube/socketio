@@ -16,11 +16,12 @@
 package org.socketio.netty.serialization;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.ByteBuffer;
 
-import org.socketio.netty.packets.Event;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.util.CharsetUtil;
 import org.socketio.netty.packets.Packet;
 
 /**
@@ -50,109 +51,40 @@ import org.socketio.netty.packets.Packet;
  */
 public final class PacketEncoder {
 
+	private static final String DELIMITER = ":";
+	private static final byte[] DELIMITER_BYTES = DELIMITER.getBytes(CharsetUtil.UTF_8);
+	private static final int DELIMITER_LENGTH = DELIMITER_BYTES.length;
+
 	/**
 	 * Don't let anyone instantiate this class.
 	 */
 	private PacketEncoder() {
 	}
 
-	public static String encodePacket(final Packet packet) throws IOException {
-		int type = packet.getType().getValue();
-		String id = packet.getId();
-		String endpoint = packet.getEndpoint();
-		Object ack = packet.getAck();
-		Object data = packet.getData();
+	public static ByteBuf encodePacket(final Packet packet) throws IOException {
+		ByteBuf dataBytes = packet.getData();
+		boolean hasData = dataBytes != null;
 
-		switch (packet.getType()) {
-			case MESSAGE:
-				if (packet.getData() != null) {
-					data = packet.getData();
-				}
-				break;
-	
-			case EVENT:
-				List<?> args = packet.getArgs();
-				if (args.isEmpty()) {
-					args = null;
-				}
-				Event event = new Event(packet.getName(), args);
-				data = JsonObjectMapperProvider.getObjectMapper()
-						.writeValueAsString(event);
-				break;
-	
-			case JSON:
-				data = JsonObjectMapperProvider.getObjectMapper()
-						.writeValueAsString(packet.getData());
-				break;
-	
-			case CONNECT:
-				data = packet.getQs();
-				break;
-	
-			case ACK:
-				String dataStr = packet.getAckId();
-				if (!packet.getArgs().isEmpty()) {
-					dataStr += "+"
-							+ JsonObjectMapperProvider.getObjectMapper()
-									.writeValueAsString(packet.getArgs());
-				}
-				data = dataStr;
-				break;
-	
-			case ERROR:
-				int reasonCode = -1;
-				int adviceCode = -1;
-				if (packet.getReason() != null) {
-					reasonCode = packet.getReason().getValue();
-				}
-				if (packet.getAdvice() != null) {
-					adviceCode = packet.getAdvice().getValue();
-				}
-	
-				if (reasonCode != -1 || adviceCode != -1) {
-					StringBuilder errorData = new StringBuilder();
-					if (reasonCode != -1) {
-						errorData.append(reasonCode);
-					}
-					if (adviceCode != -1) {
-						errorData.append("+").append(adviceCode);
-					}
-					data = errorData;
-				}
-				break;
-			case NOOP:
-			case DISCONNECT:
-			case HEARTBEAT:
-			default:
-				/* Do nothing */
-				break;
+		CompositeByteBuf compositeByteBuf = PooledByteBufAllocator.DEFAULT.compositeBuffer(hasData ? 1 : 2);
+
+		byte[] typeBytes = packet.getType().getValueAsBytes();
+		int headerCapacity = typeBytes.length + DELIMITER_LENGTH + DELIMITER_LENGTH + (hasData ? DELIMITER_LENGTH : 0);
+		ByteBuf headerByteBuf = PooledByteBufAllocator.DEFAULT.buffer(headerCapacity, headerCapacity);
+		headerByteBuf.writeBytes(typeBytes);
+		headerByteBuf.writeBytes(DELIMITER_BYTES);
+		headerByteBuf.writeBytes(DELIMITER_BYTES);
+		if (hasData) {
+			headerByteBuf.writeBytes(DELIMITER_BYTES);
+		}
+		compositeByteBuf.addComponent(headerByteBuf);
+		int compositeReadableBytes = headerByteBuf.readableBytes();
+
+		if (hasData) {
+			compositeByteBuf.addComponent(dataBytes);
+			compositeReadableBytes += dataBytes.readableBytes();
 		}
 
-		List<Object> params = new ArrayList<Object>(4);
-		params.add(type);
-		if ("data".equals(ack)) {
-			params.add(id + "+");
-		} else {
-			params.add(id);
-		}
-		params.add(endpoint);
-		if (data != null) {
-			params.add(data);
-		}
-
-		return join(":", params);
+		compositeByteBuf.writerIndex(compositeReadableBytes);
+		return compositeByteBuf;
 	}
-
-	private static String join(final String delimiter, final List<Object> args) {
-		StringBuilder result = new StringBuilder();
-		for (Iterator<Object> iterator = args.iterator(); iterator.hasNext();) {
-			Object arg = iterator.next();
-			result.append(arg);
-			if (iterator.hasNext()) {
-				result.append(delimiter);
-			}
-		}
-		return result.toString();
-	}
-
 }

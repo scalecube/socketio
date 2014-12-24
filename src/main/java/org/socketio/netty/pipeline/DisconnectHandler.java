@@ -62,7 +62,8 @@ public class DisconnectHandler extends ChannelInboundHandlerAdapter {
 
 			boolean disconnect = queryDecoder.parameters().containsKey(DISCONNECT);
 			if (disconnect) {
-				log.debug("Received HTTP disconnect request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
+				if (log.isDebugEnabled())
+					log.debug("Received HTTP disconnect request: {} {} from channel: {}", requestMethod, requestPath, ctx.channel());
 
 				final String sessionId = PipelineUtils.getSessionId(requestPath);
 				final Packet disconnectPacket = new Packet(PacketType.DISCONNECT, sessionId);
