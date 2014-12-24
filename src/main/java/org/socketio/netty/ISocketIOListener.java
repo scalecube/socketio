@@ -17,12 +17,34 @@ package org.socketio.netty;
 
 import io.netty.buffer.ByteBuf;
 
+/**
+ * High level interface which abstracts Socket.IO transport implementation details
+ * and publishes events to server services.
+ */
 public interface ISocketIOListener {
 
+	/**
+	 * Notify about new Socket.IO session established event.
+	 *
+	 * @param session the connected session
+	 */
     void onConnect(final ISession session);
 
+	/**
+	 * Notify about arrival of new message. It is a responsibility of interface implementation
+	 * to release provided message's byte buffer. In case if byte buffer won't be released it
+	 * will cause memory leak.
+	 *
+	 * @param session session to which messages arrived
+	 * @param message message's payload
+	 */
     void onMessage(final ISession session, final ByteBuf message);
 
+	/**
+	 * Notify about Socket.IO session disconnection event.
+	 *
+	 * @param session the disconnected session
+	 */
     void onDisconnect(final ISession session);
 
 }

@@ -34,12 +34,12 @@ public interface ISession {
 	}
 
 	/**
-	 * @return the session token for this client
+	 * Returns session identifier.
 	 */
 	String getSessionId();
 
 	/**
-	 * @return the origin of this session
+	 * Returns origin header of this session.
 	 */
 	String getOrigin();
 
@@ -59,39 +59,36 @@ public interface ISession {
 	TransportType getUpgradedFromTransportType();
 
 	/**
-	 * @return transport type for this session (e.g. WebSocket or XHR-POlling).
+	 * Returns transport type for this session (e.g. WebSocket or XHR-Polling).
 	 */
 	TransportType getTransportType();
 
 	/**
-	 * the remote client address
-	 * 
-	 * @return the remote client address
+	 * Returns remote address of the client.
 	 */
 	SocketAddress getRemoteAddress();
 	
 	/**
-	 * session connected indicator
-	 * 
-	 * @return true if channel is connected
+	 * Returns session state (see {@link ISession.State}).
 	 */
 	State getState();
 	
 	/**
-	 * @return local port of client connection   
+	 * Returns local port to which client connection is established.
  	 */
 	int getLocalPort();
 	
 	/**
-	 * send message to client
-	 * 
+	 * Sends provided message's payload to client. Passed ByteBuf will be released
+	 * during sending operation.
+	 *
 	 * @param message
-	 *            message to be sent to client
+	 *            message's payload to be sent to client
 	 */
 	void send(final ByteBuf message);
 
 	/**
-	 * disconnect this session
+	 * Disconnects this session
 	 */
 	void disconnect();
 
