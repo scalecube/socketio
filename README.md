@@ -32,7 +32,7 @@ How to use
 	socketIoServer.setPort(5000);
 	socketIoServer.setListener(new SocketIOAdapter() {
 		public void onMessage(ISession session, ByteBuf message) {
-			System.out.println("Received message: " + message.toString(CharsetUtil.UTF_8));
+			System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
 			message.release();
 		}
 	});
