@@ -23,12 +23,10 @@ import java.util.UUID;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.socketio.netty.serialization.JsonObjectMapperProvider;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 
 /**
  * This class implements Socket.IO handshake procedure described below:
@@ -169,7 +167,7 @@ public class HandshakeHandler extends ChannelInboundHandlerAdapter {
 		String jsonpParam = PipelineUtils.extractParameter(queryDecoder, "jsonp");
 		String handshakeParameters = sessionId + commonHandshakeParameters;
 		if (jsonpParam != null) {
-			return "io.j[" + jsonpParam + "](" + JsonObjectMapperProvider.getObjectMapper().writeValueAsString(handshakeParameters) + ");";
+			return "io.j[" + jsonpParam + "](\"" + handshakeParameters + "\");";
 		} else {
 			return handshakeParameters;
 		}

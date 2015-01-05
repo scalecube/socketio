@@ -26,8 +26,6 @@ import org.junit.Test;
 import org.socketio.netty.packets.Packet;
 import org.socketio.netty.packets.PacketType;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 /**
  * 
  * @author Anton Kharenko
@@ -234,22 +232,6 @@ public class PacketDecoderTest {
         //Assert.assertEquals("12+[\"woot\",\"wa\"]", packet.getData().toString(CharsetUtil.UTF_8));
     }
 
-    @Test
-	@Ignore // Removed verification of JSON correctness during packet decoding phase
-    public void testDecodeAckPacketWithBadJson() throws IOException {
-    	// Given
-    	String message = "6:::1+{\"++]";
-		ByteBuf byteMessage = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
-    	
-    	try {
-	    	// When
-	    	PacketDecoder.decodePacket(byteMessage);
-	    	
-	    	// Then
-	    	Assert.fail();
-    	} catch (JsonMappingException e) {}
-    }
-    
     @Test
     public void testDecodeErrorPacket() throws IOException {
     	// Given

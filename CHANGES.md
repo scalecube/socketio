@@ -3,6 +3,7 @@ Changes
 
 1.1.2
 -----------------------
+* Remove dependency on Jackson library
 
 1.1.1 / 2014-12-24
 -----------------------
