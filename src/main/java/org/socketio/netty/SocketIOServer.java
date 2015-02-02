@@ -66,6 +66,7 @@ public class SocketIOServer {
     public SocketIOServer(ServerConfiguration configuration){
         this.configuration = configuration;
     }
+
 	/**
 	 * Starts Socket.IO server with current configuration settings.
 	 * 
@@ -86,17 +87,16 @@ public class SocketIOServer {
         SocketIOHeartbeatScheduler.setHeartbeatInterval(configuration.getHeartbeatInterval());
         SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
+		if (bootstrap == null) {
+			bootstrap = new ServerBootstrap()
+					.group(new NioEventLoopGroup(), new NioEventLoopGroup())
+					.channel(NioServerSocketChannel.class)
+					.childOption(ChannelOption.TCP_NODELAY, true)
+					.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+		}
 		// Configure server
-        SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(
-                configuration, listener,
-                sslContext
-        );
-		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(), new NioEventLoopGroup())
-                .channel(NioServerSocketChannel.class)
-				.childHandler(channelInitializer)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+		SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener, sslContext);
+		bootstrap.childHandler(channelInitializer);
 
 		int port = configuration.getPort();
 		bootstrap.bind(new InetSocketAddress(port));
@@ -287,9 +287,13 @@ public class SocketIOServer {
         this.configuration.setHeaderClientIpAddressName(headerClientIpAddressName);
 	}
 
+	public void setBootstrap(ServerBootstrap bootstrap) {
+		this.bootstrap = bootstrap;
+	}
+
 	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	     * @see java.lang.Object#toString()
+	     */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
