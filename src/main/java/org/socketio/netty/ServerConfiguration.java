@@ -15,6 +15,12 @@
  */
 package org.socketio.netty;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 /**
  * Class represents different options of socket.io server
  */
@@ -37,13 +43,18 @@ public class ServerConfiguration {
     private String headerClientIpAddressName;
     private boolean eventExecutorEnabled = true;
     private int eventWorkersNumber = Runtime.getRuntime().availableProcessors();
-
+	private ServerBootstrap bootstrap;
 
     /**
      * Private constructor. Use {@link org.socketio.netty.ServerConfiguration.Builder} to build configuration.
      */
-    ServerConfiguration() {
-    }
+	ServerConfiguration() {
+		bootstrap = new ServerBootstrap()
+				.group(new NioEventLoopGroup(), new NioEventLoopGroup())
+				.channel(NioServerSocketChannel.class)
+				.childOption(ChannelOption.TCP_NODELAY, true)
+				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+	}
 
     void setPort(int port) {
         this.port = port;
@@ -80,6 +91,10 @@ public class ServerConfiguration {
     void setEventWorkersNumber(int eventWorkersNumber) {
         this.eventWorkersNumber = eventWorkersNumber;
     }
+
+	public void setBootstrap(ServerBootstrap bootstrap) {
+		this.bootstrap = bootstrap;
+	}
 
     /**
      * Port on which Socket.IO server will be started. Default value is 8080.
@@ -138,7 +153,9 @@ public class ServerConfiguration {
         return eventWorkersNumber;
     }
 
-
+	public ServerBootstrap getBootstrap() {
+		return bootstrap;
+	}
 
     public boolean isEventExecutorEnabled() {
         return eventExecutorEnabled;
@@ -225,6 +242,11 @@ public class ServerConfiguration {
             configuration.setEventWorkersNumber(eventWorkersNumber);
             return this;
         }
+
+		public Builder setBootstrap(ServerBootstrap bootstrap) {
+			configuration.setBootstrap(bootstrap);
+			return this;
+		}
 
         /**
          * Return server configuration
