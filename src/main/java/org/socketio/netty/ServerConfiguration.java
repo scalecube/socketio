@@ -45,12 +45,16 @@ public class ServerConfiguration {
     private int eventWorkersNumber = Runtime.getRuntime().availableProcessors();
 	private ServerBootstrap bootstrap;
 
-    /**
-     * Private constructor. Use {@link org.socketio.netty.ServerConfiguration.Builder} to build configuration.
-     */
+	/**
+	 * Private constructor. Use {@link org.socketio.netty.ServerConfiguration.Builder} to build configuration.
+	 */
 	ServerConfiguration() {
+		this(new NioEventLoopGroup(), new NioEventLoopGroup());
+	}
+
+	ServerConfiguration(NioEventLoopGroup parentGroup, NioEventLoopGroup childGroup) {
 		bootstrap = new ServerBootstrap()
-				.group(new NioEventLoopGroup(), new NioEventLoopGroup())
+				.group(parentGroup, childGroup)
 				.channel(NioServerSocketChannel.class)
 				.childOption(ChannelOption.TCP_NODELAY, true)
 				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -161,12 +165,20 @@ public class ServerConfiguration {
         return eventExecutorEnabled;
     }
 
-    public static class Builder{
-        private final ServerConfiguration configuration = new ServerConfiguration();
+	public static class Builder {
+		private final ServerConfiguration configuration;
 
-        /**
-         * Port on which Socket.IO server will be started. Default value is 8080.
-         */
+		public Builder() {
+			configuration = new ServerConfiguration();
+		}
+
+		public Builder(NioEventLoopGroup parentGroup, NioEventLoopGroup childGroup) {
+			configuration = new ServerConfiguration(parentGroup, childGroup);
+		}
+
+		/**
+		 * Port on which Socket.IO server will be started. Default value is 8080.
+		 */
         public Builder setPort(int port){
             configuration.setPort(port);
             return this;
