@@ -159,7 +159,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             return;
         } else if (!(msg instanceof TextWebSocketFrame)) {
             msg.release();
-            throw new UnsupportedOperationException(String.format("%s frame types not supported", msg.getClass().getName()));
+            log.warn(String.format("%s frame types not supported", msg.getClass().getName()));
+            return;
         }
 
 		TextWebSocketFrame frame = (TextWebSocketFrame) msg;

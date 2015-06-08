@@ -5,6 +5,7 @@ Changes
 -----------------------
 * Remove dependency on Jackson library
 * Update Netty to version 4.0.25.Final
+* Ignore PongWebsocketFrame as not supported, change log level for IOException
 
 1.1.1 / 2014-12-24
 -----------------------
