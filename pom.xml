@@ -4,7 +4,7 @@
 
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
-	<version>1.1.2</version>
+	<version>1.1.3-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>socketIo4Netty</name>
 	<description>Socket.IO Java server based on Netty</description>
@@ -23,7 +23,7 @@
 		<connection>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</connection>
 		<developerConnection>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</developerConnection>
 		<url>scm:git:git@github.com:socketIo4Netty/socketIo4Netty.git</url>
-	  <tag>v1.1.2</tag>
+	  <tag>HEAD</tag>
   	</scm>
 
 	<developers>
