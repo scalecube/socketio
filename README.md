@@ -48,7 +48,7 @@ Maven
 <dependency>
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 </dependency>
 ```
 
