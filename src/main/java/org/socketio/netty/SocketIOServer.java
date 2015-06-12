@@ -15,21 +15,16 @@
  */
 package org.socketio.netty;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-
 import java.net.InetSocketAddress;
 
 import javax.net.ssl.SSLContext;
 
-import io.netty.util.HashedWheelTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.socketio.netty.pipeline.SocketIOChannelInitializer;
 import org.socketio.netty.session.SocketIOHeartbeatScheduler;
+
+import io.netty.util.HashedWheelTimer;
 
 /**
  * A Socket.IO server launcher class.
@@ -49,8 +44,6 @@ public class SocketIOServer {
 
 	private volatile State state = State.STOPPED;
 
-	private ServerBootstrap bootstrap;
-
     private ISocketIOListener listener;
 
     private SSLContext sslContext = null;
@@ -66,6 +59,7 @@ public class SocketIOServer {
     public SocketIOServer(ServerConfiguration configuration){
         this.configuration = configuration;
     }
+
 	/**
 	 * Starts Socket.IO server with current configuration settings.
 	 * 
@@ -87,19 +81,11 @@ public class SocketIOServer {
         SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
 		// Configure server
-        SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(
-                configuration, listener,
-                sslContext
-        );
-		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(), new NioEventLoopGroup())
-                .channel(NioServerSocketChannel.class)
-				.childHandler(channelInitializer)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-				.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+		SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener, sslContext);
+        configuration.getBootstrap().childHandler(channelInitializer);
 
 		int port = configuration.getPort();
-		bootstrap.bind(new InetSocketAddress(port));
+        configuration.getBootstrap().bind(new InetSocketAddress(port));
 
 		log.info("Started {}", this);
 
@@ -120,7 +106,7 @@ public class SocketIOServer {
         log.info("Socket.IO server stopping");
 
         timer.stop();
-        bootstrap.group().shutdownGracefully();
+        configuration.getBootstrap().group().shutdownGracefully();
 
         log.info("Socket.IO server stopped");
 
@@ -287,9 +273,6 @@ public class SocketIOServer {
         this.configuration.setHeaderClientIpAddressName(headerClientIpAddressName);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
