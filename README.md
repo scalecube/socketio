@@ -39,7 +39,7 @@ How to use
 	socketIoServer.start();
 ```
 
-For more examples, see [SocketIo4j Examples](https://github.com/socketIo4Netty/socketIo4Netty-examples). 
+For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketIo4j-examples). 
 
 Maven
 ----------------------
@@ -51,6 +51,3 @@ Maven
 	<version>1.1.2</version>
 </dependency>
 ```
-
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/ea618cc44cb3461e7d2b6f9c4458893b "githalytics.com")](http://githalytics.com/socketIo4Netty/socketIo4j)

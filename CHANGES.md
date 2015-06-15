@@ -3,6 +3,7 @@ Changes
 
 1.1.3
 -----------------------
+* Move project packages under io.servicefabric.socketio
 
 1.1.2 / 2015-06-12
 -----------------------
