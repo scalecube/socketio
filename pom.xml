@@ -20,9 +20,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git@github.com:ServiceFabric/socketIo4j.git</connection>
-		<developerConnection>scm:git:git@github.com:ServiceFabric/socketIo4j.git</developerConnection>
-		<url>scm:git:git@github.com:ServiceFabric/socketIo4j.git</url>
+		<connection>scm:git:git@github.com:ServiceFabric/socketio.git</connection>
+		<developerConnection>scm:git:git@github.com:ServiceFabric/socketio.git</developerConnection>
+		<url>scm:git:git@github.com:ServiceFabric/socketio.git</url>
   		<tag>HEAD</tag>
   	</scm>
 

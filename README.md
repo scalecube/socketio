@@ -1,4 +1,4 @@
-SocketIo4j
+Socket.IO Java Server
 =======================
 
 Performance: 
@@ -15,7 +15,7 @@ TPS:
 - 80,000 requests per second total. 
 
 SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
-[Netty](http://netty.io) server framework. Supports 0.7+ up to latest 0.9.16 versions of 
+[Netty](http://netty.io) server framework. Supports 0.7+ up to 0.9.16 versions of 
 Socket.IO-client.
 
 Supported transport protocols:
@@ -39,7 +39,7 @@ How to use
 	socketIoServer.start();
 ```
 
-For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketIo4j-examples). 
+For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketio-examples). 
 
 Maven
 ----------------------
