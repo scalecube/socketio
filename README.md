@@ -40,14 +40,24 @@ How to use
 ```
 
 For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketio-examples). 
-
+Update
 Maven
-----------------------
+---------------------- 
 
+``` maven
+<dependency>
+	<groupId>io.servicefabric</groupId>
+	<artifactId>socketio</artifactId>
+	<version>2.0.0</version>
+</dependency>
+```
+
+Maven dependency for versions up to 1.1.2:
+ 
 ``` maven
 <dependency>
 	<groupId>com.github.socketIo4Netty</groupId>
 	<artifactId>socketIo4Netty</artifactId>
 	<version>1.1.2</version>
 </dependency>
-```
+``` 
