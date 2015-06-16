@@ -1,7 +1,7 @@
 Changes
 =======================
 
-1.1.3
+2.0.0
 -----------------------
 * Move project packages under io.servicefabric.socketio
 
