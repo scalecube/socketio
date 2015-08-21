@@ -94,9 +94,9 @@ public class SocketIOServer {
                 configuration, listener,
                 sslContext
         );
+        NioEventLoopGroup group = new NioEventLoopGroup(2* Runtime.getRuntime().availableProcessors());
 		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()), 
-                		new NioEventLoopGroup(2* Runtime.getRuntime().availableProcessors()))
+                .group(group, group)
                 .channel(NioServerSocketChannel.class)
 				.childHandler(channelInitializer)
                 .childOption(ChannelOption.TCP_NODELAY, true)
