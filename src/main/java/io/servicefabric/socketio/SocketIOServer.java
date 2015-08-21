@@ -26,8 +26,11 @@ import java.net.InetSocketAddress;
 import javax.net.ssl.SSLContext;
 
 import io.netty.util.HashedWheelTimer;
+
+import org.omg.CORBA.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import io.servicefabric.socketio.pipeline.SocketIOChannelInitializer;
 import io.servicefabric.socketio.session.SocketIOHeartbeatScheduler;
 
@@ -92,7 +95,8 @@ public class SocketIOServer {
                 sslContext
         );
 		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(), new NioEventLoopGroup())
+                .group(new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()), 
+                		new NioEventLoopGroup(2* Runtime.getRuntime().availableProcessors()))
                 .channel(NioServerSocketChannel.class)
 				.childHandler(channelInitializer)
                 .childOption(ChannelOption.TCP_NODELAY, true)
