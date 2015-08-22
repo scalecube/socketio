@@ -20,16 +20,16 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.HashedWheelTimer;
+import io.servicefabric.socketio.pipeline.SocketIOChannelInitializer;
+import io.servicefabric.socketio.session.SocketIOHeartbeatScheduler;
 
 import java.net.InetSocketAddress;
 
 import javax.net.ssl.SSLContext;
 
-import io.netty.util.HashedWheelTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.servicefabric.socketio.pipeline.SocketIOChannelInitializer;
-import io.servicefabric.socketio.session.SocketIOHeartbeatScheduler;
 
 /**
  * A Socket.IO server launcher class.
@@ -91,8 +91,9 @@ public class SocketIOServer {
                 configuration, listener,
                 sslContext
         );
+        NioEventLoopGroup group = new NioEventLoopGroup();
 		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(), new NioEventLoopGroup())
+                .group(group, group)
                 .channel(NioServerSocketChannel.class)
 				.childHandler(channelInitializer)
                 .childOption(ChannelOption.TCP_NODELAY, true)
