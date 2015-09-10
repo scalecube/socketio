@@ -42,7 +42,7 @@ How to use
 ```
 
 For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketio-examples). 
-Update
+
 Maven
 ---------------------- 
 
