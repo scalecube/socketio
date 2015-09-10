@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/servicefabric/socketio.svg?branch=add-travis)](https://travis-ci.org/servicefabric/socketio)
+
 Socket.IO Java Server
 =======================
 
