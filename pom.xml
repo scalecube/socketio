@@ -59,31 +59,31 @@
 			<groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
             <version>${netty.version}</version>
-            <scope>optinal</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
             <version>${netty.version}</version>
-            <scope>optinal</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
             <version>${netty.version}</version>
-            <scope>optinal</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec</artifactId>
             <version>${netty.version}</version>
-            <scope>optinal</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http</artifactId>
             <version>${netty.version}</version>
-            <scope>optinal</scope>
+            <optional>true</optional>
         </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
