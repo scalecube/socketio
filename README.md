@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/servicefabric/socketio.svg?branch=add-travis)](https://travis-ci.org/servicefabric/socketio)
+[![Build Status](https://travis-ci.org/scalecube/socketio.svg?branch=master)](https://travis-ci.org/scalecube/socketio)
 
 Socket.IO Java Server
 =======================
@@ -16,9 +16,8 @@ TPS:
 - 4,000 requests per second per single channel.
 - 80,000 requests per second total. 
 
-SocketIo4Netty is a simple [Socket.IO](http://socket.io) Java server implementation based on 
-[Netty](http://netty.io) server framework. Supports 0.7+ up to 0.9.16 versions of 
-Socket.IO-client.
+ScaleCube Socket.IO is a lightweight implementation of [Socket.IO](http://socket.io) Java server based on 
+[Netty](http://netty.io) framework. Supports 0.7+ up to 0.9.16 versions of Socket.IO-client.
 
 Supported transport protocols:
 * WebSocket
@@ -41,7 +40,7 @@ How to use
 	socketIoServer.start();
 ```
 
-For more examples, see [SocketIo4j Examples](https://github.com/ServiceFabric/socketio-examples). 
+For more examples, see [SocketIo4j Examples](https://github.com/scalecube/socketio-examples). 
 
 Maven
 ---------------------- 
