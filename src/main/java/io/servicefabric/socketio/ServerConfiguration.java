@@ -18,7 +18,6 @@ package io.servicefabric.socketio;
 /**
  * Class represents different options of socket.io server
  */
-
 public class ServerConfiguration {
 
     // Default parameters
