@@ -2,14 +2,14 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>io.servicefabric</groupId>
+	<groupId>io.scalecube</groupId>
 	<artifactId>socketio</artifactId>
 	<version>2.0.2-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Socket.IO Java server based on Netty</description>
 	<inceptionYear>2012</inceptionYear>
-	<url>https://github.com/ServiceFabric/socketIo4j</url>
+	<url>https://github.com/scalecube/socketio</url>
 
 	<licenses>
 		<license>
@@ -20,9 +20,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git@github.com:servicefabric/socketio.git</connection>
-		<developerConnection>scm:git:git@github.com:servicefabric/socketio.git</developerConnection>
-		<url>scm:git:git@github.com:servicefabric/socketio.git</url>
+		<connection>scm:git:git@github.com:scalecube/socketio.git</connection>
+		<developerConnection>scm:git:git@github.com:scalecube/socketio.git</developerConnection>
+		<url>scm:git:git@github.com:scalecube/socketio.git</url>
   		<tag>HEAD</tag>
   	</scm>
 
@@ -148,7 +148,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Export-Package>io.servicefabric.socketio</Export-Package>
+						<Export-Package>io.scalecube.socketio</Export-Package>
 					</instructions>
 				</configuration>
 			</plugin>

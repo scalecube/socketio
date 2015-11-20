@@ -3,6 +3,7 @@ Changes
 
 2.0.2
 -----------------------
+* Move project packages under io.scalecube.socketio
 
 2.0.1 / 2015-09-10
 -----------------------
