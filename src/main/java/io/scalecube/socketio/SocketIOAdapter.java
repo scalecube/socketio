@@ -22,18 +22,18 @@ import io.netty.buffer.ByteBuf;
  * @author Anton Kharenko
  *
  */
-public class SocketIOAdapter implements ISocketIOListener {
+public class SocketIOAdapter implements SocketIOListener {
 
   @Override
-  public void onConnect(ISession session) {
+  public void onConnect(Session session) {
   }
 
   @Override
-  public void onMessage(ISession session, ByteBuf message) {
+  public void onMessage(Session session, ByteBuf message) {
   }
 
   @Override
-  public void onDisconnect(ISession session) {
+  public void onDisconnect(Session session) {
   }
 
 }

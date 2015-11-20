@@ -18,7 +18,7 @@ import java.util.List;
 
 public class PacketsFrame extends AbstractPacket {
 
-  private List<Packet> packets = new LinkedList<Packet>();
+  private List<Packet> packets = new LinkedList<>();
 
   public PacketsFrame() {
   }

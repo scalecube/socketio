@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import io.scalecube.socketio.ISocketIOListener;
+import io.scalecube.socketio.SocketIOListener;
 import io.scalecube.socketio.ServerConfiguration;
 import io.scalecube.socketio.TransportType;
 import io.scalecube.socketio.storage.SessionStorage;
@@ -73,13 +73,12 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final SSLContext sslContext;
   private final boolean isFlashSupported;
 
-  public SocketIOChannelInitializer(ServerConfiguration serverConfiguration, final ISocketIOListener listener,
-                                    final SSLContext sslContext) {
+  public SocketIOChannelInitializer(final ServerConfiguration serverConfiguration, final SocketIOListener listener) {
     // Initialize state variables
-    this.sslContext = sslContext;
-    String headerClientIpAddressName = serverConfiguration.getHeaderClientIpAddressName();
+    this.sslContext = serverConfiguration.getSslContext();
+    final String headerClientIpAddressName = serverConfiguration.getHeaderClientIpAddressName();
 
-    SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
+    final SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
     isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
 
     // Initialize sharable handlers
@@ -96,7 +95,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
     final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
-    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
+    final int maxWebSocketFrameSize = serverConfiguration.getMaxWebSocketFrameSize();
+    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, headerClientIpAddressName);
     flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
 
     xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
@@ -146,6 +146,5 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
     pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
     pipeline.addLast(executorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
-
   }
 }

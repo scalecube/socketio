@@ -13,7 +13,7 @@
 package io.scalecube.socketio.session;
 
 import io.netty.channel.Channel;
-import io.scalecube.socketio.ISession;
+import io.scalecube.socketio.Session;
 import io.scalecube.socketio.packets.Packet;
 
 /**
@@ -25,7 +25,7 @@ import io.scalecube.socketio.packets.Packet;
  * @author Anton Kharenko
  *
  */
-public interface IManagedSession extends ISession {
+public interface ManagedSession extends Session {
 
   /**
    * Connects current session to given channel.

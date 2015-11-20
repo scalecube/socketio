@@ -20,7 +20,7 @@ import io.scalecube.socketio.TransportType;
 public class XHRPollingSession extends AbstractPollingSession {
 
   public XHRPollingSession(final Channel channel, final String sessionId, final String origin,
-                           final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
+                           final SessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
                            final SocketAddress remoteAddress) {
     super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
   }

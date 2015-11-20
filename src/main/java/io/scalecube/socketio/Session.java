@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
  *
  * @author Ronen Hamias 
  */
-public interface ISession {
+public interface Session {
 
   public enum State {
     CREATED, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED
@@ -66,7 +66,7 @@ public interface ISession {
   SocketAddress getRemoteAddress();
 
   /**
-   * Returns session state (see {@link ISession.State}).
+   * Returns session state (see {@link Session.State}).
    */
   State getState();
 

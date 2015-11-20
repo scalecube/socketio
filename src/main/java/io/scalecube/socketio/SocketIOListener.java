@@ -18,14 +18,14 @@ import io.netty.buffer.ByteBuf;
  * High level interface which abstracts Socket.IO transport implementation details
  * and publishes events to server services.
  */
-public interface ISocketIOListener {
+public interface SocketIOListener {
 
   /**
    * Notify about new Socket.IO session established event.
    *
    * @param session the connected session
    */
-  void onConnect(final ISession session);
+  void onConnect(final Session session);
 
   /**
    * Notify about arrival of new message. It is a responsibility of interface implementation
@@ -35,13 +35,13 @@ public interface ISocketIOListener {
    * @param session session to which messages arrived
    * @param message message's payload
    */
-  void onMessage(final ISession session, final ByteBuf message);
+  void onMessage(final Session session, final ByteBuf message);
 
   /**
    * Notify about Socket.IO session disconnection event.
    *
    * @param session the disconnected session
    */
-  void onDisconnect(final ISession session);
+  void onDisconnect(final Session session);
 
 }

@@ -12,10 +12,10 @@
  */
 package io.scalecube.socketio.session;
 
-import io.scalecube.socketio.ISession;
+import io.scalecube.socketio.Session;
 
-public interface ISessionDisconnectHandler {
+public interface SessionDisconnectHandler {
 
-  void onSessionDisconnect(ISession session);
+  void onSessionDisconnect(Session session);
 
 }

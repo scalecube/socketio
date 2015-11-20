@@ -19,7 +19,7 @@ import io.scalecube.socketio.TransportType;
 
 public class FlashSocketSession extends AbstractSocketSession {
 
-  public FlashSocketSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+  public FlashSocketSession(final Channel channel, final String sessionId, final String origin, final SessionDisconnectHandler disconnectHandler,
                             final TransportType upgradedFromTransportType, final int localPort, final SocketAddress remoteAddress) {
     super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
   }

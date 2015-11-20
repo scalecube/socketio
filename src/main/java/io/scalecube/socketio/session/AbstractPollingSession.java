@@ -28,7 +28,7 @@ public abstract class AbstractPollingSession extends AbstractSession {
   private final AtomicReference<Channel> outChannelHolder = new AtomicReference<Channel>();
 
   public AbstractPollingSession(final Channel channel, final String sessionId, final String origin,
-                                final ISessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
+                                final SessionDisconnectHandler disconnectHandler, final TransportType upgradedFromTransportType, final int localPort,
                                 final SocketAddress remoteAddress) {
     super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
   }
