@@ -25,7 +25,7 @@ import io.scalecube.socketio.packets.IPacket;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.packets.PacketType;
 
-public abstract class AbstractSession implements IManagedSession {
+public abstract class AbstractSession implements ManagedSession {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -39,7 +39,7 @@ public abstract class AbstractSession implements IManagedSession {
   private final Packet disconnectPacket = new Packet(PacketType.DISCONNECT);
   private final Packet heartbeatPacket = new Packet(PacketType.HEARTBEAT);
 
-  protected final ISessionDisconnectHandler disconnectHandler;
+  protected final SessionDisconnectHandler disconnectHandler;
   protected final SocketIOHeartbeatScheduler heartbeatScheduler;
 
   private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
@@ -49,7 +49,7 @@ public abstract class AbstractSession implements IManagedSession {
       final Channel channel,
       final String sessionId,
       final String origin,
-      final ISessionDisconnectHandler disconnectHandler,
+      final SessionDisconnectHandler disconnectHandler,
       final TransportType upgradedFromTransportType,
       final int localPort,
       final SocketAddress remoteAddress) {

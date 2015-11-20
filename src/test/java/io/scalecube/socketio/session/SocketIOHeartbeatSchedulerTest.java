@@ -31,7 +31,7 @@ public class SocketIOHeartbeatSchedulerTest {
   private SocketIOHeartbeatScheduler scheduler;
 
   private Mockery jmockContext;
-  private IManagedSession session;
+  private ManagedSession session;
 
   @Before
   public void init() {
@@ -43,7 +43,7 @@ public class SocketIOHeartbeatSchedulerTest {
     SocketIOHeartbeatScheduler.setHashedWheelTimer(timer);
     SocketIOHeartbeatScheduler.setHeartbeatInterval(1);
     SocketIOHeartbeatScheduler.setHeartbeatTimeout(3);
-    session = jmockContext.mock(IManagedSession.class);
+    session = jmockContext.mock(ManagedSession.class);
     scheduler = new SocketIOHeartbeatScheduler(session);
   }
 

@@ -1,9 +1,10 @@
 Changes
 =======================
 
-2.0.2
+2.1.0
 -----------------------
 * Move project packages under io.scalecube.socketio
+* Make configurable WebSocket max frame size
 
 2.0.1 / 2015-09-10
 -----------------------

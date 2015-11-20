@@ -22,7 +22,7 @@ public class JsonpPollingSession extends AbstractPollingSession {
 
   private final String jsonpIndexParam;
 
-  public JsonpPollingSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+  public JsonpPollingSession(final Channel channel, final String sessionId, final String origin, final SessionDisconnectHandler disconnectHandler,
                              final TransportType upgradedFromTransportType, final int localPort, final String jsonpIndexParam, final SocketAddress remoteAddress) {
     super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
     this.jsonpIndexParam = jsonpIndexParam;

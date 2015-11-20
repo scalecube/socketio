@@ -33,11 +33,11 @@ public class SocketIOHeartbeatScheduler {
   private Timeout hTimeout = null;
   private Timeout dTimeout = null;
 
-  private final IManagedSession session;
+  private final ManagedSession session;
 
   private volatile boolean disabled = false;
 
-  public SocketIOHeartbeatScheduler(final IManagedSession session) {
+  public SocketIOHeartbeatScheduler(final ManagedSession session) {
     this.session = session;
   }
 

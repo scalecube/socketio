@@ -21,26 +21,26 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.scalecube.socketio.ISession;
-import io.scalecube.socketio.ISocketIOListener;
+import io.scalecube.socketio.Session;
+import io.scalecube.socketio.SocketIOListener;
 import io.scalecube.socketio.packets.ConnectPacket;
 import io.scalecube.socketio.packets.IPacket;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.packets.PacketType;
-import io.scalecube.socketio.session.IManagedSession;
-import io.scalecube.socketio.session.ISessionDisconnectHandler;
+import io.scalecube.socketio.session.ManagedSession;
+import io.scalecube.socketio.session.SessionDisconnectHandler;
 import io.scalecube.socketio.storage.SessionStorage;
 
 @ChannelHandler.Sharable
-public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implements ISessionDisconnectHandler {
+public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implements SessionDisconnectHandler {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final SessionStorage sessionStorage;
 
-  private final ISocketIOListener listener;
+  private final SocketIOListener listener;
 
-  public PacketDispatcherHandler(SessionStorage sessionStorage, ISocketIOListener listener) {
+  public PacketDispatcherHandler(SessionStorage sessionStorage, SocketIOListener listener) {
     this.sessionStorage = sessionStorage;
     this.listener = listener;
   }
@@ -88,12 +88,12 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
   private void dispatchPacket(final Channel channel, final IPacket packet) throws Exception {
     if (packet instanceof ConnectPacket) {
       ConnectPacket connectPacket = (ConnectPacket) packet;
-      final IManagedSession session = sessionStorage.getSession(connectPacket, channel, this);
+      final ManagedSession session = sessionStorage.getSession(connectPacket, channel, this);
       onConnectPacket(channel, session);
     } else if (packet instanceof Packet) {
       Packet message = (Packet) packet;
       final String sessionId = packet.getSessionId();
-      final IManagedSession session = sessionStorage.getSessionIfExist(sessionId);
+      final ManagedSession session = sessionStorage.getSessionIfExist(sessionId);
       if (session != null) {
         onPacket(channel, session, message);
       }
@@ -102,14 +102,14 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
     }
   }
 
-  private void onConnectPacket(final Channel channel, final IManagedSession session) {
+  private void onConnectPacket(final Channel channel, final ManagedSession session) {
     boolean initialConnect = session.connect(channel);
     if (initialConnect && listener != null) {
       listener.onConnect(session);
     }
   }
 
-  private void onPacket(final Channel channel, final IManagedSession session, final Packet packet) {
+  private void onPacket(final Channel channel, final ManagedSession session, final Packet packet) {
     if (packet.getType() == PacketType.DISCONNECT) {
       if (log.isDebugEnabled())
         log.debug("Got {} packet, {} session will be disconnected", packet.getType().name(), session.getSessionId());
@@ -125,7 +125,7 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
   }
 
   @Override
-  public void onSessionDisconnect(ISession session) {
+  public void onSessionDisconnect(Session session) {
     if (sessionStorage.containSession(session.getSessionId())) {
       if (log.isDebugEnabled())
         log.debug("Client with sessionId: {} disconnected", session.getSessionId());

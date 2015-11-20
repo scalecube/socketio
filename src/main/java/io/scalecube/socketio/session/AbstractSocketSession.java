@@ -22,7 +22,7 @@ public abstract class AbstractSocketSession extends AbstractSession {
 
   private final Channel channel;
 
-  public AbstractSocketSession(final Channel channel, final String sessionId, final String origin, final ISessionDisconnectHandler disconnectHandler,
+  public AbstractSocketSession(final Channel channel, final String sessionId, final String origin, final SessionDisconnectHandler disconnectHandler,
                                final TransportType upgradedFromTransportType, final int localPort, final SocketAddress remoteAddress) {
     super(channel, sessionId, origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
     this.channel = channel;

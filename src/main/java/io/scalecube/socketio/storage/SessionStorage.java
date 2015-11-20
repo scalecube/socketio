@@ -22,8 +22,8 @@ import io.scalecube.socketio.TransportType;
 import io.scalecube.socketio.packets.ConnectPacket;
 import io.scalecube.socketio.pipeline.UnsupportedTransportTypeException;
 import io.scalecube.socketio.session.FlashSocketSession;
-import io.scalecube.socketio.session.IManagedSession;
-import io.scalecube.socketio.session.ISessionDisconnectHandler;
+import io.scalecube.socketio.session.ManagedSession;
+import io.scalecube.socketio.session.SessionDisconnectHandler;
 import io.scalecube.socketio.session.JsonpPollingSession;
 import io.scalecube.socketio.session.WebSocketSession;
 import io.scalecube.socketio.session.XHRPollingSession;
@@ -39,7 +39,7 @@ public class SessionStorage {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final MemoizerConcurrentMap<String, IManagedSession> sessionsMemoizer = new MemoizerConcurrentMap<>();
+  private final MemoizerConcurrentMap<String, ManagedSession> sessionsMemoizer = new MemoizerConcurrentMap<>();
 
   private final int localPort;
 
@@ -55,11 +55,11 @@ public class SessionStorage {
     sessionsMemoizer.remove(sessionId);
   }
 
-  public IManagedSession getSession(final ConnectPacket connectPacket,
+  public ManagedSession getSession(final ConnectPacket connectPacket,
                                     final Channel channel,
-                                    final ISessionDisconnectHandler disconnectHandler) throws Exception {
+                                    final SessionDisconnectHandler disconnectHandler) throws Exception {
 
-    IManagedSession session = createSession(connectPacket, channel, disconnectHandler, null);
+    ManagedSession session = createSession(connectPacket, channel, disconnectHandler, null);
 
     // If transport protocol was changed then remove old session and create new one instead
     if (connectPacket.getTransportType() != session.getTransportType()) {
@@ -80,9 +80,9 @@ public class SessionStorage {
     return session;
   }
 
-  private IManagedSession createSession(final ConnectPacket connectPacket,
+  private ManagedSession createSession(final ConnectPacket connectPacket,
                                         final Channel channel,
-                                        final ISessionDisconnectHandler disconnectHandler,
+                                        final SessionDisconnectHandler disconnectHandler,
                                         final TransportType upgradedFromTransportType) throws Exception {
     final TransportType transportType = connectPacket.getTransportType();
     final String sessionId = connectPacket.getSessionId();
@@ -91,9 +91,9 @@ public class SessionStorage {
     final SocketAddress remoteAddress = connectPacket.getRemoteAddress();
     try {
       return sessionsMemoizer.get(sessionId,
-          new Computable<String, IManagedSession>() {
+          new Computable<String, ManagedSession>() {
             @Override
-            public IManagedSession compute(String sessionId) throws Exception {
+            public ManagedSession compute(String sessionId) throws Exception {
               if (transportType == TransportType.WEBSOCKET) {
                 return new WebSocketSession(channel, sessionId,
                     origin, disconnectHandler, upgradedFromTransportType, localPort, remoteAddress);
@@ -118,8 +118,8 @@ public class SessionStorage {
     }
   }
 
-  public IManagedSession getSessionIfExist(final String sessionId) {
-    IManagedSession session = null;
+  public ManagedSession getSessionIfExist(final String sessionId) {
+    ManagedSession session = null;
     try {
       session = sessionsMemoizer.containsKey(sessionId) ? sessionsMemoizer
           .get(sessionId) : null;

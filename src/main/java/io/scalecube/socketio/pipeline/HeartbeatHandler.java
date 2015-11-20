@@ -17,7 +17,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.packets.PacketType;
-import io.scalecube.socketio.session.IManagedSession;
+import io.scalecube.socketio.session.ManagedSession;
 import io.scalecube.socketio.storage.SessionStorage;
 
 @ChannelHandler.Sharable
@@ -35,7 +35,7 @@ public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
       final Packet packet = (Packet) msg;
       if (packet.getType() == PacketType.HEARTBEAT) {
         final String sessionId = packet.getSessionId();
-        final IManagedSession session = sessionFactory.getSessionIfExist(sessionId);
+        final ManagedSession session = sessionFactory.getSessionIfExist(sessionId);
         if (session != null) {
           session.acceptPacket(ctx.channel(), packet);
           session.acceptHeartbeat();

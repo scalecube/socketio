@@ -56,11 +56,14 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   private final String connectPath;
   private final boolean secure;
   private final String headerClientIpAddressName;
+  private final int maxWebSocketFrameSize;
 
-  public WebSocketHandler(final String handshakePath, final boolean secure, final String headerClientIpAddressName) {
+  public WebSocketHandler(final String handshakePath, final boolean secure, final int maxWebSocketFrameSize,
+                          final String headerClientIpAddressName) {
     this.connectPath = handshakePath + getTransportType().getName();
     this.secure = secure;
     this.headerClientIpAddressName = headerClientIpAddressName;
+    this.maxWebSocketFrameSize = maxWebSocketFrameSize;
   }
 
   protected TransportType getTransportType() {
@@ -102,7 +105,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   }
 
   private boolean handshake(final ChannelHandlerContext ctx, final FullHttpRequest req, final String requestPath) {
-    WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
+    WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+        getWebSocketLocation(req), null, false, maxWebSocketFrameSize);
     WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
     if (handshaker != null) {
       handshaker.handshake(ctx.channel(), req).addListener(
