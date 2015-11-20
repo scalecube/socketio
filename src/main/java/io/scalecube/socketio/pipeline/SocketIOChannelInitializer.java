@@ -27,7 +27,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import io.scalecube.socketio.SocketIOListener;
 import io.scalecube.socketio.ServerConfiguration;
 import io.scalecube.socketio.TransportType;
-import io.scalecube.socketio.storage.SessionStorage;
+import io.scalecube.socketio.session.SessionStorage;
 
 public class SocketIOChannelInitializer extends ChannelInitializer {
 

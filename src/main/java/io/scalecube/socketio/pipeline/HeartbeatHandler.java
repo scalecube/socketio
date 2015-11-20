@@ -18,7 +18,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.packets.PacketType;
 import io.scalecube.socketio.session.ManagedSession;
-import io.scalecube.socketio.storage.SessionStorage;
+import io.scalecube.socketio.session.SessionStorage;
 
 @ChannelHandler.Sharable
 public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
