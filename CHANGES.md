@@ -5,6 +5,7 @@ Changes
 -----------------------
 * Move project packages under io.scalecube.socketio
 * Make configurable WebSocket max frame size
+* Remove memoizer from SessionStorage
 
 2.0.1 / 2015-09-10
 -----------------------
