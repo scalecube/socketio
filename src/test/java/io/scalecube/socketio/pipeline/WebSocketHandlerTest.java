@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.scalecube.socketio.ServerConfiguration;
 
 public class WebSocketHandlerTest {
 
@@ -34,7 +35,8 @@ public class WebSocketHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, false, "X-Forwarded-For");
+    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, false,
+        ServerConfiguration.DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE, "X-Forwarded-For");
   }
 
   @Test

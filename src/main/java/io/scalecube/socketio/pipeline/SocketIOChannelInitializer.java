@@ -97,7 +97,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
     final int maxWebSocketFrameSize = serverConfiguration.getMaxWebSocketFrameSize();
     webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, headerClientIpAddressName);
-    flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, headerClientIpAddressName);
+    flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, headerClientIpAddressName);
 
     xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
     jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);

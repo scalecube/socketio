@@ -23,8 +23,9 @@ import io.scalecube.socketio.TransportType;
 @ChannelHandler.Sharable
 public class FlashSocketHandler extends WebSocketHandler {
 
-  public FlashSocketHandler(final String handshakePath, final boolean secure, final String headerClientIpAddressName) {
-    super(handshakePath, secure, headerClientIpAddressName);
+  public FlashSocketHandler(final String handshakePath, final boolean secure, final int maxWebSocketFrameSize,
+                            final String headerClientIpAddressName) {
+    super(handshakePath, secure, maxWebSocketFrameSize, headerClientIpAddressName);
   }
 
   @Override
