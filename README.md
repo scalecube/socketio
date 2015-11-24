@@ -40,7 +40,7 @@ How to use
   socketIoServer.start();
 ```
 
-For more examples, see [SocketIo4j Examples](https://github.com/scalecube/socketio-examples). 
+For more examples, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
 
 Maven
 ---------------------- 
