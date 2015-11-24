@@ -16,6 +16,7 @@ Changes
 2.0.1 / 2015-09-10
 -----------------------
 * Upgrade netty to 4.0.31.Final
+* Make Netty dependency optional
 
 2.0.0 / 2015-06-16
 -----------------------
