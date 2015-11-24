@@ -29,15 +29,14 @@ How to use
 -----------------------
 
 ``` java
-	SocketIOServer socketIoServer = new SocketIOServer();
-	socketIoServer.setPort(5000);
-	socketIoServer.setListener(new SocketIOAdapter() {
-		public void onMessage(ISession session, ByteBuf message) {
-			System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
-			message.release();
-		}
-	});
-	socketIoServer.start();
+  SocketIOServer socketIoServer = SocketIOServer.newInstance(5000 /*port*/);
+  socketIoServer.setListener(new SocketIOAdapter() {
+    public void onMessage(ISession session, ByteBuf message) {
+      System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
+      message.release();
+    }
+  });
+  socketIoServer.start();
 ```
 
 For more examples, see [SocketIo4j Examples](https://github.com/scalecube/socketio-examples). 
@@ -47,9 +46,9 @@ Maven
 
 ``` maven
 <dependency>
-	<groupId>io.servicefabric</groupId>
+	<groupId>io.scalecube</groupId>
 	<artifactId>socketio</artifactId>
-	<version>2.0.0</version>
+	<version>2.1.0</version>
 </dependency>
 ```
 
