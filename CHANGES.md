@@ -6,6 +6,7 @@ Changes
 * Move project packages under io.scalecube.socketio
 * Make configurable WebSocket max frame size
 * Remove memoizer from SessionStorage
+* Upgrade netty to 4.0.33.Final
 
 2.0.1 / 2015-09-10
 -----------------------
