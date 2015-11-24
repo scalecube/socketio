@@ -67,7 +67,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final XHRPollingHandler xhrPollingHanler;
   private final JsonpPollingHandler jsonpPollingHanler;
   private final HeartbeatHandler heartbeatHandler;
-  private final EventExecutorGroup executorGroup;
+  private final EventExecutorGroup eventExecutorGroup;
   private final PacketDispatcherHandler packetDispatcherHandler;
 
   private final SSLContext sslContext;
@@ -76,7 +76,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   public SocketIOChannelInitializer(final ServerConfiguration serverConfiguration, final SocketIOListener listener) {
     // Initialize state variables
     this.sslContext = serverConfiguration.getSslContext();
-    final String headerClientIpAddressName = serverConfiguration.getHeaderClientIpAddressName();
+    final String remoteAddressHeader = serverConfiguration.getRemoteAddressHeader();
 
     final SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
     isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
@@ -96,17 +96,17 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
     final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
     final int maxWebSocketFrameSize = serverConfiguration.getMaxWebSocketFrameSize();
-    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, headerClientIpAddressName);
-    flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, headerClientIpAddressName);
+    webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, remoteAddressHeader);
+    flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, remoteAddressHeader);
 
-    xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
-    jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, headerClientIpAddressName);
+    xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
+    jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
 
     packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
     if (serverConfiguration.isEventExecutorEnabled()) {
-      executorGroup = new DefaultEventExecutorGroup(serverConfiguration.getEventWorkersNumber());
+      eventExecutorGroup = new DefaultEventExecutorGroup(serverConfiguration.getEventExecutorThreadNumber());
     } else {
-      executorGroup = null;
+      eventExecutorGroup = null;
     }
   }
 
@@ -145,6 +145,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(SOCKETIO_XHR_POLLING_HANDLER, xhrPollingHanler);
     pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
     pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
-    pipeline.addLast(executorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
+    pipeline.addLast(eventExecutorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
   }
 }

@@ -24,8 +24,8 @@ import io.scalecube.socketio.TransportType;
 public class FlashSocketHandler extends WebSocketHandler {
 
   public FlashSocketHandler(final String handshakePath, final boolean secure, final int maxWebSocketFrameSize,
-                            final String headerClientIpAddressName) {
-    super(handshakePath, secure, maxWebSocketFrameSize, headerClientIpAddressName);
+                            final String remoteAddressHeader) {
+    super(handshakePath, secure, maxWebSocketFrameSize, remoteAddressHeader);
   }
 
   @Override

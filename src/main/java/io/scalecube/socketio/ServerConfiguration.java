@@ -29,9 +29,9 @@ public class ServerConfiguration {
   public static final int DEFAULT_CLOSE_TIMEOUT = 60;
   public static final String DEFAULT_TRANSPORTS = "websocket,flashsocket,xhr-polling,jsonp-polling";
   public static final boolean DEFAULT_ALWAYS_SECURE_WEB_SOCKET_LOCATION = false;
-  public static final String DEFAULT_HEADER_CLIENT_IP_ADDRESS_NAME = null;
-  public static final boolean DEFAULT_EVENT_EXECUTORS_ENABLED = true;
-  public static final int DEFAULT_EVENT_WORKERS_NUMBER = Runtime.getRuntime().availableProcessors();
+  public static final String DEFAULT_REMOTE_ADDRESS_HEADER = null;
+  public static final boolean DEFAULT_EVENT_EXECUTOR_ENABLED = true;
+  public static final int DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER = Runtime.getRuntime().availableProcessors() * 2;
   public static final int DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE = 65536;
   public static final SSLContext DEFAULT_SSL_CONTEXT = null;
 
@@ -41,9 +41,9 @@ public class ServerConfiguration {
   private final int closeTimeout;
   private final String transports;
   private final boolean alwaysSecureWebSocketLocation;
-  private final String headerClientIpAddressName;
+  private final String remoteAddressHeader;
   private final boolean eventExecutorEnabled;
-  private final int eventWorkersNumber;
+  private final int eventExecutorThreadNumber;
   private final int maxWebSocketFrameSize;
   private final SSLContext sslContext;
 
@@ -57,9 +57,9 @@ public class ServerConfiguration {
     this.closeTimeout = builder.closeTimeout;
     this.transports = builder.transports;
     this.alwaysSecureWebSocketLocation = builder.alwaysSecureWebSocketLocation;
-    this.headerClientIpAddressName = builder.headerClientIpAddressName;
+    this.remoteAddressHeader = builder.remoteAddressHeader;
     this.eventExecutorEnabled = builder.eventExecutorEnabled;
-    this.eventWorkersNumber = builder.eventWorkersNumber;
+    this.eventExecutorThreadNumber = builder.eventExecutorThreadNumber;
     this.maxWebSocketFrameSize = builder.maxWebSocketFrameSize;
     this.sslContext = builder.sslContext;
   }
@@ -75,6 +75,10 @@ public class ServerConfiguration {
     return port;
   }
 
+  /**
+   * SSL context which is used to run secure socket. If it's set to null server runs without SSL.
+   * Default value is null.
+   */
   public SSLContext getSslContext() {
     return sslContext;
   }
@@ -82,7 +86,7 @@ public class ServerConfiguration {
   /**
    * The timeout in seconds for the client when it should send a new heart
    * beat to the server. This value is sent to the client after a successful
-   * handshake. The default value is 30.
+   * handshake. The default value is 60.
    */
   public int getHeartbeatTimeout() {
     return heartbeatTimeout;
@@ -91,7 +95,7 @@ public class ServerConfiguration {
   /**
    * The timeout in seconds for the client, when it closes the connection it
    * still X amounts of seconds to do re open of the connection. This value is
-   * sent to the client after a successful handshake. Default value is 25.
+   * sent to the client after a successful handshake. Default value is 60.
    */
   public int getCloseTimeout() {
     return closeTimeout;
@@ -99,7 +103,7 @@ public class ServerConfiguration {
 
   /**
    * A string with list of allowed transport methods separated by comma.
-   * Default value is "websocket,xhr-polling".
+   * Default value is "websocket,flashsocket,xhr-polling,jsonp-polling".
    */
   public String getTransports() {
     return transports;
@@ -108,29 +112,45 @@ public class ServerConfiguration {
   /**
    * The timeout in seconds for the server, we should receive a heartbeat from
    * the client within this interval. This should be less than the heartbeat
-   * timeout. Default value is 20.
+   * timeout. Default value is 25.
    */
   public int getHeartbeatInterval() {
     return heartbeatInterval;
   }
 
+  /**
+   * Flag which if set to true will always return secure web socket location protocol ("wss://")
+   * even when connection is established over plain socket. It is used as a workaround related to case
+   * when SSL is offloaded to Load Balancer, but it doesn't modify web socket location. By default it
+   * is disabled.
+   */
   public boolean isAlwaysSecureWebSocketLocation() {
     return alwaysSecureWebSocketLocation;
   }
 
   /**
-   * @return the headerClientIpAddressName
+   * The HTTP header name which is used as a session remote address. It is a workaround related to case
+   * when Load Balancer modify client address with its address. This header is supposed to be set by Load
+   * Balancer. If it is set to null then this header is not used. Default value is null.
    */
-  public String getHeaderClientIpAddressName() {
-    return headerClientIpAddressName;
+  public String getRemoteAddressHeader() {
+    return remoteAddressHeader;
   }
 
-  public int getEventWorkersNumber() {
-    return eventWorkersNumber;
-  }
-
+  /**
+   * Flag which defines if listener will be executed, true - different thread, false - io-thread.
+   * Default is true.
+   */
   public boolean isEventExecutorEnabled() {
     return eventExecutorEnabled;
+  }
+
+  /*
+   * Event executor thread number, if eventExecutorEnabled flag set to true.
+   * Default value is Runtime.getRuntime().availableProcessors() x 2.
+   */
+  public int getEventExecutorThreadNumber() {
+    return eventExecutorThreadNumber;
   }
 
   /**
@@ -151,9 +171,9 @@ public class ServerConfiguration {
         ", closeTimeout=" + closeTimeout +
         ", transports='" + transports + '\'' +
         ", alwaysSecureWebSocketLocation=" + alwaysSecureWebSocketLocation +
-        ", headerClientIpAddressName='" + headerClientIpAddressName + '\'' +
+        ", headerClientIpAddressName='" + remoteAddressHeader + '\'' +
         ", eventExecutorEnabled=" + eventExecutorEnabled +
-        ", eventWorkersNumber=" + eventWorkersNumber +
+        ", eventExecutorThreadNumber=" + eventExecutorThreadNumber +
         ", maxWebSocketFrameSize=" + maxWebSocketFrameSize +
         '}';
   }
@@ -166,16 +186,16 @@ public class ServerConfiguration {
     private int closeTimeout = DEFAULT_CLOSE_TIMEOUT;
     private String transports = DEFAULT_TRANSPORTS;
     private boolean alwaysSecureWebSocketLocation = DEFAULT_ALWAYS_SECURE_WEB_SOCKET_LOCATION;
-    private String headerClientIpAddressName = DEFAULT_HEADER_CLIENT_IP_ADDRESS_NAME;
-    private boolean eventExecutorEnabled = DEFAULT_EVENT_EXECUTORS_ENABLED;
-    private int eventWorkersNumber = DEFAULT_EVENT_WORKERS_NUMBER;
+    private String remoteAddressHeader = DEFAULT_REMOTE_ADDRESS_HEADER;
+    private boolean eventExecutorEnabled = DEFAULT_EVENT_EXECUTOR_ENABLED;
+    private int eventExecutorThreadNumber = DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER;
     private int maxWebSocketFrameSize = DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE;
     private SSLContext sslContext = DEFAULT_SSL_CONTEXT;
 
     private Builder() {}
 
     /**
-     * Port on which Socket.IO server will be started. Default value is 8080.
+     * See {@link ServerConfiguration#getPort()}
      */
     public Builder port(int port) {
       this.port = port;
@@ -183,7 +203,7 @@ public class ServerConfiguration {
     }
 
     /**
-     * SSL context in order to run on secure port. Default value is null.
+     * See {@link ServerConfiguration#getSslContext()}
      */
     public Builder sslContext(SSLContext sslContext) {
       this.sslContext = sslContext;
@@ -191,9 +211,7 @@ public class ServerConfiguration {
     }
 
     /**
-     * The timeout in seconds for the client when it should send a new heart
-     * beat to the server. This value is sent to the client after a successful
-     * handshake. The default value is 30.
+     * See {@link ServerConfiguration#getHeartbeatTimeout()}
      */
     public Builder heartbeatTimeout(int heartbeatTimeout) {
       this.heartbeatTimeout = heartbeatTimeout;
@@ -201,54 +219,55 @@ public class ServerConfiguration {
     }
 
     /**
-     * The timeout in seconds for the server, we should receive a heartbeat from
-     * the client within this interval. This should be less than the heartbeat
-     * timeout. Default value is 20.
+     * See {@link ServerConfiguration#getHeartbeatInterval()}
      */
-    public Builder setHeartbeatInterval(int heartbeatInterval) {
+    public Builder heartbeatInterval(int heartbeatInterval) {
       this.heartbeatInterval = heartbeatInterval;
       return this;
     }
 
     /**
-     * The timeout in seconds for the client, when it closes the connection it
-     * still X amounts of seconds to do re open of the connection. This value is
-     * sent to the client after a successful handshake. Default value is 25.
+     * See {@link ServerConfiguration#getCloseTimeout()}
      */
-    public Builder setCloseTimeout(int closeTimeout) {
+    public Builder closeTimeout(int closeTimeout) {
       this.closeTimeout = closeTimeout;
       return this;
     }
 
     /**
-     * A string with list of allowed transport methods separated by comma.
-     * Default value is "websocket,xhr-polling".
+     * See {@link ServerConfiguration#getTransports()}
      */
-    public Builder setTransports(String transports) {
+    public Builder transports(String transports) {
       this.transports = transports;
       return this;
     }
 
+    /**
+     * See {@link ServerConfiguration#isAlwaysSecureWebSocketLocation()}
+     */
     public Builder alwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
       this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
       return this;
     }
 
-    public Builder headerClientIpAddressName(String headerClientIpAddressName) {
-      this.headerClientIpAddressName = headerClientIpAddressName;
+    /**
+     * See {@link ServerConfiguration#getRemoteAddressHeader()}
+     */
+    public Builder remoteAddressHeader(String remoteAddressHeader) {
+      this.remoteAddressHeader = remoteAddressHeader;
       return this;
     }
 
-    public Builder headerClientIpAddressName(int maxWebSocketFrameSize) {
+    /**
+     * See {@link ServerConfiguration#getMaxWebSocketFrameSize()}
+     */
+    public Builder maxWebSocketFrameSize(int maxWebSocketFrameSize) {
       this.maxWebSocketFrameSize = maxWebSocketFrameSize;
       return this;
     }
 
     /**
-     * Sets flag if listener will be executed, true - different thread, false - io-thread.
-     * Default is true
-     * @param eventExecutorEnabled true - listener will be executed in different thread, false - in io thread.
-     * @return this
+     * See {@link ServerConfiguration#isEventExecutorEnabled()}
      */
     public Builder eventExecutorEnabled(boolean eventExecutorEnabled) {
       this.eventExecutorEnabled = eventExecutorEnabled;
@@ -256,16 +275,16 @@ public class ServerConfiguration {
     }
 
     /**
-     * Set worker executor number, if eventExecutorEnabled is enabled.
-     * Default value is Runtime.getRuntime().availableProcessors()
-     * @param eventWorkersNumber worker executor number
-     * @return this
+     * See {@link ServerConfiguration#getEventExecutorThreadNumber()}
      */
-    public Builder eventWorkersNumber(int eventWorkersNumber) {
-      this.eventWorkersNumber = eventWorkersNumber;
+    public Builder eventExecutorThreadNumber(int eventExecutorThreadNumber) {
+      this.eventExecutorThreadNumber = eventExecutorThreadNumber;
       return this;
     }
 
+    /**
+     * Creates new instance of {@code ServerConfiguration}
+     */
     public ServerConfiguration build() {
       return new ServerConfiguration(this);
     }
