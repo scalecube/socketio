@@ -55,14 +55,14 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   private final Map<Object, String> sessionIdByChannel = new ConcurrentHashMap<Object, String>();
   private final String connectPath;
   private final boolean secure;
-  private final String headerClientIpAddressName;
+  private final String remoteAddressHeader;
   private final int maxWebSocketFrameSize;
 
   public WebSocketHandler(final String handshakePath, final boolean secure, final int maxWebSocketFrameSize,
-                          final String headerClientIpAddressName) {
+                          final String remoteAddressHeader) {
     this.connectPath = handshakePath + getTransportType().getName();
     this.secure = secure;
-    this.headerClientIpAddressName = headerClientIpAddressName;
+    this.remoteAddressHeader = remoteAddressHeader;
     this.maxWebSocketFrameSize = maxWebSocketFrameSize;
   }
 
@@ -137,7 +137,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
     sessionIdByChannel.put(ctx.channel(), sessionId);
 
-    SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+    SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, remoteAddressHeader);
 
     final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
     packet.setTransportType(getTransportType());

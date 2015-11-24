@@ -38,11 +38,11 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final String connectPath;
-  private final String headerClientIpAddressName;
+  private final String remoteAddressHeader;
 
-  public JsonpPollingHandler(final String handshakePath, final String headerClientIpAddressName) {
+  public JsonpPollingHandler(final String handshakePath, final String remoteAddressHeader) {
     this.connectPath = handshakePath + TransportType.JSONP_POLLING.getName();
-    this.headerClientIpAddressName = headerClientIpAddressName;
+    this.remoteAddressHeader = remoteAddressHeader;
   }
 
   @Override
@@ -62,7 +62,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
 
         if (HttpMethod.GET.equals(requestMethod)) {
           // Process polling request from client
-          SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, headerClientIpAddressName);
+          SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, remoteAddressHeader);
 
           String jsonpIndexParam = PipelineUtils.extractParameter(queryDecoder, "i");
           final ConnectPacket packet = new ConnectPacket(sessionId, origin);

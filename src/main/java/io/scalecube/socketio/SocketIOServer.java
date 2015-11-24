@@ -41,13 +41,15 @@ public class SocketIOServer {
     STARTED, STOPPED
   }
 
-  private final ServerConfiguration configuration;
+  private ServerConfiguration configuration;
 
   private SocketIOListener listener;
 
   private HashedWheelTimer timer;
 
   private volatile State state = State.STOPPED;
+
+  private ServerBootstrapFactory serverBootstrapFactory;
 
   private ServerBootstrap bootstrap;
 
@@ -108,17 +110,22 @@ public class SocketIOServer {
 
     // Configure server
     SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener);
-    bootstrap = new ServerBootstrap()
-        .group(new NioEventLoopGroup(), new NioEventLoopGroup())
-        .channel(NioServerSocketChannel.class)
-        .childHandler(channelInitializer)
-        .childOption(ChannelOption.TCP_NODELAY, true)
-        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    bootstrap = serverBootstrapFactory != null ? serverBootstrapFactory.createServerBootstrap() :
+        createDefaultServerBootstrap();
+    bootstrap.childHandler(channelInitializer);
 
     int port = configuration.getPort();
     bootstrap.bind(new InetSocketAddress(port));
     state = State.STARTED;
     log.info("Started {}", this);
+  }
+
+  private ServerBootstrap createDefaultServerBootstrap() {
+    return new ServerBootstrap()
+        .group(new NioEventLoopGroup(), new NioEventLoopGroup())
+        .channel(NioServerSocketChannel.class)
+        .childOption(ChannelOption.TCP_NODELAY, true)
+        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
   }
 
   /**
@@ -135,7 +142,7 @@ public class SocketIOServer {
     log.info("Socket.IO server stopping");
 
     timer.stop();
-    bootstrap.group().shutdownGracefully();
+    bootstrap.group().shutdownGracefully().syncUninterruptibly();
     state = State.STOPPED;
 
     log.info("Socket.IO server stopped");
@@ -174,7 +181,8 @@ public class SocketIOServer {
   }
 
   /**
-   * {@link SocketIOServer#getListener}
+   * Sets Socket.IO events listener. If server already started new listener will be applied only after
+   * server restart.
    */
   public void setListener(SocketIOListener listener) {
     this.listener = listener;
@@ -185,6 +193,29 @@ public class SocketIOServer {
    */
   public ServerConfiguration getConfiguration() {
     return configuration;
+  }
+
+  /**
+   * Sets server configuration settings. If server already started new settings will be applied only after
+   * server restart.
+   */
+  public void setConfiguration(ServerConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
+  /**
+   * Returns ServerBootstrap factory.
+   */
+  public ServerBootstrapFactory getServerBootstrapFactory() {
+    return serverBootstrapFactory;
+  }
+
+  /**
+   * Sets ServerBootstrap factory. If server already started new boostrap factory will be applied only after
+   * server restart.
+   */
+  public void setServerBootstrapFactory(ServerBootstrapFactory serverBootstrapFactory) {
+    this.serverBootstrapFactory = serverBootstrapFactory;
   }
 
   @Override
