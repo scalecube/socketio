@@ -1,9 +1,9 @@
 Changes
 =======================
 
-2.1.1
+2.1.1 / 2016-01-12
 -----------------------
-
+* Fix ByteBuf not released when session disconnected during message processing 
 
 2.1.0 / 2015-11-24
 -----------------------
