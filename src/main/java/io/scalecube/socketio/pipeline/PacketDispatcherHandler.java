@@ -96,6 +96,10 @@ public class PacketDispatcherHandler extends ChannelInboundHandlerAdapter implem
       final ManagedSession session = sessionStorage.getSessionIfExist(sessionId);
       if (session != null) {
         onPacket(channel, session, message);
+      } else {
+        if (message.getData() != null) {
+          message.getData().release();
+        }
       }
     } else {
       throw new UnsupportedPacketTypeException(packet);
