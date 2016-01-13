@@ -16,6 +16,7 @@ Supported transport protocols:
 
 Performance
 -----------------------
+
 Tested on VM: CentOS, 4vCPU, 2GB RAM, Java 7
 
 Client Sessions:
@@ -52,7 +53,7 @@ Change history and version numbers at [CHANGES.md](https://github.com/scalecube/
 
 Maven dependency: 
 
-``` maven
+``` xml
 <dependency>
   <groupId>io.scalecube</groupId>
   <artifactId>socketio</artifactId>
@@ -63,7 +64,7 @@ Maven dependency:
 Starting from version 2.0.1 Netty dependency is optional in order to allow change of Netty version independently. 
 So following dependencies should be added to your project:
 
-``` maven
+``` xml
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-buffer</artifactId>
@@ -93,7 +94,7 @@ So following dependencies should be added to your project:
 
 Maven dependency for versions up to 1.1.2:
  
-``` maven
+``` xml
 <dependency>
   <groupId>com.github.socketIo4Netty</groupId>
   <artifactId>socketIo4Netty</artifactId>
