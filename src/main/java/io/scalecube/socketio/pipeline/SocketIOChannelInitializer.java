@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import io.scalecube.socketio.PipelineModifier;
 import io.scalecube.socketio.SocketIOListener;
 import io.scalecube.socketio.ServerConfiguration;
 import io.scalecube.socketio.TransportType;
@@ -73,7 +74,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final SSLContext sslContext;
   private final boolean isFlashSupported;
 
-  public SocketIOChannelInitializer(final ServerConfiguration serverConfiguration, final SocketIOListener listener) {
+  private final PipelineModifier pipelineModifier;
+
+  public SocketIOChannelInitializer(final ServerConfiguration serverConfiguration, final SocketIOListener listener, final PipelineModifier pipelineModifier) {
     // Initialize state variables
     this.sslContext = serverConfiguration.getSslContext();
     final String remoteAddressHeader = serverConfiguration.getRemoteAddressHeader();
@@ -108,6 +111,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     } else {
       eventExecutorGroup = null;
     }
+    this.pipelineModifier = pipelineModifier;
   }
 
   @Override
@@ -146,5 +150,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
     pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
     pipeline.addLast(eventExecutorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
+
+    if (pipelineModifier != null) {
+      pipelineModifier.modifyPipeline(pipeline);
+    }
   }
 }

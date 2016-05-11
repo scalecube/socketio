@@ -45,6 +45,8 @@ public class SocketIOServer {
 
   private SocketIOListener listener;
 
+  private PipelineModifier pipelineModifier;
+
   private HashedWheelTimer timer;
 
   private volatile State state = State.STOPPED;
@@ -109,7 +111,7 @@ public class SocketIOServer {
     SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
     // Configure server
-    SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener);
+    SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener, pipelineModifier);
     bootstrap = serverBootstrapFactory != null ? serverBootstrapFactory.createServerBootstrap() :
         createDefaultServerBootstrap();
     bootstrap.childHandler(channelInitializer);
@@ -186,6 +188,20 @@ public class SocketIOServer {
    */
   public void setListener(SocketIOListener listener) {
     this.listener = listener;
+  }
+
+  /**
+   * Returns pipeline modifier
+   */
+  public PipelineModifier getPipelineModifier() {
+    return pipelineModifier;
+  }
+
+  /**
+   * Sets pipeline modifier. Pipeline modifier could be used for adding handlers to channel pipeline.
+   */
+  public void setPipelineModifier(PipelineModifier pipelineModifier) {
+    this.pipelineModifier = pipelineModifier;
   }
 
   /**
