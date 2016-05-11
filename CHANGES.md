@@ -1,8 +1,10 @@
 Changes
 =======================
 
-2.1.2
+2.2.0 / 2016-05-11
 -----------------------
+* Add possibility to customize Netty pipeline
+* Update Netty to 4.0.36.Final
 
 2.1.1 / 2016-01-12
 -----------------------
