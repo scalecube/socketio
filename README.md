@@ -44,7 +44,7 @@ Start Socket.IO server on port `5000` which prints to console all received messa
 ``` java
 SocketIOServer server = SocketIOServer.newInstance(5000 /*port*/);
 server.setListener(new SocketIOAdapter() {
-  public void onMessage(ISession session, ByteBuf message) {
+  public void onMessage(Session session, ByteBuf message) {
     System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
     message.release();
   }
@@ -57,7 +57,7 @@ Start echo Socket.IO server:
 ``` java
 SocketIOServer echoServer = SocketIOServer.newInstance(5000 /*port*/);
 echoServer.setListener(new SocketIOAdapter() {
-  public void onMessage(ISession session, ByteBuf message) {
+  public void onMessage(Session session, ByteBuf message) {
     session.send(message);
   }
 });
