@@ -39,14 +39,22 @@ TPS:
 
 ## Getting Started
 
-Start Socket.IO server on port `5000` which prints to console all received messages:
+Start Socket.IO server on port `5000` which prints to console all received messages and connected/disconnected events:
 
 ``` java
 SocketIOServer server = SocketIOServer.newInstance(5000 /*port*/);
-server.setListener(new SocketIOAdapter() {
+server.setListener(new SocketIOListener() {
+  public void onConnect(Session session) {
+    System.out.println("Connected: " + session);  
+  }
+  
   public void onMessage(Session session, ByteBuf message) {
     System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
     message.release();
+  }
+  
+  public void onDisconnect(Session session) {
+    System.out.println("Disconnected: " + session);  
   }
 });
 server.start();
