@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/scalecube/socketio.svg?branch=master)](https://travis-ci.org/scalecube/socketio)
+# Socket.IO Java Server
 
-Socket.IO Java Server
-=======================
+[![Build Status](https://travis-ci.org/scalecube/socketio.svg?branch=master)](https://travis-ci.org/scalecube/socketio)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.scalecube/socketio/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.scalecube/socketio)
  
 ScaleCube Socket.IO is a lightweight implementation of [Socket.IO](http://socket.io) Java server based on 
 [Netty](http://netty.io) framework. It implements subset of Socket.IO protocol which is optimized for high 
@@ -14,8 +14,7 @@ Supported transport protocols:
 * XHR-Polling
 * JSONP-Polling
 
-Performance
------------------------
+## Performance
 
 Tested on VM: CentOS, 4vCPU, 2GB RAM, Java 7
 
@@ -27,8 +26,7 @@ TPS:
 - 4,000 requests per second per single channel
 - 80,000 requests per second total
 
-How to use
------------------------
+## How to use
 
 ``` java
   SocketIOServer socketIoServer = SocketIOServer.newInstance(5000 /*port*/);
@@ -43,8 +41,7 @@ How to use
 
 For more examples, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
 
-Maven
----------------------- 
+## Maven 
 
 Binaries and dependency information for Maven can be found at 
 [http://search.maven.org](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.scalecube%22%20AND%20a%3A%22socketio%22).
@@ -57,57 +54,45 @@ Maven dependency:
 <dependency>
   <groupId>io.scalecube</groupId>
   <artifactId>socketio</artifactId>
-  <version>2.1.1</version>
+  <version>x.y.z</version>
 </dependency>
 ```
 
-Starting from version 2.0.1 Netty dependency is optional in order to allow change of Netty version independently. 
-So following dependencies should be added to your project:
+Netty dependency is made optional in order to allow change of Netty's minor version.
+So following Netty 4.0.x modules should be added to your project with specified minor version, e.g.:
 
 ``` xml
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-buffer</artifactId>
-  <version>4.0.33.Final</version>
+  <version>4.0.36.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-common</artifactId>
-  <version>4.0.33.Final</version>
+  <version>4.0.36.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-handler</artifactId>
-  <version>4.0.33.Final</version>
+  <version>4.0.36.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-codec</artifactId>
-  <version>4.0.33.Final</version>
+  <version>4.0.36.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-codec-http</artifactId>
-  <version>4.0.33.Final</version>
+  <version>4.0.36.Final</version>
 </dependency>
 ```
 
-Maven dependency for versions up to 1.1.2:
- 
-``` xml
-<dependency>
-  <groupId>com.github.socketIo4Netty</groupId>
-  <artifactId>socketIo4Netty</artifactId>
-  <version>1.1.2</version>
-</dependency>
-``` 
-
-Bugs and Feedback
-----------------------
+## Bugs and Feedback
 
 For bugs, questions and discussions please use the [GitHub Issues](https://github.com/scalecube/socketio/issues).
 
-License
-----------------------
+## License
 
 [Apache License, Version 2.0](https://github.com/scalecube/socketio/blob/master/LICENSE.txt)
