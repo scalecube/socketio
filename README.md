@@ -37,20 +37,38 @@ TPS:
 - 4,000 requests per second per single channel
 - 80,000 requests per second total
 
-## How to use
+## Getting Started
+
+Start Socket.IO server on port `5000` which prints to console all received messages:
 
 ``` java
-  SocketIOServer socketIoServer = SocketIOServer.newInstance(5000 /*port*/);
-  socketIoServer.setListener(new SocketIOAdapter() {
-    public void onMessage(ISession session, ByteBuf message) {
-      System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
-      message.release();
-    }
-  });
-  socketIoServer.start();
+SocketIOServer server = SocketIOServer.newInstance(5000 /*port*/);
+server.setListener(new SocketIOAdapter() {
+  public void onMessage(ISession session, ByteBuf message) {
+    System.out.println("Received: " + message.toString(CharsetUtil.UTF_8));
+    message.release();
+  }
+});
+server.start();
 ```
 
-For more examples, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
+Start echo Socket.IO server:
+
+``` java
+SocketIOServer echoServer = SocketIOServer.newInstance(5000 /*port*/);
+echoServer.setListener(new SocketIOAdapter() {
+  public void onMessage(ISession session, ByteBuf message) {
+    session.send(message);
+  }
+});
+echoServer.start();
+```
+
+Note that received message has type of Netty's `ByteBuffer` since the popular use case are proxy-like applications it 
+allows to resend received payload without decoding it. If byte buffer will be sent to another Netty channel it will 
+be released automatically, otherwise it is required to manually release buffer.
+
+For more examples and demo client application, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
 
 ## Maven 
 
