@@ -155,7 +155,7 @@ public class ServerConfiguration {
 
   /**
    * Maximum allowable web socket frame payload length. Setting this value to your application's requirement may
-   * reduce denial of service attacks using long data frames.
+   * reduce denial of service attacks using long data frames. Default is 65536.
    */
   public int getMaxWebSocketFrameSize() {
     return maxWebSocketFrameSize;
@@ -171,7 +171,7 @@ public class ServerConfiguration {
         ", closeTimeout=" + closeTimeout +
         ", transports='" + transports + '\'' +
         ", alwaysSecureWebSocketLocation=" + alwaysSecureWebSocketLocation +
-        ", headerClientIpAddressName='" + remoteAddressHeader + '\'' +
+        ", remoteAddressHeader='" + remoteAddressHeader + '\'' +
         ", eventExecutorEnabled=" + eventExecutorEnabled +
         ", eventExecutorThreadNumber=" + eventExecutorThreadNumber +
         ", maxWebSocketFrameSize=" + maxWebSocketFrameSize +

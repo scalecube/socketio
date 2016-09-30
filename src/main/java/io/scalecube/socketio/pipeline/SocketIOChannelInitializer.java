@@ -73,6 +73,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
   private final SSLContext sslContext;
   private final boolean isFlashSupported;
+  private final boolean isJsonpSupported;
 
   private final PipelineModifier pipelineModifier;
 
@@ -83,6 +84,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
     final SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
     isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
+    isJsonpSupported = serverConfiguration.getTransports().contains(TransportType.JSONP_POLLING.getName());
 
     // Initialize sharable handlers
     flashPolicyHandler = new FlashPolicyHandler();
@@ -145,9 +147,13 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(SOCKETIO_HANDSHAKE_HANDLER, handshakeHanler);
     pipeline.addLast(SOCKETIO_DISCONNECT_HANDLER, disconnectHanler);
     pipeline.addLast(SOCKETIO_WEBSOCKET_HANDLER, webSocketHandler);
-    pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);
+    if (isFlashSupported) {
+      pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);
+    }
     pipeline.addLast(SOCKETIO_XHR_POLLING_HANDLER, xhrPollingHanler);
-    pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
+    if (isJsonpSupported) {
+      pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
+    }
     pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
     pipeline.addLast(eventExecutorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);
 
