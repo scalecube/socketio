@@ -180,7 +180,6 @@ public abstract class AbstractSession implements ManagedSession {
         + ", bindPort: " + getLocalPort()
         + ", transport: " + getTransportType()
         + (isUpgradedSession() ? ", upgradedFrom: " + getUpgradedFromTransportType() : "")
-        + ", state: " + getState()
         + ']';
   }
 }
