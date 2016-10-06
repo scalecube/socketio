@@ -39,11 +39,23 @@ TPS:
 
 ## Getting Started
 
+Start echo Socket.IO server on default port (`8080`) as simple as:
+
+``` java
+SocketIOServer echoServer = SocketIOServer.newInstance();
+echoServer.setListener(new SocketIOAdapter() {
+  public void onMessage(Session session, ByteBuf message) {
+    session.send(message);
+  }
+});
+echoServer.start();
+```
+
 Start Socket.IO server on port `5000` which prints to console all received messages and connected/disconnected events:
 
 ``` java
-SocketIOServer server = SocketIOServer.newInstance(5000 /*port*/);
-server.setListener(new SocketIOListener() {
+SocketIOServer logServer = SocketIOServer.newInstance(5000 /*port*/);
+logServer.setListener(new SocketIOListener() {
   public void onConnect(Session session) {
     System.out.println("Connected: " + session);  
   }
@@ -57,31 +69,20 @@ server.setListener(new SocketIOListener() {
     System.out.println("Disconnected: " + session);  
   }
 });
-server.start();
+logServer.start();
 ```
 
-Start echo Socket.IO server as simple as:
-
-``` java
-SocketIOServer echoServer = SocketIOServer.newInstance(5000 /*port*/);
-echoServer.setListener(new SocketIOAdapter() {
-  public void onMessage(Session session, ByteBuf message) {
-    session.send(message);
-  }
-});
-echoServer.start();
-```
-
-Note that received message has type of Netty's [ByteBuffer](https://netty.io/4.0/api/io/netty/buffer/ByteBuf.html) 
-since the popular use case are proxy-like applications it allows to resend received payload without decoding it. 
+Received message has type of Netty's [ByteBuffer](https://netty.io/4.0/api/io/netty/buffer/ByteBuf.html). 
+Since the popular use case are proxy-like applications it allows to resend received payload without full decoding it. 
 If byte buffer will be sent to another Netty channel it will be released automatically, otherwise it is required 
 to manually release buffer.
 
-Start Socket.IO server with SSL:
+To start Socket.IO server with SSL/TLS support you need to provide [SSLContext](https://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html) 
+in server config:
 
 ``` java
 // Server config
-SSLContext sslContext = ... // your server's SSL context 
+SSLContext sslContext = ... // your server's SSLContext 
 ServerConfiguration configWithSsl = ServerConfiguration.builder()
     .port(5000)
     .sslContext(sslContext)
