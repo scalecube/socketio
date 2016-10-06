@@ -77,6 +77,22 @@ since the popular use case are proxy-like applications it allows to resend recei
 If byte buffer will be sent to another Netty channel it will be released automatically, otherwise it is required 
 to manually release buffer.
 
+Start Socket.IO server with SSL:
+
+```
+// Server config
+SSLContext sslContext = ... // your server's SSL context 
+ServerConfiguration configWithSsl = ServerConfiguration.builder()
+    .port(5000)
+    .sslContext(sslContext)
+    .build();
+    
+// Start server
+SocketIOServer sslServer = SocketIOServer.newInstance(configWithSsl);
+sslServer.setListener(new SocketIOAdapter() { /* listener code */ });
+sslServer.start();
+```
+
 To play with your Socket.IO server you may use our [demo client](http://scalecube.io/socketio/).   
 
 For more examples and demo client application, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
@@ -128,6 +144,68 @@ So following Netty 4.0.x modules should be added to your project with specified 
   <version>4.0.36.Final</version>
 </dependency>
 ```
+
+## Server configuration
+
+- *port*
+  
+  Port on which Socket.IO server will be started. Default value is `8080`.
+
+- *sslContext*
+
+  SSL context which is used to run secure socket. If it's set to `null` server runs without SSL.
+  Default value is `null`.
+
+- *transports*
+  
+  A string with list of allowed transport methods separated by comma.
+  Default value is `"websocket,flashsocket,xhr-polling,jsonp-polling"`.
+
+- *heartbeatTimeout*
+  
+  The timeout in seconds for the client when it should send a new heart
+  beat to the server. This value is sent to the client after a successful
+  handshake. The default value is `60`.
+
+- *closeTimeout*
+  
+  The timeout in seconds for the client, when it closes the connection it
+  still X amounts of seconds to do re open of the connection. This value is
+  sent to the client after a successful handshake. Default value is `60`.
+
+- *heartbeatInterval*
+
+  The timeout in seconds for the server, we should receive a heartbeat from
+  the client within this interval. This should be less than the heartbeat
+  timeout. Default value is `25`.
+
+- *eventExecutorEnabled*
+  
+  Flag which defines if listener will be executed, true - different thread, false - io-thread.
+  Default is `true`.
+  
+- *eventExecutorThreadNumber*
+  
+  Event executor thread number, if eventExecutorEnabled flag set to true.
+  Default value is `Runtime.getRuntime().availableProcessors() x 2`.
+
+- *maxWebSocketFrameSize*
+  
+  Maximum allowable web socket frame payload length. Setting this value to your application's requirement may
+  reduce denial of service attacks using long data frames. Default is `65536`.
+  
+- *alwaysSecureWebSocketLocation*
+  
+  Flag which if set to true will always return secure web socket location protocol ("wss://")
+  even when connection is established over plain socket. It is used as a workaround related to case
+  when SSL is offloaded to Load Balancer, but it doesn't modify web socket location. By default it
+  is `false`.
+
+- *remoteAddressHeader*
+  
+  The HTTP header name which is used as a session remote address. It is a workaround related to case
+  when Load Balancer modify client address with its address. This header is supposed to be set by Load
+  Balancer. If it is set to `null` then this header is not used. Default value is `null`.
 
 ## Bugs and Feedback
 

@@ -122,7 +122,7 @@ public class ServerConfiguration {
    * Flag which if set to true will always return secure web socket location protocol ("wss://")
    * even when connection is established over plain socket. It is used as a workaround related to case
    * when SSL is offloaded to Load Balancer, but it doesn't modify web socket location. By default it
-   * is disabled.
+   * is false.
    */
   public boolean isAlwaysSecureWebSocketLocation() {
     return alwaysSecureWebSocketLocation;
