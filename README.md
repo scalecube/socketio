@@ -60,7 +60,7 @@ server.setListener(new SocketIOListener() {
 server.start();
 ```
 
-Start echo Socket.IO server:
+Start echo Socket.IO server as simple as:
 
 ``` java
 SocketIOServer echoServer = SocketIOServer.newInstance(5000 /*port*/);
@@ -72,9 +72,12 @@ echoServer.setListener(new SocketIOAdapter() {
 echoServer.start();
 ```
 
-Note that received message has type of Netty's `ByteBuffer` since the popular use case are proxy-like applications it 
-allows to resend received payload without decoding it. If byte buffer will be sent to another Netty channel it will 
-be released automatically, otherwise it is required to manually release buffer.
+Note that received message has type of Netty's [ByteBuffer](https://netty.io/4.0/api/io/netty/buffer/ByteBuf.html) 
+since the popular use case are proxy-like applications it allows to resend received payload without decoding it. 
+If byte buffer will be sent to another Netty channel it will be released automatically, otherwise it is required 
+to manually release buffer.
+
+To play with your Socket.IO server you may use our [demo client](http://scalecube.io/socketio/).   
 
 For more examples and demo client application, see [Socket.IO Examples](https://github.com/scalecube/socketio-examples). 
 
