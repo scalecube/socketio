@@ -84,7 +84,7 @@ in server config:
 // Server config
 SSLContext sslContext = ... // your server's SSLContext 
 ServerConfiguration configWithSsl = ServerConfiguration.builder()
-    .port(5000)
+    .port(443)
     .sslContext(sslContext)
     .build();
     
