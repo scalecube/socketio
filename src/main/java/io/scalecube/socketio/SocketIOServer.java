@@ -119,7 +119,7 @@ public class SocketIOServer {
     int port = configuration.getPort();
     bootstrap.bind(new InetSocketAddress(port));
     state = State.STARTED;
-    log.info("Started {}", this);
+    log.info("Socket.IO server started: {}", configuration);
   }
 
   private ServerBootstrap createDefaultServerBootstrap() {
@@ -234,11 +234,4 @@ public class SocketIOServer {
     this.serverBootstrapFactory = serverBootstrapFactory;
   }
 
-  @Override
-  public String toString() {
-    return "SocketIOServer{" +
-        "configuration=" + configuration +
-        ", state=" + state +
-        '}';
-  }
 }

@@ -163,15 +163,14 @@ public class ServerConfiguration {
 
   @Override
   public String toString() {
-    return "ServerConfiguration{" +
-        "port=" + port +
+    return "ServerConfiguration{port=" + port +
         ", ssl=" + (sslContext != null) +
         ", heartbeatTimeout=" + heartbeatTimeout +
         ", heartbeatInterval=" + heartbeatInterval +
         ", closeTimeout=" + closeTimeout +
         ", transports='" + transports + '\'' +
         ", alwaysSecureWebSocketLocation=" + alwaysSecureWebSocketLocation +
-        ", remoteAddressHeader='" + remoteAddressHeader + '\'' +
+        ", remoteAddressHeader=" + remoteAddressHeader +
         ", eventExecutorEnabled=" + eventExecutorEnabled +
         ", eventExecutorThreadNumber=" + eventExecutorThreadNumber +
         ", maxWebSocketFrameSize=" + maxWebSocketFrameSize +
