@@ -42,7 +42,7 @@ public abstract class AbstractSession implements ManagedSession {
   protected final SessionDisconnectHandler disconnectHandler;
   protected final SocketIOHeartbeatScheduler heartbeatScheduler;
 
-  private final AtomicReference<State> stateHolder = new AtomicReference<State>(State.CREATED);
+  private final AtomicReference<State> stateHolder = new AtomicReference<>(State.CREATED);
   private volatile boolean upgraded = false;
 
   public AbstractSession(
@@ -172,4 +172,15 @@ public abstract class AbstractSession implements ManagedSession {
     return previousState;
   }
 
+  @Override
+  public String toString() {
+    return "[id: " + getSessionId()
+        + ", origin: " + getOrigin()
+        + ", addr: " + getRemoteAddress()
+        + ", bindPort: " + getLocalPort()
+        + ", transport: " + getTransportType()
+        + (isUpgradedSession() ? ", upgradedFrom: " + getUpgradedFromTransportType() : "")
+        + ", state: " + getState()
+        + ']';
+  }
 }

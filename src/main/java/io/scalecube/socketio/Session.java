@@ -22,11 +22,11 @@ import io.netty.buffer.ByteBuf;
  * specific client connection each client is represented with specific
  * session id that is correlated in the communication protocol.
  *
- * @author Ronen Hamias 
+ * @author Ronen Hamias, Anton Kharenko
  */
 public interface Session {
 
-  public enum State {
+  enum State {
     CREATED, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED
   }
 
