@@ -79,7 +79,7 @@ to manually release buffer.
 
 Start Socket.IO server with SSL:
 
-```
+``` java
 // Server config
 SSLContext sslContext = ... // your server's SSL context 
 ServerConfiguration configWithSsl = ServerConfiguration.builder()
