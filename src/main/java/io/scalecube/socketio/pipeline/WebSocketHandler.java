@@ -79,12 +79,15 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         final String requestPath = queryDecoder.path();
 
         if (log.isDebugEnabled())
-          log.debug("Received HTTP {} handshake request: {} {} from channel: {}", getTransportType().getName(), req.getMethod(),
-              requestPath, ctx.channel());
+          log.debug("Received HTTP {} handshake request: {} from channel: {}", getTransportType().getName(), req, ctx.channel());
 
-        handshake(ctx, req, requestPath);
-
-        ReferenceCountUtil.release(msg);
+        try {
+          handshake(ctx, req, requestPath);
+        } catch (Exception e) {
+          log.error("Error during {} handshake : {}", getTransportType().getName(), e);
+        } finally {
+          ReferenceCountUtil.release(msg);
+        }
         return;
       }
     } else if (msg instanceof WebSocketFrame && isCurrentHandlerSession(ctx)) {
@@ -104,7 +107,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     return sessionIdByChannel.containsKey(ctx.channel());
   }
 
-  private boolean handshake(final ChannelHandlerContext ctx, final FullHttpRequest req, final String requestPath) {
+  private void handshake(final ChannelHandlerContext ctx, final FullHttpRequest req, final String requestPath) {
     WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
         getWebSocketLocation(req), null, false, maxWebSocketFrameSize);
     WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
@@ -119,11 +122,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
               }
             }
           });
-      return true;
     } else {
       WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
     }
-    return false;
   }
 
   private String getWebSocketLocation(HttpRequest req) {
