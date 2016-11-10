@@ -53,8 +53,8 @@ public class DisconnectHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     if (msg instanceof HttpRequest) {
       final HttpRequest req = (HttpRequest) msg;
-      final HttpMethod requestMethod = req.getMethod();
-      final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+      final HttpMethod requestMethod = req.method();
+      final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
       final String requestPath = queryDecoder.path();
 
       boolean disconnect = queryDecoder.parameters().containsKey(DISCONNECT);

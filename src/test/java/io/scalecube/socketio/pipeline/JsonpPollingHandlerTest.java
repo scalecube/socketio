@@ -12,16 +12,11 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import junit.framework.Assert;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
@@ -29,6 +24,9 @@ import io.netty.util.CharsetUtil;
 import io.scalecube.socketio.TransportType;
 import io.scalecube.socketio.packets.ConnectPacket;
 import io.scalecube.socketio.packets.Packet;
+import junit.framework.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class JsonpPollingHandlerTest {
   private static final String X_FORWARDED_FOR = "X-Forwarded-For";
@@ -70,7 +68,7 @@ public class JsonpPollingHandlerTest {
   public void testChannelReadConnect() throws Exception {
     HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
     String origin = "http://localhost:8080";
-    HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
+    request.headers().add(HttpHeaderNames.ORIGIN, origin);
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);
@@ -87,8 +85,8 @@ public class JsonpPollingHandlerTest {
   public void testChannelReadConnectWithClientIpInHeader() throws Exception {
     HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
     String origin = "http://localhost:8080";
-    HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
-    HttpHeaders.addHeader(request, X_FORWARDED_FOR, "1.2.3.4");
+    request.headers().add(HttpHeaderNames.ORIGIN, origin);
+    request.headers().add(X_FORWARDED_FOR, "1.2.3.4");
 
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
@@ -107,7 +105,7 @@ public class JsonpPollingHandlerTest {
     ByteBuf content = Unpooled.copiedBuffer("d=3:::{\"greetings\":\"Hello World!\"}", CharsetUtil.UTF_8);
     HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/socket.io/1/jsonp-polling", content);
     String origin = "http://localhost:8080";
-    HttpHeaders.addHeader(request, HttpHeaders.Names.ORIGIN, origin);
+    request.headers().add(HttpHeaderNames.ORIGIN, origin);
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);

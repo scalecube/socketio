@@ -12,13 +12,6 @@
  */
 package io.scalecube.socketio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.InetSocketAddress;
-
-import javax.net.ssl.SSLContext;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -27,6 +20,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.HashedWheelTimer;
 import io.scalecube.socketio.pipeline.SocketIOChannelInitializer;
 import io.scalecube.socketio.session.SocketIOHeartbeatScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLContext;
+import java.net.InetSocketAddress;
 
 /**
  * A Socket.IO server launcher class.
@@ -144,7 +142,7 @@ public class SocketIOServer {
     log.info("Socket.IO server stopping");
 
     timer.stop();
-    bootstrap.group().shutdownGracefully().syncUninterruptibly();
+    bootstrap.config().group().shutdownGracefully().syncUninterruptibly();
     state = State.STOPPED;
 
     log.info("Socket.IO server stopped");

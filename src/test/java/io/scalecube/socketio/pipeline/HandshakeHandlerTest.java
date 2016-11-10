@@ -52,8 +52,8 @@ public class HandshakeHandlerTest {
     Object outboundMessage = lastOutboundHandler.getOutboundMessages().poll();
     Assert.assertTrue(outboundMessage instanceof FullHttpResponse);
     FullHttpResponse res = (FullHttpResponse) outboundMessage;
-    Assert.assertEquals(HttpVersion.HTTP_1_1, res.getProtocolVersion());
-    Assert.assertEquals(HttpResponseStatus.OK, res.getStatus());
+    Assert.assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
+    Assert.assertEquals(HttpResponseStatus.OK, res.status());
     ByteBuf content = res.content();
     Assert.assertTrue(content.toString(CharsetUtil.UTF_8).endsWith("60:60:websocket,flashsocket,xhr-polling,jsonp-polling"));
     channel.finish();
@@ -69,8 +69,8 @@ public class HandshakeHandlerTest {
     Object outboundMessage = lastOutboundHandler.getOutboundMessages().poll();
     Assert.assertTrue(outboundMessage instanceof HttpResponse);
     HttpResponse res = (HttpResponse) outboundMessage;
-    Assert.assertEquals(HttpVersion.HTTP_1_1, res.getProtocolVersion());
-    Assert.assertEquals(HttpResponseStatus.BAD_REQUEST, res.getStatus());
+    Assert.assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
+    Assert.assertEquals(HttpResponseStatus.BAD_REQUEST, res.status());
     channel.finish();
   }
 
