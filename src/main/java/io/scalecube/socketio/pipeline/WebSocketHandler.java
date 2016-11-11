@@ -12,20 +12,13 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.SocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -41,6 +34,12 @@ import io.scalecube.socketio.TransportType;
 import io.scalecube.socketio.packets.ConnectPacket;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.serialization.PacketDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -52,7 +51,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final Map<Object, String> sessionIdByChannel = new ConcurrentHashMap<Object, String>();
+  private final Map<Object, String> sessionIdByChannel = new ConcurrentHashMap<>();
   private final String connectPath;
   private final boolean secure;
   private final String remoteAddressHeader;
@@ -74,8 +73,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     if (msg instanceof FullHttpRequest) {
       FullHttpRequest req = (FullHttpRequest) msg;
-      if (req.getMethod() == HttpMethod.GET && req.getUri().startsWith(connectPath)) {
-        final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+      if (req.method() == HttpMethod.GET && req.uri().startsWith(connectPath)) {
+        final QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
         final String requestPath = queryDecoder.path();
 
         if (log.isDebugEnabled())
@@ -129,7 +128,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
   private String getWebSocketLocation(HttpRequest req) {
     String protocol = secure ? "wss://" : "ws://";
-    String webSocketLocation = protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
+    String webSocketLocation = protocol + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     if (log.isDebugEnabled())
       log.debug("Created {} at: {}", getTransportType().getName(), webSocketLocation);
     return webSocketLocation;

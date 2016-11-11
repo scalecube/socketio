@@ -12,9 +12,29 @@
  */
 package io.scalecube.socketio.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.stream.ChunkedStream;
+import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.activation.MimetypesFileTypeMap;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,27 +48,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.activation.MimetypesFileTypeMap;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.stream.ChunkedStream;
-import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.util.CharsetUtil;
-import io.netty.util.ReferenceCountUtil;
-
 @ChannelHandler.Sharable
 public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
@@ -58,7 +57,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
   public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
   public static final int HTTP_CACHE_SECONDS = 60;
 
-  private final Map<String, URL> resources = new HashMap<String, URL>();
+  private final Map<String, URL> resources = new HashMap<>();
 
   public ResourceHandler() {
   }
@@ -76,12 +75,12 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     if (msg instanceof HttpRequest) {
       HttpRequest req = (HttpRequest) msg;
-      QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+      QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
       String requestPath = queryDecoder.path();
       URL resUrl = resources.get(requestPath);
       if (resUrl != null) {
         if (log.isDebugEnabled())
-          log.debug("Received HTTP resource request: {} {} from channel: {}", req.getMethod(), requestPath, ctx.channel());
+          log.debug("Received HTTP resource request: {} {} from channel: {}", req.method(), requestPath, ctx.channel());
 
         URLConnection fileUrl = resUrl.openConnection();
         long lastModified = fileUrl.getLastModified();
@@ -99,7 +98,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
         // create ok response
         HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         // set Content-Length header
-        HttpHeaders.setContentLength(res, fileUrl.getContentLengthLong());
+        HttpUtil.setContentLength(res, fileUrl.getContentLengthLong());
         // set Content-Type header
         setContentTypeHeader(res, fileUrl);
         // set Date, Expires, Cache-Control and Last-Modified headers
@@ -123,7 +122,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
    * Checks if the content has been modified sicne the date provided by the IF_MODIFIED_SINCE http header
    * */
   private boolean isNotModified(HttpRequest request, long lastModified) throws ParseException {
-    String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
+    String ifModifiedSince = request.headers().get(HttpHeaderNames.IF_MODIFIED_SINCE);
     if (ifModifiedSince != null && !ifModifiedSince.equals("")) {
       SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
       Date ifModifiedSinceDate = dateFormatter.parse(ifModifiedSince);
@@ -160,7 +159,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
     dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
     Calendar time = new GregorianCalendar();
-    HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
+    response.headers().set(HttpHeaderNames.DATE, dateFormatter.format(time.getTime()));
   }
 
   /**
@@ -171,7 +170,7 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
    */
   private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
-    HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
     ByteBuf content = Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8);
 
     ctx.write(response);
@@ -191,13 +190,13 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
     // Date header
     Calendar time = new GregorianCalendar();
-    HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
+    response.headers().set(HttpHeaderNames.DATE, dateFormatter.format(time.getTime()));
 
     // Add cache headers
     time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
-    HttpHeaders.setHeader(response, HttpHeaders.Names.EXPIRES, dateFormatter.format(time.getTime()));
-    HttpHeaders.setHeader(response, HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
-    HttpHeaders.setHeader(response, HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(lastModified)));
+    response.headers().set(HttpHeaderNames.EXPIRES, dateFormatter.format(time.getTime()));
+    response.headers().set(HttpHeaderNames.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
+    response.headers().set(HttpHeaderNames.LAST_MODIFIED, dateFormatter.format(new Date(lastModified)));
   }
 
   /**
@@ -209,6 +208,6 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
   private void setContentTypeHeader(HttpResponse response, URLConnection resUrlConnection) {
     MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
     String resName = resUrlConnection.getURL().getFile();
-    HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(resName));
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, mimeTypesMap.getContentType(resName));
   }
 }

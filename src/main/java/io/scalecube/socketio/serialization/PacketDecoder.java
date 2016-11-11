@@ -12,18 +12,18 @@
  */
 package io.scalecube.socketio.serialization;
 
-import java.io.IOException;
-
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufProcessor;
+import io.netty.util.ByteProcessor;
 import io.netty.util.CharsetUtil;
 import io.scalecube.socketio.packets.Packet;
 import io.scalecube.socketio.packets.PacketType;
 
+import java.io.IOException;
+
 public final class PacketDecoder {
 
   private static final byte DELIMITER = (byte) ':';
-  private static final ByteBufProcessor packetDelimiterFinder = new ByteBufProcessor() {
+  private static final ByteProcessor packetDelimiterFinder = new ByteProcessor() {
     @Override
     public boolean process(byte value) throws Exception {
       return value != DELIMITER;

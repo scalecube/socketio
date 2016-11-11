@@ -12,6 +12,20 @@
  */
 package io.scalecube.socketio.pipeline;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +34,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.Map;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.CharsetUtil;
 
 /**
  * Utilities methods class. 
@@ -67,7 +68,7 @@ final class PipelineUtils {
   }
 
   public static String getOrigin(final HttpRequest req) {
-    return req.headers().get(HttpHeaders.Names.ORIGIN);
+    return req.headers().get(HttpHeaderNames.ORIGIN);
   }
 
   public static String extractParameter(QueryStringDecoder queryDecoder, String key) {
@@ -79,16 +80,16 @@ final class PipelineUtils {
   public static HttpResponse createHttpResponse(final String origin, ByteBuf content, boolean json) {
     FullHttpResponse res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
     if (json) {
-      HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/javascript; charset=UTF-8");
+      res.headers().add(HttpHeaderNames.CONTENT_TYPE, "text/javascript; charset=UTF-8");
     } else {
-      HttpHeaders.addHeader(res, HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+      res.headers().add(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
     }
-    HttpHeaders.addHeader(res, HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+    res.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
     if (origin != null) {
-      res.headers().add(HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-      res.headers().add(HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+      res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+      res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
     }
-    HttpHeaders.setContentLength(res, content.readableBytes());
+    HttpUtil.setContentLength(res, content.readableBytes());
 
     return res;
   }
@@ -106,7 +107,7 @@ final class PipelineUtils {
     if (paramName != null && !paramName.trim().isEmpty()) {
       String ip = null;
       try {
-        ip = HttpHeaders.getHeader(message, paramName);
+        ip = message.headers().get(paramName);
         if (ip != null) {
           result = new InetSocketAddress(InetAddress.getByName(ip), 0);
         }
