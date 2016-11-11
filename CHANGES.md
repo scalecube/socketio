@@ -1,5 +1,10 @@
 # Changes
 
+## 2.3.0 / 2016-11-11
+
+* Update Netty to 4.1.6.Final
+* Handle WebSocket handshake error to release buffer
+
 ## 2.2.0 / 2016-05-11
 
 * Add possibility to customize Netty pipeline
