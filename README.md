@@ -116,33 +116,33 @@ Maven dependency:
 ```
 
 Netty dependency is made optional in order to allow change of Netty's minor version.
-So following Netty 4.0.x modules should be added to your project with specified minor version, e.g.:
+So following Netty 4.1.x modules should be added to your project with specified minor version, e.g.:
 
 ``` xml
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-buffer</artifactId>
-  <version>4.0.36.Final</version>
+  <version>4.1.6.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-common</artifactId>
-  <version>4.0.36.Final</version>
+  <version>4.1.6.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-handler</artifactId>
-  <version>4.0.36.Final</version>
+  <version>4.1.6.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-codec</artifactId>
-  <version>4.0.36.Final</version>
+  <version>4.1.6.Final</version>
 </dependency>
 <dependency>
   <groupId>io.netty</groupId>
   <artifactId>netty-codec-http</artifactId>
-  <version>4.0.36.Final</version>
+  <version>4.1.6.Final</version>
 </dependency>
 ```
 
