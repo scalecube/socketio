@@ -1,5 +1,6 @@
 # Socket.IO Java Server
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/600c1a00c50348d09c713059a76a348d)](https://www.codacy.com/app/ScaleCube/socketio_2?utm_source=github.com&utm_medium=referral&utm_content=scalecube/socketio&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/scalecube/socketio.svg?branch=master)](https://travis-ci.org/scalecube/socketio)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.scalecube/socketio/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.scalecube/socketio)
  
