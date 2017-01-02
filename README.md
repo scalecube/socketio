@@ -208,6 +208,11 @@ So following Netty 4.1.x modules should be added to your project with specified 
   The HTTP header name which is used as a session remote address. It is a workaround related to case
   when Load Balancer modify client address with its address. This header is supposed to be set by Load
   Balancer. If it is set to `null` then this header is not used. Default value is `null`.
+  
+- *epollEnabled*
+
+  Flag which defines if Linux native [epoll](https://en.wikipedia.org/wiki/Epoll) transport will be used 
+  if available. Default is `true`.
 
 ## Bugs and Feedback
 
