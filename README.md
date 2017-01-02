@@ -117,7 +117,7 @@ Maven dependency:
 ```
 
 All dependencies are made optional in order to allow change to compatible version used by your project.
-So following Netty 4.1.x and slf4j-api 1.7.x modules should be added to your project:
+So following or compatible versions of Netty 4.1.x and slf4j-api 1.7.x modules should be added to your project:
 
 ``` xml
 <dependency>
