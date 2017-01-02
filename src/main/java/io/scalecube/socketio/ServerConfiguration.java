@@ -17,7 +17,7 @@ import javax.net.ssl.SSLContext;
 /**
  * Class represents different options of socket.io server
  */
-public class ServerConfiguration {
+public final class ServerConfiguration {
 
   // Default configuration
   public static final ServerConfiguration DEFAULT = builder().build();
@@ -34,6 +34,7 @@ public class ServerConfiguration {
   public static final int DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER = Runtime.getRuntime().availableProcessors() * 2;
   public static final int DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE = 65536;
   public static final SSLContext DEFAULT_SSL_CONTEXT = null;
+  public static final boolean DEFAULT_EPOLL_ENABLED = true;
 
   private final int port;
   private final int heartbeatTimeout;
@@ -46,6 +47,7 @@ public class ServerConfiguration {
   private final int eventExecutorThreadNumber;
   private final int maxWebSocketFrameSize;
   private final SSLContext sslContext;
+  private final boolean epollEnabled;
 
   /**
    * Private constructor. Use {@link ServerConfiguration.Builder} to build configuration.
@@ -62,6 +64,7 @@ public class ServerConfiguration {
     this.eventExecutorThreadNumber = builder.eventExecutorThreadNumber;
     this.maxWebSocketFrameSize = builder.maxWebSocketFrameSize;
     this.sslContext = builder.sslContext;
+    this.epollEnabled = builder.epollEnabled;
   }
 
   public static Builder builder() {
@@ -161,6 +164,13 @@ public class ServerConfiguration {
     return maxWebSocketFrameSize;
   }
 
+  /**
+   * Flag which defines if Linux native epoll transport will be used if available. Default is true.
+   */
+  public boolean isEpollEnabled() {
+    return epollEnabled;
+  }
+
   @Override
   public String toString() {
     return "ServerConfiguration{port=" + port +
@@ -190,6 +200,7 @@ public class ServerConfiguration {
     private int eventExecutorThreadNumber = DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER;
     private int maxWebSocketFrameSize = DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE;
     private SSLContext sslContext = DEFAULT_SSL_CONTEXT;
+    private boolean epollEnabled = DEFAULT_EPOLL_ENABLED;
 
     private Builder() {}
 
@@ -278,6 +289,14 @@ public class ServerConfiguration {
      */
     public Builder eventExecutorThreadNumber(int eventExecutorThreadNumber) {
       this.eventExecutorThreadNumber = eventExecutorThreadNumber;
+      return this;
+    }
+
+    /**
+     * See {@link ServerConfiguration#isEpollEnabled()}
+     */
+    public Builder epollEnabled(boolean epollEnabled) {
+      this.epollEnabled = epollEnabled;
       return this;
     }
 

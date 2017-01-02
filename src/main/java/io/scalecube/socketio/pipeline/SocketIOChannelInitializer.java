@@ -35,7 +35,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   // Handler names
   public static final String FLASH_POLICY_HANDLER = "flash-policy-handler";
   public static final String SSL_HANDLER = "ssl-handler";
-  public static final String HTTP_REPONSE_ENCODER = "http-response-encoder";
+  public static final String HTTP_RESPONSE_ENCODER = "http-response-encoder";
   public static final String HTTP_REQUEST_DECODER = "http-request-decoder";
   public static final String HTTP_CHUNK_AGGREGATOR = "http-chunk-aggregator";
   public static final String FLASH_RESOURCE_HANDLER = "flash-resource-handler";
@@ -61,12 +61,12 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final FlashPolicyHandler flashPolicyHandler;
   private final ResourceHandler flashResourceHandler;
   private final PacketEncoderHandler packetEncoderHandler;
-  private final HandshakeHandler handshakeHanler;
-  private final DisconnectHandler disconnectHanler;
+  private final HandshakeHandler handshakeHandler;
+  private final DisconnectHandler disconnectHandler;
   private final WebSocketHandler webSocketHandler;
   private final FlashSocketHandler flashSocketHandler;
-  private final XHRPollingHandler xhrPollingHanler;
-  private final JsonpPollingHandler jsonpPollingHanler;
+  private final XHRPollingHandler xhrPollingHandler;
+  private final JsonpPollingHandler jsonpPollingHandler;
   private final HeartbeatHandler heartbeatHandler;
   private final EventExecutorGroup eventExecutorGroup;
   private final PacketDispatcherHandler packetDispatcherHandler;
@@ -95,8 +95,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
     packetEncoderHandler = new PacketEncoderHandler();
 
-    handshakeHanler = new HandshakeHandler(HANDSHAKE_PATH, serverConfiguration.getHeartbeatTimeout(), serverConfiguration.getCloseTimeout(), serverConfiguration.getTransports());
-    disconnectHanler = new DisconnectHandler();
+    handshakeHandler = new HandshakeHandler(HANDSHAKE_PATH, serverConfiguration.getHeartbeatTimeout(), serverConfiguration.getCloseTimeout(), serverConfiguration.getTransports());
+    disconnectHandler = new DisconnectHandler();
     heartbeatHandler = new HeartbeatHandler(sessionFactory);
 
     final boolean secure = (sslContext != null) || serverConfiguration.isAlwaysSecureWebSocketLocation();
@@ -104,8 +104,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     webSocketHandler = new WebSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, remoteAddressHeader);
     flashSocketHandler = new FlashSocketHandler(HANDSHAKE_PATH, secure, maxWebSocketFrameSize, remoteAddressHeader);
 
-    xhrPollingHanler = new XHRPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
-    jsonpPollingHanler = new JsonpPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
+    xhrPollingHandler = new XHRPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
+    jsonpPollingHandler = new JsonpPollingHandler(HANDSHAKE_PATH, remoteAddressHeader);
 
     packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
     if (serverConfiguration.isEventExecutorEnabled()) {
@@ -135,7 +135,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     // HTTP
     pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
     pipeline.addLast(HTTP_CHUNK_AGGREGATOR, new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH));
-    pipeline.addLast(HTTP_REPONSE_ENCODER, new HttpResponseEncoder());
+    pipeline.addLast(HTTP_RESPONSE_ENCODER, new HttpResponseEncoder());
 
     // Flash resources
     if (isFlashSupported) {
@@ -144,15 +144,15 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
     // Socket.IO
     pipeline.addLast(SOCKETIO_PACKET_ENCODER, packetEncoderHandler);
-    pipeline.addLast(SOCKETIO_HANDSHAKE_HANDLER, handshakeHanler);
-    pipeline.addLast(SOCKETIO_DISCONNECT_HANDLER, disconnectHanler);
+    pipeline.addLast(SOCKETIO_HANDSHAKE_HANDLER, handshakeHandler);
+    pipeline.addLast(SOCKETIO_DISCONNECT_HANDLER, disconnectHandler);
     pipeline.addLast(SOCKETIO_WEBSOCKET_HANDLER, webSocketHandler);
     if (isFlashSupported) {
       pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);
     }
-    pipeline.addLast(SOCKETIO_XHR_POLLING_HANDLER, xhrPollingHanler);
+    pipeline.addLast(SOCKETIO_XHR_POLLING_HANDLER, xhrPollingHandler);
     if (isJsonpSupported) {
-      pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHanler);
+      pipeline.addLast(SOCKETIO_JSONP_POLLING_HANDLER, jsonpPollingHandler);
     }
     pipeline.addLast(SOCKETIO_HEARTBEAT_HANDLER, heartbeatHandler);
     pipeline.addLast(eventExecutorGroup, SOCKETIO_PACKET_DISPATCHER, packetDispatcherHandler);

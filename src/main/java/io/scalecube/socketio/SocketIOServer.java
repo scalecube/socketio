@@ -13,10 +13,6 @@
 package io.scalecube.socketio;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.HashedWheelTimer;
 import io.scalecube.socketio.pipeline.SocketIOChannelInitializer;
 import io.scalecube.socketio.session.SocketIOHeartbeatScheduler;
@@ -24,14 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import java.net.InetSocketAddress;
 
 /**
  * A Socket.IO server launcher class.
  *
  * @author Anton Kharenko
  */
-public class SocketIOServer {
+public final class SocketIOServer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -108,24 +103,16 @@ public class SocketIOServer {
     SocketIOHeartbeatScheduler.setHeartbeatInterval(configuration.getHeartbeatInterval());
     SocketIOHeartbeatScheduler.setHeartbeatTimeout(configuration.getHeartbeatTimeout());
 
-    // Configure server
-    SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(configuration, listener, pipelineModifier);
-    bootstrap = serverBootstrapFactory != null ? serverBootstrapFactory.createServerBootstrap() :
-        createDefaultServerBootstrap();
-    bootstrap.childHandler(channelInitializer);
+    // Configure and bind server
+    ServerBootstrapFactory bootstrapFactory = serverBootstrapFactory != null
+        ? serverBootstrapFactory
+        : new DefaultServerBootstrapFactory(configuration);
+    bootstrap = bootstrapFactory.createServerBootstrap();
+    bootstrap.childHandler(new SocketIOChannelInitializer(configuration, listener, pipelineModifier));
+    bootstrap.bind(configuration.getPort()).syncUninterruptibly();
 
-    int port = configuration.getPort();
-    bootstrap.bind(new InetSocketAddress(port));
     state = State.STARTED;
     log.info("Socket.IO server started: {}", configuration);
-  }
-
-  private ServerBootstrap createDefaultServerBootstrap() {
-    return new ServerBootstrap()
-        .group(new NioEventLoopGroup(), new NioEventLoopGroup())
-        .channel(NioServerSocketChannel.class)
-        .childOption(ChannelOption.TCP_NODELAY, true)
-        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
   }
 
   /**
@@ -225,7 +212,7 @@ public class SocketIOServer {
   }
 
   /**
-   * Sets ServerBootstrap factory. If server already started new boostrap factory will be applied only after
+   * Sets ServerBootstrap factory. If server already started new bootstrap factory will be applied only after
    * server restart.
    */
   public void setServerBootstrapFactory(ServerBootstrapFactory serverBootstrapFactory) {
