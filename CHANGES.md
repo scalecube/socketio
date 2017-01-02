@@ -4,6 +4,7 @@
 
 * Update slf4j-api to 1.7.22 and make it as optional dependency
 * Support epoll transport by default server bootstrap factory
+* Support Netty's SslContext and OpenSSL 
 
 ## 2.3.0 / 2016-11-11
 

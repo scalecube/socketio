@@ -12,16 +12,13 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.scalecube.socketio.PipelineModifier;
@@ -71,7 +68,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final EventExecutorGroup eventExecutorGroup;
   private final PacketDispatcherHandler packetDispatcherHandler;
 
-  private final SSLContext sslContext;
+  private final SslContext sslContext;
   private final boolean isFlashSupported;
   private final boolean isJsonpSupported;
 
@@ -125,11 +122,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     }
     // SSL
     if (sslContext != null) {
-      SSLEngine sslEngine = sslContext.createSSLEngine();
-      sslEngine.setUseClientMode(false);
-      SslHandler sslHandler = new SslHandler(sslEngine);
-      //sslHandler.setIssueHandshake(true);
-      pipeline.addLast(SSL_HANDLER, sslHandler);
+      pipeline.addLast(SSL_HANDLER, sslContext.newHandler(ch.alloc()));
     }
 
     // HTTP
