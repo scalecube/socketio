@@ -184,6 +184,7 @@ public final class ServerConfiguration {
         ", eventExecutorEnabled=" + eventExecutorEnabled +
         ", eventExecutorThreadNumber=" + eventExecutorThreadNumber +
         ", maxWebSocketFrameSize=" + maxWebSocketFrameSize +
+        ", epollEnabled=" + epollEnabled +
         '}';
   }
 

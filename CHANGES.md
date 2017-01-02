@@ -3,6 +3,7 @@
 ## 2.3.1
 
 * Update slf4j-api to 1.7.22 and make it as optional dependency
+* Support epoll transport by default server bootstrap factory
 
 ## 2.3.0 / 2016-11-11
 
