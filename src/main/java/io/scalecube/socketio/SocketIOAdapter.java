@@ -26,14 +26,17 @@ public class SocketIOAdapter implements SocketIOListener {
 
   @Override
   public void onConnect(Session session) {
+    // Do nothing
   }
 
   @Override
   public void onMessage(Session session, ByteBuf message) {
+    // Do nothing
   }
 
   @Override
   public void onDisconnect(Session session) {
+    // Do nothing
   }
 
 }

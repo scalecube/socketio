@@ -1,5 +1,9 @@
 # Changes
 
+## 2.3.1
+
+* Update slf4j-api to 1.7.22 and make it as optional dependency
+
 ## 2.3.0 / 2016-11-11
 
 * Update Netty to 4.1.6.Final

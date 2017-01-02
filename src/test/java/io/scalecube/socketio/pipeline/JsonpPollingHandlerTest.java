@@ -12,6 +12,13 @@
  */
 package io.scalecube.socketio.pipeline;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import io.scalecube.socketio.TransportType;
+import io.scalecube.socketio.packets.ConnectPacket;
+import io.scalecube.socketio.packets.Packet;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -21,10 +28,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import io.scalecube.socketio.TransportType;
-import io.scalecube.socketio.packets.ConnectPacket;
-import io.scalecube.socketio.packets.Packet;
-import junit.framework.Assert;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,8 +51,8 @@ public class JsonpPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(Unpooled.EMPTY_BUFFER);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ByteBuf);
-    Assert.assertEquals(Unpooled.EMPTY_BUFFER, object);
+    assertTrue(object instanceof ByteBuf);
+    assertEquals(Unpooled.EMPTY_BUFFER, object);
     channel.finish();
   }
 
@@ -59,31 +64,33 @@ public class JsonpPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof HttpRequest);
-    Assert.assertEquals(request, object);
+    assertTrue(object instanceof HttpRequest);
+    assertEquals(request, object);
     channel.finish();
   }
 
   @Test
   public void testChannelReadConnect() throws Exception {
-    HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
+    HttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
     String origin = "http://localhost:8080";
     request.headers().add(HttpHeaderNames.ORIGIN, origin);
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ConnectPacket);
+    assertTrue(object instanceof ConnectPacket);
     ConnectPacket packet = (ConnectPacket) object;
-    Assert.assertEquals(TransportType.JSONP_POLLING, packet.getTransportType());
-    Assert.assertEquals(origin, packet.getOrigin());
+    assertEquals(TransportType.JSONP_POLLING, packet.getTransportType());
+    assertEquals(origin, packet.getOrigin());
     Assert.assertNull(packet.getRemoteAddress());
     channel.finish();
   }
 
   @Test
   public void testChannelReadConnectWithClientIpInHeader() throws Exception {
-    HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
+    HttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/socket.io/1/jsonp-polling");
     String origin = "http://localhost:8080";
     request.headers().add(HttpHeaderNames.ORIGIN, origin);
     request.headers().add(X_FORWARDED_FOR, "1.2.3.4");
@@ -92,28 +99,29 @@ public class JsonpPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ConnectPacket);
+    assertTrue(object instanceof ConnectPacket);
     ConnectPacket packet = (ConnectPacket) object;
-    Assert.assertEquals(TransportType.JSONP_POLLING, packet.getTransportType());
-    Assert.assertEquals(origin, packet.getOrigin());
-    Assert.assertEquals("/1.2.3.4:0", packet.getRemoteAddress().toString());
+    assertEquals(TransportType.JSONP_POLLING, packet.getTransportType());
+    assertEquals(origin, packet.getOrigin());
+    assertEquals("/1.2.3.4:0", packet.getRemoteAddress().toString());
     channel.finish();
   }
 
   @Test
   public void testChannelReadPacket() throws Exception {
     ByteBuf content = Unpooled.copiedBuffer("d=3:::{\"greetings\":\"Hello World!\"}", CharsetUtil.UTF_8);
-    HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/socket.io/1/jsonp-polling", content);
+    HttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/socket.io/1/jsonp-polling", content);
     String origin = "http://localhost:8080";
     request.headers().add(HttpHeaderNames.ORIGIN, origin);
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, jsonpPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof Packet);
+    assertTrue(object instanceof Packet);
     Packet packet = (Packet) object;
-    Assert.assertEquals(origin, packet.getOrigin());
-    Assert.assertEquals("{\"greetings\":\"Hello World!\"}", packet.getData().toString(CharsetUtil.UTF_8));
+    assertEquals(origin, packet.getOrigin());
+    assertEquals("{\"greetings\":\"Hello World!\"}", packet.getData().toString(CharsetUtil.UTF_8));
     channel.finish();
   }
 }

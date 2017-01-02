@@ -12,6 +12,12 @@
  */
 package io.scalecube.socketio.pipeline;
 
+import static org.junit.Assert.assertTrue;
+
+import io.scalecube.socketio.TransportType;
+import io.scalecube.socketio.packets.ConnectPacket;
+import io.scalecube.socketio.packets.Packet;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -21,10 +27,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import io.scalecube.socketio.TransportType;
-import io.scalecube.socketio.packets.ConnectPacket;
-import io.scalecube.socketio.packets.Packet;
-import junit.framework.Assert;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +51,7 @@ public class XHRPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
     channel.writeInbound(Unpooled.EMPTY_BUFFER);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ByteBuf);
+    assertTrue(object instanceof ByteBuf);
     Assert.assertEquals(Unpooled.EMPTY_BUFFER, object);
     channel.finish();
   }
@@ -60,7 +64,7 @@ public class XHRPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof HttpRequest);
+    assertTrue(object instanceof HttpRequest);
     Assert.assertEquals(request, object);
     channel.finish();
   }
@@ -74,7 +78,7 @@ public class XHRPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ConnectPacket);
+    assertTrue(object instanceof ConnectPacket);
     ConnectPacket packet = (ConnectPacket) object;
     Assert.assertEquals(TransportType.XHR_POLLING, packet.getTransportType());
     Assert.assertEquals(origin, packet.getOrigin());
@@ -93,7 +97,7 @@ public class XHRPollingHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ConnectPacket);
+    assertTrue(object instanceof ConnectPacket);
     ConnectPacket packet = (ConnectPacket) object;
     Assert.assertEquals(TransportType.XHR_POLLING, packet.getTransportType());
     Assert.assertEquals(origin, packet.getOrigin());
@@ -104,14 +108,15 @@ public class XHRPollingHandlerTest {
   @Test
   public void testChannelReadPacket() throws Exception {
     ByteBuf content = Unpooled.copiedBuffer("3:::{\"greetings\":\"Hello World!\"}", CharsetUtil.UTF_8);
-    HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/socket.io/1/xhr-polling", content);
+    HttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/socket.io/1/xhr-polling", content);
     String origin = "http://localhost:8080";
     request.headers().add(HttpHeaderNames.ORIGIN, origin);
     LastOutboundHandler lastOutboundHandler = new LastOutboundHandler();
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, xhrPollingHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof Packet);
+    assertTrue(object instanceof Packet);
     Packet packet = (Packet) object;
     Assert.assertEquals(origin, packet.getOrigin());
     Assert.assertEquals("{\"greetings\":\"Hello World!\"}", packet.getData().toString(CharsetUtil.UTF_8));

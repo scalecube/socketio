@@ -147,6 +147,7 @@ public abstract class AbstractSession implements ManagedSession {
 
   @Override
   public void acceptPacket(final Channel channel, final Packet packet) {
+    // Do nothing (for override)
   }
 
   public void markAsUpgraded() {

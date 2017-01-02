@@ -12,10 +12,8 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import junit.framework.Assert;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -28,6 +26,9 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
+
+import org.junit.Before;
+import org.junit.Test;
 
 
 public class HandshakeHandlerTest {
@@ -50,12 +51,12 @@ public class HandshakeHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, handshakeHandler);
     channel.writeInbound(request);
     Object outboundMessage = lastOutboundHandler.getOutboundMessages().poll();
-    Assert.assertTrue(outboundMessage instanceof FullHttpResponse);
+    assertTrue(outboundMessage instanceof FullHttpResponse);
     FullHttpResponse res = (FullHttpResponse) outboundMessage;
-    Assert.assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
-    Assert.assertEquals(HttpResponseStatus.OK, res.status());
+    assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
+    assertEquals(HttpResponseStatus.OK, res.status());
     ByteBuf content = res.content();
-    Assert.assertTrue(content.toString(CharsetUtil.UTF_8).endsWith("60:60:websocket,flashsocket,xhr-polling,jsonp-polling"));
+    assertTrue(content.toString(CharsetUtil.UTF_8).endsWith("60:60:websocket,flashsocket,xhr-polling,jsonp-polling"));
     channel.finish();
   }
 
@@ -67,10 +68,10 @@ public class HandshakeHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, handshakeHandler);
     channel.writeInbound(request);
     Object outboundMessage = lastOutboundHandler.getOutboundMessages().poll();
-    Assert.assertTrue(outboundMessage instanceof HttpResponse);
+    assertTrue(outboundMessage instanceof HttpResponse);
     HttpResponse res = (HttpResponse) outboundMessage;
-    Assert.assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
-    Assert.assertEquals(HttpResponseStatus.BAD_REQUEST, res.status());
+    assertEquals(HttpVersion.HTTP_1_1, res.protocolVersion());
+    assertEquals(HttpResponseStatus.BAD_REQUEST, res.status());
     channel.finish();
   }
 
@@ -81,8 +82,8 @@ public class HandshakeHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, handshakeHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof HttpRequest);
-    Assert.assertEquals(request, object);
+    assertTrue(object instanceof HttpRequest);
+    assertEquals(request, object);
     channel.finish();
   }
 
@@ -92,8 +93,8 @@ public class HandshakeHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, handshakeHandler);
     channel.writeInbound(Unpooled.EMPTY_BUFFER);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ByteBuf);
-    Assert.assertEquals(Unpooled.EMPTY_BUFFER, object);
+    assertTrue(object instanceof ByteBuf);
+    assertEquals(Unpooled.EMPTY_BUFFER, object);
     channel.finish();
   }
 }

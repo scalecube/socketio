@@ -12,18 +12,17 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import org.junit.Before;
-import org.junit.Test;
+import static io.netty.util.ReferenceCountUtil.releaseLater;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.CharsetUtil;
 
-import static io.netty.util.ReferenceCountUtil.releaseLater;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import org.junit.Before;
+import org.junit.Test;
 
 public class FlashPolicyHandlerTest {
 
@@ -31,11 +30,11 @@ public class FlashPolicyHandlerTest {
 
   private final String policyResponse = "<?xml version=\"1.0\"?>"
       + "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">" + "<cross-domain-policy> "
-      + "   <site-control permitted-cross-domain-policies=\"master-only\"/>" + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
+      + "   <site-control permitted-cross-domain-policies=\"master-only\"/>"
+      + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
       + "</cross-domain-policy>";
 
   private final ByteBuf policyRequestBuffer = Unpooled.copiedBuffer("<policy-file-request/>", CharsetUtil.UTF_8);
-
 
   @Before
   public void init() throws Exception {
@@ -74,7 +73,7 @@ public class FlashPolicyHandlerTest {
         "        \"greeting\": \"Hello, Kinney Warren! You have 5 unread messages.\"," +
         "        \"favoriteFruit\": \"banana\"}";
     channel.writeInbound(Unpooled.copiedBuffer(message, CharsetUtil.UTF_8));
-    ByteBuf byteBuf = (ByteBuf) channel.readInbound();
+    ByteBuf byteBuf = channel.readInbound();
     assertEquals(message, releaseLater(byteBuf).toString(CharsetUtil.UTF_8));
     channel.finish();
   }
