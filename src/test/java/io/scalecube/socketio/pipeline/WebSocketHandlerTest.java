@@ -12,10 +12,10 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
-import org.junit.Test;
+import io.scalecube.socketio.ServerConfiguration;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -24,7 +24,9 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.scalecube.socketio.ServerConfiguration;
+
+import org.junit.Before;
+import org.junit.Test;
 
 public class WebSocketHandlerTest {
 
@@ -45,8 +47,8 @@ public class WebSocketHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, webSocketHandler);
     channel.writeInbound(Unpooled.EMPTY_BUFFER);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof ByteBuf);
-    Assert.assertEquals(Unpooled.EMPTY_BUFFER, object);
+    assertTrue(object instanceof ByteBuf);
+    assertEquals(Unpooled.EMPTY_BUFFER, object);
     channel.finish();
   }
 
@@ -57,8 +59,8 @@ public class WebSocketHandlerTest {
     EmbeddedChannel channel = new EmbeddedChannel(lastOutboundHandler, webSocketHandler);
     channel.writeInbound(request);
     Object object = channel.readInbound();
-    Assert.assertTrue(object instanceof HttpRequest);
-    Assert.assertEquals(request, object);
+    assertTrue(object instanceof HttpRequest);
+    assertEquals(request, object);
     channel.finish();
   }
 

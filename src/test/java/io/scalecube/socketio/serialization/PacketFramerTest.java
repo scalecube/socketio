@@ -12,18 +12,19 @@
  */
 package io.scalecube.socketio.serialization;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+
+import io.scalecube.socketio.packets.Packet;
+import io.scalecube.socketio.packets.PacketType;
+import io.scalecube.socketio.packets.PacketsFrame;
+
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
-
-import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
-import io.scalecube.socketio.packets.Packet;
-import io.scalecube.socketio.packets.PacketType;
-import io.scalecube.socketio.packets.PacketsFrame;
 
 /**
  *
@@ -42,15 +43,16 @@ public class PacketFramerTest {
             "\ufffd3\ufffd2::";
 
     // When
-    List<Packet> packets = PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
+    List<Packet> packets =
+        PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
 
     // Then
-    Assert.assertEquals(4, packets.size());
-    Assert.assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
-    Assert.assertEquals(PacketType.DISCONNECT, packets.get(1).getType());
-    Assert.assertEquals(PacketType.MESSAGE, packets.get(2).getType());
-    Assert.assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
-    Assert.assertEquals(PacketType.HEARTBEAT, packets.get(3).getType());
+    assertEquals(4, packets.size());
+    assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
+    assertEquals(PacketType.DISCONNECT, packets.get(1).getType());
+    assertEquals(PacketType.MESSAGE, packets.get(2).getType());
+    assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
+    assertEquals(PacketType.HEARTBEAT, packets.get(3).getType());
   }
 
   @Test
@@ -62,15 +64,16 @@ public class PacketFramerTest {
             "\ufffd7\ufffd3:::53d";
 
     // When
-    List<Packet> packets = PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
+    List<Packet> packets =
+        PacketFramer.decodePacketsFrame(Unpooled.copiedBuffer(messagesFrame.getBytes(CharsetUtil.UTF_8)));
 
     // Then
-    Assert.assertEquals(3, packets.size());
-    Assert.assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
-    Assert.assertEquals(PacketType.MESSAGE, packets.get(1).getType());
-    Assert.assertEquals("{\"ID\":100, \"greetings\":\"Привет\"}", packets.get(1).getData().toString(CharsetUtil.UTF_8));
-    Assert.assertEquals(PacketType.MESSAGE, packets.get(2).getType());
-    Assert.assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
+    assertEquals(3, packets.size());
+    assertEquals(PacketType.DISCONNECT, packets.get(0).getType());
+    assertEquals(PacketType.MESSAGE, packets.get(1).getType());
+    assertEquals("{\"ID\":100, \"greetings\":\"Привет\"}", packets.get(1).getData().toString(CharsetUtil.UTF_8));
+    assertEquals(PacketType.MESSAGE, packets.get(2).getType());
+    assertEquals("53d", packets.get(2).getData().toString(CharsetUtil.UTF_8));
   }
 
   @Test
@@ -88,7 +91,7 @@ public class PacketFramerTest {
     String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
 
     // Then
-    Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result);
+    assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result);
   }
 
   @Test
@@ -103,7 +106,7 @@ public class PacketFramerTest {
     String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
 
     // Then
-    Assert.assertEquals("3:::5", result);
+    assertEquals("3:::5", result);
   }
 
   @Test
@@ -124,7 +127,8 @@ public class PacketFramerTest {
     String result = PacketFramer.encodePacketsFrame(packetsFrame).toString(CharsetUtil.UTF_8);
 
     // Then
-    Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d", result);
+    assertEquals("\ufffd5\ufffd3:::5\ufffd36\ufffd3:::{\"ID\":100, \"greetings\":\"Привет\"}\ufffd7\ufffd3:::53d",
+        result);
   }
 
 }
