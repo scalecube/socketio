@@ -116,8 +116,8 @@ Maven dependency:
 </dependency>
 ```
 
-Netty dependency is made optional in order to allow change of Netty's minor version.
-So following Netty 4.1.x modules should be added to your project with specified minor version, e.g.:
+All dependencies are made optional in order to allow change to compatible version used by your project.
+So following Netty 4.1.x and slf4j-api 1.7.x modules should be added to your project:
 
 ``` xml
 <dependency>
@@ -144,6 +144,22 @@ So following Netty 4.1.x modules should be added to your project with specified 
   <groupId>io.netty</groupId>
   <artifactId>netty-codec-http</artifactId>
   <version>4.1.6.Final</version>
+</dependency>
+<dependency>
+  <groupId>io.netty</groupId>
+  <artifactId>netty-transport</artifactId>
+  <version>4.1.6.Final</version>
+</dependency>
+<dependency>
+  <groupId>io.netty</groupId>
+  <artifactId>netty-transport-native-epoll</artifactId>
+  <version>4.1.6.Final</version>
+  <classifier>linux-x86_64</classifier>
+</dependency>
+<dependency>
+  <groupId>org.slf4j</groupId>
+  <artifactId>slf4j-api</artifactId>
+  <version>1.7.22</version>
 </dependency>
 ```
 
