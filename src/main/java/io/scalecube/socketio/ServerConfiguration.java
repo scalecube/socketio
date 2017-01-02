@@ -14,6 +14,10 @@ package io.scalecube.socketio;
 
 import javax.net.ssl.SSLContext;
 
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
+
 /**
  * Class represents different options of socket.io server
  */
@@ -33,7 +37,7 @@ public final class ServerConfiguration {
   public static final boolean DEFAULT_EVENT_EXECUTOR_ENABLED = true;
   public static final int DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER = Runtime.getRuntime().availableProcessors() * 2;
   public static final int DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE = 65536;
-  public static final SSLContext DEFAULT_SSL_CONTEXT = null;
+  public static final SslContext DEFAULT_SSL_CONTEXT = null;
   public static final boolean DEFAULT_EPOLL_ENABLED = true;
 
   private final int port;
@@ -46,7 +50,7 @@ public final class ServerConfiguration {
   private final boolean eventExecutorEnabled;
   private final int eventExecutorThreadNumber;
   private final int maxWebSocketFrameSize;
-  private final SSLContext sslContext;
+  private final SslContext sslContext;
   private final boolean epollEnabled;
 
   /**
@@ -82,7 +86,7 @@ public final class ServerConfiguration {
    * SSL context which is used to run secure socket. If it's set to null server runs without SSL.
    * Default value is null.
    */
-  public SSLContext getSslContext() {
+  public SslContext getSslContext() {
     return sslContext;
   }
 
@@ -200,7 +204,7 @@ public final class ServerConfiguration {
     private boolean eventExecutorEnabled = DEFAULT_EVENT_EXECUTOR_ENABLED;
     private int eventExecutorThreadNumber = DEFAULT_EVENT_EXECUTOR_THREAD_NUMBER;
     private int maxWebSocketFrameSize = DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE;
-    private SSLContext sslContext = DEFAULT_SSL_CONTEXT;
+    private SslContext sslContext = DEFAULT_SSL_CONTEXT;
     private boolean epollEnabled = DEFAULT_EPOLL_ENABLED;
 
     private Builder() {}
@@ -216,8 +220,18 @@ public final class ServerConfiguration {
     /**
      * See {@link ServerConfiguration#getSslContext()}
      */
-    public Builder sslContext(SSLContext sslContext) {
+    public Builder sslContext(SslContext sslContext) {
       this.sslContext = sslContext;
+      return this;
+    }
+
+    /**
+     * See {@link ServerConfiguration#getSslContext()}
+     */
+    public Builder sslContext(SSLContext sslContext) {
+      this.sslContext = sslContext != null
+          ? new JdkSslContext(sslContext, false, ClientAuth.NONE)
+          : null;
       return this;
     }
 

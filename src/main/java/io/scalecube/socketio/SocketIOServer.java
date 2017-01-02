@@ -13,6 +13,9 @@
 package io.scalecube.socketio;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import io.netty.util.HashedWheelTimer;
 import io.scalecube.socketio.pipeline.SocketIOChannelInitializer;
 import io.scalecube.socketio.session.SocketIOHeartbeatScheduler;
@@ -70,6 +73,14 @@ public final class SocketIOServer {
    * Creates instance of Socket.IO server with the given secure port.
    */
   public static SocketIOServer newInstance(int port, SSLContext sslContext) {
+    SslContext nettySslContext = new JdkSslContext(sslContext, false, ClientAuth.NONE);
+    return newInstance(port, nettySslContext);
+  }
+
+  /**
+   * Creates instance of Socket.IO server with the given secure port.
+   */
+  public static SocketIOServer newInstance(int port, SslContext sslContext) {
     return new SocketIOServer(ServerConfiguration.builder()
         .port(port)
         .sslContext(sslContext)

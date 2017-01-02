@@ -78,8 +78,8 @@ Since the popular use case are proxy-like applications it allows to resend recei
 If byte buffer will be sent to another Netty channel it will be released automatically, otherwise it is required 
 to manually release buffer.
 
-To start Socket.IO server with SSL/TLS support you need to provide [SSLContext](https://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html) 
-in server config:
+To start Socket.IO server with SSL/TLS support you need to provide in server config either JDK's [SSLContext](https://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html)
+or Netty's [SslContext](https://netty.io/4.1/api/io/netty/handler/ssl/SslContext.html) which may be backed by OpenSSL implementation:
 
 ``` java
 // Server config
