@@ -78,7 +78,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
           if (content.startsWith("d=")) {
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(content, CharsetUtil.UTF_8, false);
             content = PipelineUtils.extractParameter(queryStringDecoder, "d");
-            content = preprocessJsonpContent(content);
+            content = prepareJsonpContent(content);
             ByteBuf buf = PipelineUtils.copiedBuffer(ctx.alloc(), content);
             List<Packet> packets = PacketFramer.decodePacketsFrame(buf);
             buf.release();
@@ -102,7 +102,7 @@ public class JsonpPollingHandler extends ChannelInboundHandlerAdapter {
     super.channelRead(ctx, msg);
   }
 
-  private String preprocessJsonpContent(String content) {
+  private String prepareJsonpContent(String content) {
     if (content.startsWith("\"")) {
       content = content.substring(1);
     }

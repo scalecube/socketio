@@ -20,10 +20,7 @@ import io.scalecube.socketio.packets.PacketsFrame;
 
 public class PollingQueue {
 
-  private final ConcurrentLinkedQueue<Packet> packetQueue = new ConcurrentLinkedQueue<Packet>();
-
-  public PollingQueue() {
-  }
+  private final ConcurrentLinkedQueue<Packet> packetQueue = new ConcurrentLinkedQueue<>();
 
   public PacketsFrame takeAll() {
     PacketsFrame frame = new PacketsFrame();

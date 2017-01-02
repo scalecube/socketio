@@ -59,9 +59,6 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
   private final Map<String, URL> resources = new HashMap<>();
 
-  public ResourceHandler() {
-  }
-
   public void addResource(String pathPart, String resourcePath) {
     URL resUrl = getClass().getResource(resourcePath);
     if (resUrl == null) {

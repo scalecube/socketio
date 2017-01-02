@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.netty.util.HashedWheelTimer;
 
-
 public class SocketIOHeartbeatSchedulerTest {
 
   private HashedWheelTimer timer;

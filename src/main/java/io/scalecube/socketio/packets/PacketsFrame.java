@@ -20,9 +20,6 @@ public class PacketsFrame extends AbstractPacket {
 
   private List<Packet> packets = new LinkedList<>();
 
-  public PacketsFrame() {
-  }
-
   public List<Packet> getPackets() {
     return packets;
   }
