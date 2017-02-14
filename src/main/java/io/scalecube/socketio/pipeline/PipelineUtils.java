@@ -100,22 +100,21 @@ final class PipelineUtils {
     return buffer;
   }
 
-  public static SocketAddress getHeaderClientIPParamValue(HttpMessage message, String paramName) {
-
-    SocketAddress result = null;
-
-    if (paramName != null && !paramName.trim().isEmpty()) {
+  public static SocketAddress resolveClientIpByRemoteAddressHeader(HttpMessage message, String headerName) {
+    SocketAddress clientIp = null;
+    if (headerName != null && !headerName.trim().isEmpty()) {
       String ip = null;
       try {
-        ip = message.headers().get(paramName);
+        ip = message.headers().get(headerName);
         if (ip != null) {
-          result = new InetSocketAddress(InetAddress.getByName(ip), 0);
+          ip = ip.split(",")[0]; // to handle multiple proxies case (e.g. X-Forwarded-For: client, proxy1, proxy2)
+          clientIp = new InetSocketAddress(InetAddress.getByName(ip), 0);
         }
       } catch (Exception e) {
-        log.warn("Failed to parse IP address: {} from http header: {}", ip, paramName);
+        log.warn("Failed to parse IP address: {} from http header: {}", ip, headerName);
       }
     }
-    return result;
+    return clientIp;
   }
 
 }

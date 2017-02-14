@@ -137,7 +137,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   private void connect(ChannelHandlerContext ctx, HttpRequest req, String sessionId) throws Exception {
     sessionIdByChannel.put(ctx.channel(), sessionId);
 
-    SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, remoteAddressHeader);
+    SocketAddress clientIp = PipelineUtils.resolveClientIpByRemoteAddressHeader(req, remoteAddressHeader);
 
     final ConnectPacket packet = new ConnectPacket(sessionId, PipelineUtils.getOrigin(req));
     packet.setTransportType(getTransportType());
