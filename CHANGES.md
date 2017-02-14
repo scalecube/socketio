@@ -1,5 +1,9 @@
 # Changes
 
+## 2.3.2 / 2017-02-14
+
+* Resolve client IP by header value if client is behind several proxies
+
 ## 2.3.1 / 2017-01-03
 
 * Update slf4j-api to 1.7.22 and make it as optional dependency
