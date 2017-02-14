@@ -106,8 +106,8 @@ final class PipelineUtils {
       String ip = null;
       try {
         ip = message.headers().get(headerName);
-        ip = ip.split(",")[0]; // to handle multiple proxies case (e.g. X-Forwarded-For: client, proxy1, proxy2)
         if (ip != null) {
+          ip = ip.split(",")[0]; // to handle multiple proxies case (e.g. X-Forwarded-For: client, proxy1, proxy2)
           clientIp = new InetSocketAddress(InetAddress.getByName(ip), 0);
         }
       } catch (Exception e) {
