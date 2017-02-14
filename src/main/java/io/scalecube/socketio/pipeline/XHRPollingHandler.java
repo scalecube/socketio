@@ -59,7 +59,7 @@ public class XHRPollingHandler extends ChannelInboundHandlerAdapter {
         final String origin = PipelineUtils.getOrigin(req);
 
         if (HttpMethod.GET.equals(requestMethod)) {
-          SocketAddress clientIp = PipelineUtils.getHeaderClientIPParamValue(req, remoteAddressHeader);
+          SocketAddress clientIp = PipelineUtils.resolveClientIpByRemoteAddressHeader(req, remoteAddressHeader);
 
           // Process polling request from client
           final ConnectPacket packet = new ConnectPacket(sessionId, origin);
