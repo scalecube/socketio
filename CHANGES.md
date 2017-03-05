@@ -1,5 +1,9 @@
 # Changes
 
+## 2.3.3 / 2017-03-05
+
+* Fix IllegalArgumentException when eventExecutorThreadNumber property set to zero (default value)
+
 ## 2.3.2 / 2017-02-14
 
 * Resolve client IP by header value if client is behind several proxies
