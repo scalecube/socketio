@@ -106,7 +106,10 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
 
     packetDispatcherHandler = new PacketDispatcherHandler(sessionFactory, listener);
     if (serverConfiguration.isEventExecutorEnabled()) {
-      eventExecutorGroup = new DefaultEventExecutorGroup(serverConfiguration.getEventExecutorThreadNumber());
+      int nThreads = serverConfiguration.getEventExecutorThreadNumber() > 0
+          ? serverConfiguration.getEventExecutorThreadNumber()
+          : Runtime.getRuntime().availableProcessors() * 2;
+      eventExecutorGroup = new DefaultEventExecutorGroup(nThreads);
     } else {
       eventExecutorGroup = null;
     }
