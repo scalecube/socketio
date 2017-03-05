@@ -4,7 +4,7 @@
 
     <groupId>io.scalecube</groupId>
     <artifactId>socketio</artifactId>
-    <version>2.3.3</version>
+    <version>2.3.4-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Socket.IO Java server based on Netty</description>
@@ -23,7 +23,7 @@
         <connection>scm:git:git@github.com:scalecube/socketio.git</connection>
         <developerConnection>scm:git:git@github.com:scalecube/socketio.git</developerConnection>
         <url>scm:git:git@github.com:scalecube/socketio.git</url>
-        <tag>v2.3.3</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
