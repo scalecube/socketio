@@ -12,7 +12,6 @@
  */
 package io.scalecube.socketio.pipeline;
 
-import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
