@@ -12,6 +12,7 @@
  */
 package io.scalecube.socketio.pipeline;
 
+import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -22,11 +23,13 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.ReferenceCountUtil;
@@ -107,17 +110,23 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void handshake(final ChannelHandlerContext ctx, final FullHttpRequest req, final String requestPath) {
-    WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-        getWebSocketLocation(req), null, false, maxWebSocketFrameSize);
+    WebSocketServerHandshakerFactory wsFactory =
+        new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, true, maxWebSocketFrameSize);
     WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
     if (handshaker != null) {
       handshaker.handshake(ctx.channel(), req).addListener(
           new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
+              final String sessionId = PipelineUtils.getSessionId(requestPath);
               if (future.isSuccess()) {
-                final String sessionId = PipelineUtils.getSessionId(requestPath);
+                ctx.channel().pipeline().addBefore(
+                    SocketIOChannelInitializer.SOCKETIO_WEBSOCKET_HANDLER,
+                    SocketIOChannelInitializer.WEBSOCKET_FRAME_AGGREGATOR,
+                    new WebSocketFrameAggregator(maxWebSocketFrameSize));
                 connect(ctx, req, sessionId);
+              } else {
+                log.error("Can't handshake: {}", sessionId, future.cause());
               }
             }
           });
@@ -154,23 +163,19 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
       sessionIdByChannel.remove(ctx.channel());
       ChannelFuture f = ctx.writeAndFlush(msg);
       f.addListener(ChannelFutureListener.CLOSE);
-      return;
     } else if (msg instanceof PingWebSocketFrame) {
       ctx.writeAndFlush(new PongWebSocketFrame(msg.content()));
-      return;
-    } else if (!(msg instanceof TextWebSocketFrame)) {
+    } else if (msg instanceof TextWebSocketFrame || msg instanceof BinaryWebSocketFrame){
+      Packet packet = PacketDecoder.decodePacket(msg.content());
+      packet.setTransportType(getTransportType());
+      String sessionId = sessionIdByChannel.get(ctx.channel());
+      packet.setSessionId(sessionId);
       msg.release();
-      log.warn(String.format("%s frame types not supported", msg.getClass().getName()));
-      return;
+      ctx.fireChannelRead(packet);
+    } else {
+      msg.release();
+      log.warn("{} frame type is not supported", msg.getClass().getName());
     }
-
-    TextWebSocketFrame frame = (TextWebSocketFrame) msg;
-    Packet packet = PacketDecoder.decodePacket(frame.content());
-    packet.setTransportType(getTransportType());
-    String sessionId = sessionIdByChannel.get(ctx.channel());
-    packet.setSessionId(sessionId);
-    msg.release();
-    ctx.fireChannelRead(packet);
   }
 
 }

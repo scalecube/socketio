@@ -39,6 +39,8 @@ public final class ServerConfiguration {
   public static final int DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE = 65536;
   public static final SslContext DEFAULT_SSL_CONTEXT = null;
   public static final boolean DEFAULT_EPOLL_ENABLED = true;
+  public static final boolean DEFAULT_HTTP_COMPRESSION_ENABLED = false;
+  public static final boolean DEFAULT_WEBSOCKET_COMPRESSION_ENABLED = false;
 
   private final int port;
   private final int heartbeatTimeout;
@@ -52,6 +54,8 @@ public final class ServerConfiguration {
   private final int maxWebSocketFrameSize;
   private final SslContext sslContext;
   private final boolean epollEnabled;
+  private final boolean httpCompressionEnabled;
+  private final boolean websocketCompressionEnabled;
 
   /**
    * Private constructor. Use {@link ServerConfiguration.Builder} to build configuration.
@@ -69,6 +73,8 @@ public final class ServerConfiguration {
     this.maxWebSocketFrameSize = builder.maxWebSocketFrameSize;
     this.sslContext = builder.sslContext;
     this.epollEnabled = builder.epollEnabled;
+    this.httpCompressionEnabled = builder.httpCompressionEnabled;
+    this.websocketCompressionEnabled = builder.websocketCompressionEnabled;
   }
 
   public static Builder builder() {
@@ -175,6 +181,20 @@ public final class ServerConfiguration {
     return epollEnabled;
   }
 
+  /**
+   * Flag which defines if HTTP compression is enabled. Default is false.
+   */
+  public boolean isHttpCompressionEnabled() {
+    return httpCompressionEnabled;
+  }
+
+  /**
+   * Flag which defines if websocket compression is enabled. Default is false.
+   */
+  public boolean isWebsocketCompressionEnabled() {
+    return websocketCompressionEnabled;
+  }
+
   @Override
   public String toString() {
     return "ServerConfiguration{port=" + port +
@@ -189,6 +209,8 @@ public final class ServerConfiguration {
         ", eventExecutorThreadNumber=" + eventExecutorThreadNumber +
         ", maxWebSocketFrameSize=" + maxWebSocketFrameSize +
         ", epollEnabled=" + epollEnabled +
+        ", httpCompressionEnabled=" + httpCompressionEnabled +
+        ", websocketCompressionEnabled=" + websocketCompressionEnabled +
         '}';
   }
 
@@ -206,6 +228,8 @@ public final class ServerConfiguration {
     private int maxWebSocketFrameSize = DEFAULT_MAX_WEB_SOCKET_FRAME_SIZE;
     private SslContext sslContext = DEFAULT_SSL_CONTEXT;
     private boolean epollEnabled = DEFAULT_EPOLL_ENABLED;
+    private boolean httpCompressionEnabled = DEFAULT_HTTP_COMPRESSION_ENABLED;
+    private boolean websocketCompressionEnabled = DEFAULT_WEBSOCKET_COMPRESSION_ENABLED;
 
     private Builder() {}
 
@@ -312,6 +336,22 @@ public final class ServerConfiguration {
      */
     public Builder epollEnabled(boolean epollEnabled) {
       this.epollEnabled = epollEnabled;
+      return this;
+    }
+
+    /**
+     * See {@link ServerConfiguration#isHttpCompressionEnabled()}
+     */
+    public Builder httpCompressionEnabled(boolean httpCompressionEnabled) {
+      this.httpCompressionEnabled = httpCompressionEnabled;
+      return this;
+    }
+
+    /**
+     * See {@link ServerConfiguration#isWebsocketCompressionEnabled()}
+     */
+    public Builder websocketCompressionEnabled(boolean websocketCompressionEnabled) {
+      this.websocketCompressionEnabled = websocketCompressionEnabled;
       return this;
     }
 

@@ -229,6 +229,14 @@ So following or compatible versions of Netty 4.1.x and slf4j-api 1.7.x modules s
 
   Flag which defines if Linux native [epoll](https://en.wikipedia.org/wiki/Epoll) transport will be used 
   if available. Default is `true`.
+  
+- *httpCompressionEnabled*
+
+  Flag which defines if HTTP compression is enabled. Default is `false`.
+  
+- *websocketCompressionEnabled*
+
+  Flag which defines if websocket compression is enabled. Default is `false`.
 
 ## Bugs and Feedback
 
