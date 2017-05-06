@@ -1,6 +1,6 @@
 # Changes
 
-## 2.3.4
+## 2.3.4 / 2017-05-06
 
 * HTTP and WebSocket compression support
 
