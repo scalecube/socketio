@@ -15,9 +15,11 @@ package io.scalecube.socketio.pipeline;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
@@ -35,6 +37,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   public static final String HTTP_RESPONSE_ENCODER = "http-response-encoder";
   public static final String HTTP_REQUEST_DECODER = "http-request-decoder";
   public static final String HTTP_CHUNK_AGGREGATOR = "http-chunk-aggregator";
+  public static final String HTTP_COMPRESSION = "http-compression";
+  public static final String WEBSOCKET_COMPRESSION = "websocket-compression";
+  public static final String WEBSOCKET_FRAME_AGGREGATOR = "websocket-frame-aggregator";
   public static final String FLASH_RESOURCE_HANDLER = "flash-resource-handler";
   public static final String SOCKETIO_PACKET_ENCODER = "socketio-packet-encoder";
   public static final String SOCKETIO_HANDSHAKE_HANDLER = "socketio-handshake-handler";
@@ -71,6 +76,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
   private final SslContext sslContext;
   private final boolean isFlashSupported;
   private final boolean isJsonpSupported;
+  private final boolean isHttpCompressionEnabled;
+  private final boolean isWebsocketCompressionEnabled;
 
   private final PipelineModifier pipelineModifier;
 
@@ -82,6 +89,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     final SessionStorage sessionFactory = new SessionStorage(serverConfiguration.getPort());
     isFlashSupported = serverConfiguration.getTransports().contains(TransportType.FLASHSOCKET.getName());
     isJsonpSupported = serverConfiguration.getTransports().contains(TransportType.JSONP_POLLING.getName());
+
+    isWebsocketCompressionEnabled = serverConfiguration.isWebsocketCompressionEnabled();
+    isHttpCompressionEnabled = serverConfiguration.isHttpCompressionEnabled();
 
     // Initialize sharable handlers
     flashPolicyHandler = new FlashPolicyHandler();
@@ -132,6 +142,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
     pipeline.addLast(HTTP_CHUNK_AGGREGATOR, new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH));
     pipeline.addLast(HTTP_RESPONSE_ENCODER, new HttpResponseEncoder());
+    if (isHttpCompressionEnabled) {
+      pipeline.addLast(HTTP_COMPRESSION, new HttpContentCompressor());
+    }
 
     // Flash resources
     if (isFlashSupported) {
@@ -142,6 +155,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer {
     pipeline.addLast(SOCKETIO_PACKET_ENCODER, packetEncoderHandler);
     pipeline.addLast(SOCKETIO_HANDSHAKE_HANDLER, handshakeHandler);
     pipeline.addLast(SOCKETIO_DISCONNECT_HANDLER, disconnectHandler);
+    if (isWebsocketCompressionEnabled) {
+      pipeline.addLast(WEBSOCKET_COMPRESSION, new WebSocketServerCompressionHandler());
+    }
     pipeline.addLast(SOCKETIO_WEBSOCKET_HANDLER, webSocketHandler);
     if (isFlashSupported) {
       pipeline.addLast(SOCKETIO_FLASHSOCKET_HANDLER, flashSocketHandler);

@@ -1,5 +1,9 @@
 # Changes
 
+## 2.3.4
+
+* HTTP and WebSocket compression support
+
 ## 2.3.3 / 2017-03-05
 
 * Fix IllegalArgumentException when eventExecutorThreadNumber property set to zero (default value)
