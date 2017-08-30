@@ -7,8 +7,7 @@
 ScaleCube Socket.IO is a lightweight implementation of [Socket.IO](http://socket.io) Java server based on 
 [Netty](http://netty.io) framework. It implements subset of Socket.IO protocol and optimized for high throughput 
 and low latency real-time messaging. It is designed to support requirements of most demanding modern applications 
-such as online gaming, financial trading, social and advertising platforms. Supports 0.7+ up to 0.9.16 versions of 
-[Socket.IO-client](https://github.com/socketio/socket.io-client/tree/0.9). 
+such as online gaming, financial trading, social and advertising platforms.
 
 Socket.IO protocol provides WebSocket transport with fallback options to other transports such as XHR-Polling 
 in case if client does not support or unable to establish WebSocket connection (e.g. due to proxy or firewall 
@@ -25,6 +24,9 @@ Supported transport protocols:
 * Flash Socket
 * XHR-Polling
 * JSONP-Polling
+
+Supports 0.7+ up to 0.9.16 versions of 
+[Socket.IO-client](https://github.com/socketio/socket.io-client/tree/0.9).
 
 ## Performance
 
