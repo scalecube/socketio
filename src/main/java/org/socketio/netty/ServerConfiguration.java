@@ -27,7 +27,6 @@ public class ServerConfiguration {
     private static final int DEFAULT_HEARTBEAT_INTERVAL = 25;
     private static final int DEFAULT_CLOSE_TIMEOUT = 60;
 
-
     private int port = DEFAULT_PORT;
     private int heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
     private int heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
@@ -38,46 +37,39 @@ public class ServerConfiguration {
     private boolean eventExecutorEnabled = true;
     private int eventWorkersNumber = Runtime.getRuntime().availableProcessors();
 
-
-    /**
-     * Private constructor. Use {@link org.socketio.netty.ServerConfiguration.Builder} to build configuration.
-     */
-    ServerConfiguration() {
-    }
-
-    void setPort(int port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
-    void setHeartbeatTimeout(int heartbeatTimeout) {
+    public void setHeartbeatTimeout(int heartbeatTimeout) {
         this.heartbeatTimeout = heartbeatTimeout;
     }
 
-    void setHeartbeatInterval(int heartbeatInterval) {
+    public void setHeartbeatInterval(int heartbeatInterval) {
         this.heartbeatInterval = heartbeatInterval;
     }
 
-    void setCloseTimeout(int closeTimeout) {
+    public void setCloseTimeout(int closeTimeout) {
         this.closeTimeout = closeTimeout;
     }
 
-    void setTransports(String transports) {
+    public void setTransports(String transports) {
         this.transports = transports;
     }
 
-    void setAlwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
+    public void setAlwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
         this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
     }
 
-    void setHeaderClientIpAddressName(String headerClientIpAddressName) {
+    public void setHeaderClientIpAddressName(String headerClientIpAddressName) {
         this.headerClientIpAddressName = headerClientIpAddressName;
     }
 
-    void setEventExecutorEnabled(boolean eventExecutorEnabled) {
+    public void setEventExecutorEnabled(boolean eventExecutorEnabled) {
         this.eventExecutorEnabled = eventExecutorEnabled;
     }
 
-    void setEventWorkersNumber(int eventWorkersNumber) {
+    public void setEventWorkersNumber(int eventWorkersNumber) {
         this.eventWorkersNumber = eventWorkersNumber;
     }
 
@@ -137,8 +129,6 @@ public class ServerConfiguration {
     public int getEventWorkersNumber() {
         return eventWorkersNumber;
     }
-
-
 
     public boolean isEventExecutorEnabled() {
         return eventExecutorEnabled;
