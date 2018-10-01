@@ -1,5 +1,8 @@
 Changes
 =======================
+1.0.17.1 / 2018-10-01
+-----------------------
+* Resolve client IP by header value if client is behind many proxies
 
 1.0.17 / 2014-06-23
 -----------------------
