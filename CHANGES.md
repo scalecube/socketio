@@ -4,6 +4,7 @@ Changes
 1.0.30 / 2018-10-01
 -----------------------
 * Add public constructor for ServerConfiguration.
+* Resolve client IP by header value if client is behind many proxies
 
 1.0.20 / 2014-11-07
 -----------------------

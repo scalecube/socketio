@@ -111,6 +111,7 @@ final class PipelineUtils {
 			try {
 				ip = HttpHeaders.getHeader(message, paramName);
 				if (ip != null) {
+					ip = ip.split(",")[0]; // to handle multiple proxies case (e.g. X-Forwarded-For: client, proxy1, proxy2)
 					result = new InetSocketAddress(InetAddress.getByName(ip), 0);
 				}
 			} catch (Exception e) {
