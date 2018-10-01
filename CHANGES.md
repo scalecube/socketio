@@ -1,6 +1,10 @@
 Changes
 =======================
 
+1.0.30 / 2018-10-01
+-----------------------
+* Add public constructor for ServerConfiguration.
+
 1.0.20 / 2014-11-07
 -----------------------
 * Update Netty to version 4.0.24
