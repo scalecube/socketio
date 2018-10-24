@@ -1,5 +1,9 @@
 Changes
 =======================
+1.0.17.2 / 2018-10-24
+-----------------------
+* Fix wrong Socket.IO packet bug
+
 1.0.17.1 / 2018-10-01
 -----------------------
 * Resolve client IP by header value if client is behind many proxies

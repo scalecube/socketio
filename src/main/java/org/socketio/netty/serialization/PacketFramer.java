@@ -95,6 +95,9 @@ public final class PacketFramer {
 		int sequenceNumber = 0;
 		while (buffer.isReadable()) {
 			Packet packet = PacketFramer.decodeNextPacket(buffer);
+			if (packet == Packet.NULL_INSTANCE) {
+				break;
+			}
 			packet.setSequenceNumber(sequenceNumber);
 			sequenceNumber++;
 			packets.add(packet);
