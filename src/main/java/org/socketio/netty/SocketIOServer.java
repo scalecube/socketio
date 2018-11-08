@@ -70,6 +70,10 @@ public class SocketIOServer {
 
 	private String headerClientIpAddressName;
 	
+	private boolean epollEnabled = true;
+	
+	private ServerBootstrapFactory serverBootstrapFactory;
+	
 	/**
 	 * Creates Socket.IO server with default settings.
 	 */
@@ -94,6 +98,13 @@ public class SocketIOServer {
 		SocketIOHeartbeatScheduler.setScheduledExecutorService(heartbeatScheduller);
 		SocketIOHeartbeatScheduler.setHeartbeatInterval(getHeartbeatInterval());
 
+        
+	    // Configure and bind server
+	    ServerBootstrapFactory bootstrapFactory = serverBootstrapFactory != null
+	        ? serverBootstrapFactory
+	        : new DefaultServerBootstrapFactory(epollEnabled);
+	    bootstrap = bootstrapFactory.createServerBootstrap();
+	    
 		// Configure server
         SocketIOChannelInitializer channelInitializer = new SocketIOChannelInitializer(
                 listener,
@@ -104,15 +115,10 @@ public class SocketIOServer {
                 alwaysSecureWebSocketLocation,
                 port,
                 headerClientIpAddressName);
-		bootstrap = new ServerBootstrap()
-                .group(new NioEventLoopGroup(), new NioEventLoopGroup())
-                .channel(NioServerSocketChannel.class)
-				.childHandler(channelInitializer)
-                .childOption(ChannelOption.TCP_NODELAY, true);
-
-		int port = getPort();
-		bootstrap.bind(new InetSocketAddress(port));
-
+        
+	    bootstrap.childHandler(channelInitializer);
+	    bootstrap.bind(getPort()).syncUninterruptibly();
+	    
 		log.info("Started {}", this);
 
 		state = State.STARTED;
@@ -285,6 +291,14 @@ public class SocketIOServer {
 	public void setAlwaysSecureWebSocketLocation(boolean alwaysSecureWebSocketLocation) {
 		this.alwaysSecureWebSocketLocation = alwaysSecureWebSocketLocation;
 	}
+	
+	public boolean isEpollEnabled() {
+		return epollEnabled;
+	}
+
+	public void setEpollEnabled(boolean epollEnabled) {
+		this.epollEnabled = epollEnabled;
+	}
 
 	/**
 	 * @return the headerClientIpAddressName
@@ -322,6 +336,8 @@ public class SocketIOServer {
 		builder.append(sslContext != null);
 		builder.append(", alwaysSecureWebSocketLocation=");
 		builder.append(alwaysSecureWebSocketLocation);
+		builder.append(", epollEnabled=");
+		builder.append(epollEnabled);
 		builder.append(", headerClientIpAddressName=");
 		builder.append(headerClientIpAddressName);
 		builder.append("]");
